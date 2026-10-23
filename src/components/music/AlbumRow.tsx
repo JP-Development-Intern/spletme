@@ -159,7 +159,6 @@ export function AlbumRow({
             )}
           </div>
         )}
-
         {/* Acciones */}
         <div className="flex items-center justify-end gap-1.5">
           <button
@@ -293,7 +292,6 @@ function TrackRow({
 
       {/* Celda vacía: mantiene las pistas alineadas con la columna de permisos */}
       {grid === ALBUMS_GRID_WITH_PERMISSIONS && <div className={ALBUM_PERMISSIONS_COLUMN.visibility} />}
-
       <div className="flex items-center justify-end">
         <Link
           to={`/panel/song/${track._id}`}

@@ -275,7 +275,6 @@ export default function Song() {
               )}
             </>
           }
-<<<<<<< HEAD
           highlightLabel={isOwnerUser ? "TOTAL A PAGAR" : hasIncomeAccess ? "TU PARTE" : undefined}
           highlightValue={
             isOwnerUser
@@ -284,12 +283,7 @@ export default function Song() {
                 ? formatCurrency(myAmount)
                 : undefined
           }
-          highlightColor={isOwnerUser ? "#1C1D22" : "#2FB37E"}
-=======
-          highlightLabel={isOwnerUser ? "TOTAL A PAGAR" : "TU PARTE"}
-          highlightValue={formatCurrency(isOwnerUser ? totalToPay : myAmount)}
           highlightColor={isOwnerUser ? "#FFFFFF" : "#45D39A"}
->>>>>>> 3f8064f (s)
           actions={
             isOwnerUser ? (
               <button

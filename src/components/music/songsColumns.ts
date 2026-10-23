@@ -16,7 +16,6 @@ export const SONGS_GRID =
   "grid items-center gap-3.5 grid-cols-[minmax(0,1fr)_120px_108px] " +
   "md:grid-cols-[minmax(0,1fr)_104px_120px_108px] " +
   "lg:grid-cols-[minmax(0,1fr)_112px_104px_120px_124px_120px_72px_148px]";
-
 /**
  * Rejilla con la columna de permisos, que solo existe para el dueño. Es la misma
  * que `SONGS_GRID` con una celda más antes de las acciones, y solo en `lg`: por

@@ -83,6 +83,10 @@ export function AlbumCard({ album, onOwnerSplit }: AlbumCardProps) {
               {formatCurrency(album.totalNetIncome ?? 0)}
             </span>
           </span>
+          <SongLabelsBadge labels={getAlbumLabels(album)} noun="álbum" />
+          <span className="font-mono text-[12px] font-semibold text-[#2FB37E]">
+            {formatCurrency(album.totalNetIncome ?? 0)}
+          </span>
         </div>
 
         <SongLabelsBadge labels={getAlbumLabels(album)} noun="álbum" />
