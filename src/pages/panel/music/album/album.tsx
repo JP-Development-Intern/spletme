@@ -4,6 +4,8 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Music2, Disc3, Clock, Users, AlertCircle } from "lucide-react";
 import { SpotifyService } from "../../../../services/spotify";
 import Loading from "../../../../components/loading/loading";
+import { SongLabelsBadge } from "@/components/music/SongLabelsBadge";
+import { getSongLabels, songLabelCount } from "@/utils/music.utils";
 
 const Album = () => {
   const { id } = useParams<{ id: string }>();
@@ -200,6 +202,9 @@ const Album = () => {
                 <th className="hidden px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 md:table-cell">
                   Tipo
                 </th>
+                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Sellos
+                </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
                   Duración
                 </th>
@@ -237,6 +242,11 @@ const Album = () => {
                     <span className="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">
                       {track.type || "track"}
                     </span>
+                  </td>
+
+                  {/* Labels */}
+                  <td className="px-4 py-4 text-center">
+                    <SongLabelsBadge labels={getSongLabels(track)} count={songLabelCount(track)} />
                   </td>
 
                   {/* Duration */}

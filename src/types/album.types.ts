@@ -20,6 +20,12 @@ export interface AlbumTrack {
    * que espera el endpoint de splits para identificar al participante.
    */
   collaborators?: { _id?: string; id?: string; name?: string; image?: string }[];
+  /** Sellos a los que pertenece la pista, tal como los envía el listado. */
+  labels?: unknown[];
+  customLabels?: unknown[];
+  labelNames?: unknown[];
+  otherLabels?: unknown[];
+  labelCount?: number;
 }
 
 export interface Album {

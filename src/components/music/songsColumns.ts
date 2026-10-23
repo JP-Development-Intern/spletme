@@ -15,7 +15,7 @@ import type { SortBy } from "@/types/music.types";
 export const SONGS_GRID =
   "grid items-center gap-3.5 grid-cols-[minmax(0,1fr)_120px_108px] " +
   "md:grid-cols-[minmax(0,1fr)_104px_120px_108px] " +
-  "lg:grid-cols-[minmax(0,1fr)_112px_104px_120px_124px_120px_148px]";
+  "lg:grid-cols-[minmax(0,1fr)_112px_104px_120px_124px_120px_72px_148px]";
 
 export interface SongColumn {
   key: string;
@@ -41,6 +41,7 @@ export const SONG_COLUMNS: SongColumn[] = [
     visibility: "hidden lg:flex",
     sortKeys: ["percentage_desc", "percentage_asc"],
   },
+  { key: "labels", label: "SELLOS", visibility: "hidden lg:flex" },
 ];
 
 /** Criterios que ordenan de mayor a menor; el resto se dibujan ascendentes. */

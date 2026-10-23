@@ -22,7 +22,7 @@ import AlbumService from "@/services/albums";
 import SongService from "@/services/songs";
 import { accountingApi } from "@/services/accounting";
 import { formatCurrency, formatStreams } from "@/utils/format.utils";
-import { albumSplitCoverage, resolveIsOwner } from "@/utils/music.utils";
+import { albumSplitCoverage, resolveIsOwner, getSongLabels, songLabelCount } from "@/utils/music.utils";
 import { collaboratorColor } from "@/utils/collaborators.utils";
 import LocalStorageService from "@/services/localstorage";
 import {
@@ -35,6 +35,7 @@ import { DetailHeader } from "@/components/music/DetailHeader";
 import { DetailTabs, type DetailTab } from "@/components/music/DetailTabs";
 import { MoneyWaterfall } from "@/components/music/MoneyWaterfall";
 import { MyShareCard } from "@/components/music/MyShareCard";
+import { SongLabelsBadge } from "@/components/music/SongLabelsBadge";
 import { MetricConsole, type MetricChannel } from "@/components/ui/MetricConsole";
 import Loading from "@/components/loading/loading";
 import Platforms from "../song/components/platforms";
@@ -648,6 +649,10 @@ function TracksTable({
                       </span>
                     </span>
                   )}
+                </span>
+
+                <span className="w-[56px] flex-shrink-0">
+                  <SongLabelsBadge labels={getSongLabels(track)} count={songLabelCount(track)} />
                 </span>
 
                 <span className="hidden w-[100px] flex-shrink-0 items-center gap-1.5 md:flex">

@@ -10,7 +10,7 @@
 export const ALBUMS_GRID =
   "grid items-center gap-3.5 grid-cols-[minmax(0,1fr)_130px_120px] " +
   "md:grid-cols-[minmax(0,1fr)_190px_130px_120px] " +
-  "lg:grid-cols-[minmax(0,1fr)_84px_190px_104px_130px_120px]";
+  "lg:grid-cols-[minmax(0,1fr)_84px_190px_104px_130px_72px_120px]";
 
 export interface AlbumColumn {
   key: string;
@@ -24,4 +24,5 @@ export const ALBUM_COLUMNS: AlbumColumn[] = [
   { key: "coverage", label: "SPLIT ASIGNADO", visibility: "hidden md:flex" },
   { key: "streams", label: "STREAMS", visibility: "hidden lg:flex" },
   { key: "income", label: "INGRESOS", visibility: "flex" },
+  { key: "labels", label: "SELLOS", visibility: "hidden lg:flex" },
 ];

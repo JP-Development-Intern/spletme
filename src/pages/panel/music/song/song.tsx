@@ -18,7 +18,7 @@ import {
 import PaymentsService, { type PaymentReadiness } from "@/services/payments";
 import RoyaltiesService, { type RoyaltyRequest } from "@/services/royalties";
 import LocalStorageService from "@/services/localstorage";
-import { resolveIsOwner, describeSplitScope } from "@/utils/music.utils";
+import { resolveIsOwner, describeSplitScope, getSongLabels, songLabelCount } from "@/utils/music.utils";
 import useSong from "@/hooks/useSong";
 import useSongAlbums from "@/hooks/useSongAlbums";
 import { useSongMoney } from "@/hooks/useSongMoney";
@@ -29,6 +29,7 @@ import { DetailTabs, type DetailTab } from "@/components/music/DetailTabs";
 import { MoneyWaterfall } from "@/components/music/MoneyWaterfall";
 import { MyShareCard } from "@/components/music/MyShareCard";
 import { SongAlbumsChip } from "@/components/music/SongAlbumsChip";
+import { SongLabelsBadge } from "@/components/music/SongLabelsBadge";
 import { MetricConsole, type MetricChannel } from "@/components/ui/MetricConsole";
 import Loading from "@/components/loading/loading";
 import Table from "./components/table";
@@ -218,6 +219,7 @@ export default function Song() {
                 loading={songAlbums.loading}
                 fallbackUpc={song?.upc}
               />
+              <SongLabelsBadge labels={getSongLabels(song)} count={songLabelCount(song)} />
             </>
           }
           highlightLabel={isOwnerUser ? "TOTAL A PAGAR" : "TU PARTE"}

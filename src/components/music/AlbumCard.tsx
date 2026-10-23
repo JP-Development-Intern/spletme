@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { Disc3, Music, Play, CircleAlert, Crown } from "lucide-react";
 import { formatStreams, formatCurrency } from "@/utils/format.utils";
-import { albumSplitCoverage } from "@/utils/music.utils";
+import { albumSplitCoverage, getAlbumLabels } from "@/utils/music.utils";
 import { SplitCoverageBar } from "./SplitCoverageBar";
+import { SongLabelsBadge } from "./SongLabelsBadge";
 import type { AlbumItem } from "@/types/music.types";
 
 interface AlbumCardProps {
@@ -86,6 +87,7 @@ export function AlbumCard({ album, onOwnerSplit }: AlbumCardProps) {
               {formatStreams(album.totalStreams ?? 0)}
             </span>
           </span>
+          <SongLabelsBadge labels={getAlbumLabels(album)} noun="álbum" />
           <span className="font-mono text-[12px] font-semibold text-[#2FB37E]">
             {formatCurrency(album.totalNetIncome ?? 0)}
           </span>

@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, ChevronDown, Disc3, Play, Crown, Eye, Music } from "lucide-react";
 import { formatStreams, formatCurrency } from "@/utils/format.utils";
-import { albumSplitCoverage } from "@/utils/music.utils";
+import { albumSplitCoverage, getAlbumLabels, getSongLabels, songLabelCount } from "@/utils/music.utils";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { SplitCoverageBar } from "./SplitCoverageBar";
+import { SongLabelsBadge } from "./SongLabelsBadge";
 import { ALBUM_COLUMNS, ALBUMS_GRID } from "./albumsColumns";
 import type { AlbumItem } from "@/types/music.types";
 import type { AlbumTrack } from "@/types/album.types";
@@ -111,6 +112,11 @@ export function AlbumRow({ album, onOwnerSplit, previewTracks = 4 }: AlbumRowPro
           <span className="font-mono text-[13px] font-semibold text-[#2FB37E]">
             {formatCurrency(album.totalNetIncome ?? 0)}
           </span>
+        </div>
+
+        {/* Sellos */}
+        <div className={visibility("labels")}>
+          <SongLabelsBadge labels={getAlbumLabels(album)} noun="álbum" />
         </div>
 
         {/* Acciones */}
@@ -230,6 +236,10 @@ function TrackRow({ track, index, last }: { track: AlbumTrack; index: number; la
         <span className="font-mono text-[12px] font-semibold text-[#2FB37E]">
           {formatCurrency(track.totalNetIncome ?? 0)}
         </span>
+      </div>
+
+      <div className={visibility("labels")}>
+        <SongLabelsBadge labels={getSongLabels(track)} count={songLabelCount(track)} />
       </div>
 
       <div className="flex items-center justify-end">

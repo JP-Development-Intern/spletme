@@ -1,11 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Music, Play, Tag, ChevronRight, Eye, Crown } from "lucide-react";
-import { hasAnySplit, hasOwnerSplit } from "@/utils/music.utils";
+import { Music, Play, ChevronRight, Eye, Crown } from "lucide-react";
+import { hasAnySplit, hasOwnerSplit, getSongLabels, songLabelCount } from "@/utils/music.utils";
 import { viewerOwnsSong, viewerSplitPercentage, viewerAmount } from "@/utils/ownerVisibility";
 import { formatStreams, formatCurrency } from "@/utils/format.utils";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { CollaboratorAvatars } from "./CollaboratorAvatars";
 import { SongAlbumsBadge } from "./SongAlbumsBadge";
+import { SongLabelsBadge } from "./SongLabelsBadge";
 import { SONG_COLUMNS, SONGS_GRID } from "./songsColumns";
 import type { SongItem } from "@/types/music.types";
 
@@ -135,12 +136,11 @@ export function SongRow({ song, onQuickView, onOwnerSplit, showsIncome = false }
         >
           {myPercentage !== null ? `${myPercentage}%` : "—"}
         </span>
-        {(song?.labelCount ?? 0) > 0 && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#FFEADD] px-2 py-0.5 font-mono text-[10px] font-semibold text-[#FF5C00]">
-            <Tag className="h-2.5 w-2.5" />
-            {song.labelCount}
-          </span>
-        )}
+      </div>
+
+      {/* Sellos */}
+      <div className={visibility("labels")}>
+        <SongLabelsBadge labels={getSongLabels(song)} count={songLabelCount(song)} />
       </div>
 
       {/* Acciones */}

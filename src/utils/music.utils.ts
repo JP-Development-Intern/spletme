@@ -13,6 +13,35 @@ export const hasAnySplit = (item: SongItem | AlbumItem): boolean => {
   return false;
 };
 
+type WithLabels = Pick<
+  SongItem,
+  "labels" | "customLabels" | "labelNames" | "otherLabels" | "labelCount"
+>;
+
+/**
+ * Nombres de los sellos a los que pertenece una canción o pista. El listado los
+ * manda como cadenas u objetos con `name`/`label`, según el origen, así que se
+ * normalizan y se quitan los repetidos.
+ */
+export const getSongLabels = (item: WithLabels | null | undefined): string[] => {
+  const raw = [
+    ...(item?.labelNames ?? []),
+    ...(item?.labels ?? []),
+    ...(item?.customLabels ?? []),
+    ...(item?.otherLabels ?? []),
+  ];
+  const names = raw.map((entry) => {
+    if (typeof entry === "string") return entry;
+    const obj = entry as { name?: unknown; label?: unknown } | null;
+    return String(obj?.name ?? obj?.label ?? "");
+  });
+  return [...new Set(names.map((name) => name.trim()).filter(Boolean))];
+};
+
+/** Cuántos sellos tiene: los nombres si vienen, y si no el conteo del listado. */
+export const songLabelCount = (item: WithLabels | null | undefined): number =>
+  Math.max(getSongLabels(item).length, item?.labelCount ?? 0);
+
 /** Determina si una query parece un código UPC (8-14 dígitos) */
 export const looksLikeUPC = (q: string): boolean => /^[0-9]{8,14}$/.test(q.replace(/\s|-/g, ""));
 
@@ -74,6 +103,12 @@ export const albumSplitCoverage = (album: AlbumItem): { withSplit: number; total
     (track) => Boolean(track?.split) || Boolean(track?.ownerId?.split),
   ).length;
   return { withSplit, total: tracks.length || album?.totalTracks || 0 };
+};
+
+/** Sellos de un álbum: la unión de los de sus pistas, sin repetir. */
+export const getAlbumLabels = (album: AlbumItem): string[] => {
+  const tracks = Array.isArray(album?.tracks) ? album.tracks : [];
+  return [...new Set(tracks.flatMap((track) => getSongLabels(track)))];
 };
 
 /** Pistas del álbum que todavía no reparten nada. */
