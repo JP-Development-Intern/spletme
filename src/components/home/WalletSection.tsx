@@ -23,10 +23,10 @@ export function WalletSection({
 
   return (
     <div
-      className="flex flex-col gap-3.5 rounded-[26px] border border-[#E8E8EC] bg-white p-[22px] shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]"
+      className="glass flex flex-col gap-3.5 rounded-[28px] px-6 py-5"
       data-tour="balance-section"
     >
-      <h2 className="font-display text-base font-semibold text-[#1C1D22]">Billetera</h2>
+      <h2 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">Billetera</h2>
 
       {loading ? (
         <div className="flex items-center justify-center py-8">
@@ -34,7 +34,7 @@ export function WalletSection({
         </div>
       ) : (
         <>
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-2">
             <WalletAccountStatusRow icon={Send} label="Enviar dinero" active={sendActive} />
             <WalletAccountStatusRow icon={Banknote} label="Recibir dinero" active={receiveActive} />
           </div>
@@ -42,24 +42,19 @@ export function WalletSection({
           {bothActive ? (
             <button
               onClick={onGoToBank}
-              className="flex w-full items-center justify-between rounded-[20px] border border-[#E8E8EC] bg-white px-4 py-3.5 transition-colors hover:bg-[#F4F5F7]"
+              className="glass-control flex w-full items-center justify-between rounded-full py-[11px] pl-[18px] pr-3.5 transition-colors hover:bg-white/[0.12]"
             >
-              <span className="text-[13px] font-semibold text-[#1C1D22]">Gestionar en Banco</span>
-              <ChevronRight className="h-[15px] w-[15px] text-[#A6AAB2]" />
+              <span className="text-[13px] font-semibold text-white">Gestionar en Banco</span>
+              <ChevronRight className="h-[15px] w-[15px] text-white/70" />
             </button>
           ) : (
-            <>
-              <p className="text-[11.5px] leading-relaxed text-[#71757E]">
-                Configura tus cuentas para enviar y recibir dinero.
-              </p>
-              <button
-                onClick={onGoToBank}
-                className="flex w-full items-center justify-between rounded-[20px] bg-[#FF5C00] px-4 py-3.5 text-white shadow-[0_6px_16px_-4px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C]"
-              >
-                <span className="text-[13px] font-semibold">Configurar en Banco</span>
-                <ChevronRight className="h-[15px] w-[15px]" />
-              </button>
-            </>
+            <button
+              onClick={onGoToBank}
+              className="mt-1 flex w-full items-center justify-between rounded-full bg-[#FF5C00] py-[11px] pl-[18px] pr-3.5 text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C]"
+            >
+              <span className="text-[13px] font-semibold">Configurar en Banco</span>
+              <ChevronRight className="h-[15px] w-[15px]" />
+            </button>
           )}
         </>
       )}

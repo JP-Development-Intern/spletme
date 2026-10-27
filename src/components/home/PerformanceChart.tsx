@@ -1,101 +1,150 @@
+import { useMemo, useState } from "react";
 import ReactApexChart from "react-apexcharts";
 import type { ApexOptions } from "apexcharts";
+import es from "apexcharts/dist/locales/es.json";
 import { formatStreams, formatCurrency } from "@/utils/format.utils";
+import type { DataPoint } from "@/hooks/useHomeDashboard";
+
+type Metric = "income" | "streams";
 
 interface PerformanceChartProps {
-  series: ApexAxisChartSeries;
-  options: ApexOptions;
-  selectedTimeframe: string;
-  onTimeframeChange: (value: string) => void;
-  totalStreams?: number;
-  totalNetIncome?: number;
+  points: DataPoint[];
+  /** Periodo elegido en la página: 7d y 30d llegan por día, el resto por mes. */
+  timeframe: string;
 }
 
-const TIMEFRAME_OPTIONS = [
-  { value: "7d", label: "7D" },
-  { value: "30d", label: "30D" },
-  { value: "90d", label: "90D" },
-  { value: "1y", label: "1Y" },
+const METRICS: { value: Metric; label: string }[] = [
+  { value: "income", label: "Ingresos" },
+  { value: "streams", label: "Streams" },
 ];
 
+const AXIS_LABEL = { colors: "rgba(255,255,255,0.5)", fontSize: "11px" };
+
 /**
- * Gráfico de área (Streams + Ingresos) con selector de período temporal.
- * La leyenda lleva el total de cada serie para no tener que leerlo del eje.
+ * Evolución de los ingresos o de los streams en el periodo. Una serie a la vez:
+ * con las dos juntas había dos ejes con escalas distintas y la lectura dependía
+ * de adivinar cuál era cuál.
  */
-export function PerformanceChart({
-  series,
-  options,
-  selectedTimeframe,
-  onTimeframeChange,
-  totalStreams,
-  totalNetIncome,
-}: PerformanceChartProps) {
+export function PerformanceChart({ points, timeframe }: PerformanceChartProps) {
+  const [metric, setMetric] = useState<Metric>("income");
+  const isIncome = metric === "income";
+  const daily = timeframe === "7d" || timeframe === "30d";
+
+  const series = useMemo(
+    () => [
+      {
+        name: isIncome ? "Ingresos" : "Streams",
+        data: points.map((p) => (isIncome ? Number(p.income.toFixed(2)) : p.streams)),
+      },
+    ],
+    [points, isIncome],
+  );
+
+  const options: ApexOptions = useMemo(() => {
+    const formatValue = (val: number) => (isIncome ? formatCurrency(val) : `${formatStreams(val)} streams`);
+    const formatDate = (iso: string) =>
+      new Date(iso).toLocaleDateString("es", {
+        timeZone: "UTC",
+        ...(daily ? { day: "numeric", month: "short" } : { month: "short", year: "numeric" }),
+      });
+
+    return {
+      chart: {
+        type: "area",
+        toolbar: { show: false },
+        zoom: { enabled: false },
+        background: "transparent",
+        fontFamily: '"Bricolage Grotesque", Poppins, sans-serif',
+        locales: [es],
+        defaultLocale: "es",
+      },
+      colors: [isIncome ? "#FF5C00" : "#F7EDE6"],
+      stroke: { width: 2.5, curve: "smooth" },
+      fill: {
+        type: "gradient",
+        gradient: { shadeIntensity: 0, opacityFrom: 0.42, opacityTo: 0, stops: [0, 100] },
+      },
+      markers: { size: 0, strokeColors: "#FFFFFF", strokeWidth: 2.5, hover: { size: 6 } },
+      dataLabels: { enabled: false },
+      grid: {
+        borderColor: "rgba(255,255,255,0.09)",
+        strokeDashArray: 0,
+        xaxis: { lines: { show: false } },
+        yaxis: { lines: { show: true } },
+        padding: { left: 4, right: 8 },
+      },
+      xaxis: {
+        type: "datetime",
+        categories: points.map((p) => p.date),
+        labels: {
+          style: AXIS_LABEL,
+          datetimeUTC: true,
+          format: daily ? "d MMM" : "MMM yyyy",
+        },
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+        crosshairs: { show: true, stroke: { color: "rgba(255,255,255,0.5)", width: 1, dashArray: 0 } },
+        tooltip: { enabled: false },
+      },
+      yaxis: {
+        min: 0,
+        tickAmount: 3,
+        labels: {
+          style: AXIS_LABEL,
+          formatter: (val: number) => (isIncome ? `$${Math.round(val)}` : formatStreams(val)),
+        },
+      },
+      tooltip: {
+        custom: ({ dataPointIndex }: { dataPointIndex: number }) => {
+          const point = points[dataPointIndex];
+          if (!point) return "";
+          const value = isIncome ? point.income : point.streams;
+          return `<div class="glass-menu rounded-xl px-3 pb-2 pt-1.5">
+            <div class="text-[11px] text-white/65">${formatDate(point.date)}</div>
+            <div class="font-mono text-[15px] font-medium text-white">${formatValue(value)}</div>
+          </div>`;
+        },
+      },
+      legend: { show: false },
+    };
+  }, [points, isIncome, daily]);
+
   return (
-    <div
-      className="rounded-[26px] border border-[#E8E8EC] bg-white p-[26px] shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]"
-      data-tour="analytics-chart"
-    >
-      <div className="flex flex-col gap-[18px]">
-        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-          <div className="flex flex-col gap-0.5">
-            <h2 className="font-display text-lg font-semibold text-[#1C1D22]">Rendimiento</h2>
-            <p className="text-[12.5px] text-[#71757E]">Streams e ingresos en el tiempo</p>
-          </div>
-          <div className="flex items-center gap-0.5 rounded-full bg-[#F4F5F7] p-[3px]">
-            {TIMEFRAME_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                className={`rounded-full px-3.5 py-1.5 font-mono text-[11px] font-semibold transition-colors ${
-                  selectedTimeframe === option.value
-                    ? "bg-[#FF5C00] text-white"
-                    : "text-[#71757E] hover:text-[#1C1D22]"
-                }`}
-                onClick={() => onTimeframeChange(option.value)}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+    <section className="glass flex min-w-0 flex-1 flex-col gap-[18px] rounded-[32px] px-7 py-6" data-tour="analytics-chart">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-col gap-0.5">
+          <h2 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">Rendimiento</h2>
+          <p className="text-[12.5px] text-white/65">
+            {isIncome ? "Ingresos" : "Streams"} por {daily ? "día" : "mes"}
+          </p>
         </div>
-
-        <div className="flex items-center gap-[18px]">
-          <LegendItem
-            color="#1C1D22"
-            label="Streams"
-            total={totalStreams !== undefined ? formatStreams(totalStreams) : undefined}
-          />
-          <LegendItem
-            color="#FF5C00"
-            label="Ingresos"
-            total={totalNetIncome !== undefined ? formatCurrency(totalNetIncome) : undefined}
-          />
-        </div>
-
-        <div className="h-[280px]">
-          <ReactApexChart
-            options={options}
-            series={series}
-            type="area"
-            height="100%"
-            width="100%"
-          />
+        <div className="flex items-center gap-0.5 rounded-full bg-black/[0.22] p-1">
+          {METRICS.map((option) => (
+            <button
+              key={option.value}
+              aria-pressed={metric === option.value}
+              onClick={() => setMetric(option.value)}
+              className={`rounded-full px-4 py-[7px] text-[12.5px] transition-colors ${
+                metric === option.value
+                  ? "bg-[#F7EDE6]/[0.92] font-semibold text-[#1C1D22]"
+                  : "font-medium text-white/80 hover:text-white"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
       </div>
-    </div>
-  );
-}
 
-/** Serie del gráfico con su color, nombre y total acumulado. */
-function LegendItem({ color, label, total }: { color: string; label: string; total?: string }) {
-  return (
-    <div className="flex items-center gap-[7px]">
-      <span className="h-[9px] w-[9px] rounded-sm" style={{ backgroundColor: color }} />
-      <span className="text-[11.5px] text-[#71757E]">{label}</span>
-      {total && (
-        <span className="font-mono text-[11.5px] font-semibold" style={{ color }}>
-          {total}
-        </span>
-      )}
-    </div>
+      <div className="chart-glass h-[240px]">
+        {points.length === 0 ? (
+          <div className="flex h-full items-center justify-center text-[13px] text-white/50">
+            Sin datos en este periodo
+          </div>
+        ) : (
+          <ReactApexChart options={options} series={series} type="area" height="100%" width="100%" />
+        )}
+      </div>
+    </section>
   );
 }

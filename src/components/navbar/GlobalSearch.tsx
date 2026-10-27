@@ -21,7 +21,7 @@ interface SectionProps {
 /** Sección del dropdown con encabezado de categoría */
 const Section = ({ title, children }: SectionProps) => (
   <div className="py-1">
-    <span className="block px-4 pb-1 pt-2 text-[10.5px] font-semibold uppercase tracking-wider text-[#A6AAB2]">
+    <span className="block px-4 pb-1 pt-2 text-[10.5px] font-semibold uppercase tracking-wider text-white/50">
       {title}
     </span>
     {children}
@@ -39,14 +39,14 @@ interface ResultItemProps {
 const ResultItem = ({ icon, primary, secondary, onClick }: ResultItemProps) => (
   <button
     onClick={onClick}
-    className="flex w-full items-center gap-3 px-4 py-2 text-left transition-colors hover:bg-[#F4F5F7]"
+    className="flex w-full items-center gap-3 px-4 py-2 text-left transition-colors hover:bg-white/[0.08]"
   >
-    <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#FF5C00]/10 text-[#FF5C00]">
+    <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#FF5C00]/20 text-[#FF8A4C]">
       {icon}
     </span>
     <span className="flex min-w-0 flex-col leading-tight">
-      <span className="truncate text-[13px] font-medium text-[#1C1D22]">{primary}</span>
-      {secondary && <span className="truncate text-[11px] text-[#A6AAB2]">{secondary}</span>}
+      <span className="truncate text-[13px] font-medium text-white">{primary}</span>
+      {secondary && <span className="truncate text-[11px] text-white/50">{secondary}</span>}
     </span>
   </button>
 );
@@ -95,9 +95,9 @@ export default function GlobalSearch() {
   const showDropdown = open && isActive;
 
   return (
-    <div ref={containerRef} className="relative hidden sm:block sm:w-[320px] lg:w-[380px]">
-      <div className="flex items-center gap-3 rounded-full border border-white/60 bg-white/55 px-5 py-3 backdrop-blur-md">
-        <Search className="h-[19px] w-[19px] flex-shrink-0 text-[#A6AAB2]" />
+    <div ref={containerRef} className="relative hidden md:block md:w-[220px] xl:w-[300px]">
+      <div className="glass-control flex h-11 items-center gap-2.5 rounded-full px-4 focus-within:ring-2 focus-within:ring-[#FF5C00]/60">
+        <Search className="h-4 w-4 flex-shrink-0 text-white/70" />
         <input
           ref={inputRef}
           type="text"
@@ -109,13 +109,13 @@ export default function GlobalSearch() {
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="Buscar canciones, álbumes, colaboradores…"
-          className="w-full border-none bg-transparent text-[13.5px] text-[#1C1D22] outline-none placeholder:text-[#A6AAB2] focus:border-none focus:outline-none focus:ring-0 focus-visible:outline-none"
+          className="w-full truncate border-none bg-transparent p-0 text-[12.5px] text-white outline-none placeholder:text-white/50 focus:border-none focus:outline-none focus:ring-0 focus-visible:outline-none"
         />
         {loading && isActive ? (
           <Loader2 className="h-4 w-4 flex-shrink-0 animate-spin text-[#FF5C00]" />
         ) : (
           query.length > 0 && (
-            <button onClick={close} className="flex-shrink-0 text-[#A6AAB2] hover:text-[#1C1D22]">
+            <button onClick={close} className="flex-shrink-0 text-white/50 hover:text-white">
               <X className="h-4 w-4" />
             </button>
           )
@@ -123,15 +123,15 @@ export default function GlobalSearch() {
       </div>
 
       {showDropdown && (
-        <div className="absolute left-0 top-[calc(100%+10px)] z-30 max-h-[70vh] w-full overflow-y-auto rounded-[22px] border border-white/60 bg-white/95 py-2 shadow-[0_16px_40px_-12px_rgba(255,92,0,0.16)] backdrop-blur-2xl">
+        <div className="glass-menu absolute left-0 top-[calc(100%+10px)] z-30 max-h-[70vh] w-[360px] max-w-[90vw] overflow-y-auto rounded-[22px] py-2">
           {!hasResults && !loading && (
-            <div className="px-4 py-6 text-center text-[13px] text-[#A6AAB2]">
+            <div className="px-4 py-6 text-center text-[13px] text-white/50">
               Sin resultados para «{query.trim()}»
             </div>
           )}
 
           {!hasResults && loading && (
-            <div className="px-4 py-6 text-center text-[13px] text-[#A6AAB2]">Buscando…</div>
+            <div className="px-4 py-6 text-center text-[13px] text-white/50">Buscando…</div>
           )}
 
           {results.songs.length > 0 && (
