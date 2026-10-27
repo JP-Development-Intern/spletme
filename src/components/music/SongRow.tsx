@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Music, Play, ChevronRight, Eye, Crown } from "lucide-react";
+import { Music, Play, ChevronRight, Eye, Crown, ShieldCheck } from "lucide-react";
 import { hasAnySplit, hasOwnerSplit, getSongLabels, songLabelCount } from "@/utils/music.utils";
 import { viewerOwnsSong, viewerSplitPercentage, viewerAmount } from "@/utils/ownerVisibility";
 import { formatStreams, formatCurrency } from "@/utils/format.utils";
@@ -7,7 +7,12 @@ import { CopyButton } from "@/components/ui/CopyButton";
 import { CollaboratorAvatars } from "./CollaboratorAvatars";
 import { SongAlbumsBadge } from "./SongAlbumsBadge";
 import { SongLabelsBadge } from "./SongLabelsBadge";
-import { SONG_COLUMNS, SONGS_GRID } from "./songsColumns";
+import {
+  PERMISSIONS_COLUMN,
+  SONG_COLUMNS,
+  SONGS_GRID,
+  SONGS_GRID_WITH_PERMISSIONS,
+} from "./songsColumns";
 import type { SongItem } from "@/types/music.types";
 
 interface SongRowProps {
@@ -22,6 +27,10 @@ interface SongRowProps {
    * `utils/ownerVisibility.ts`.
    */
   showsIncome?: boolean;
+  /** La tabla lleva la columna de permisos (solo si quien mira es dueño de alguna fila). */
+  withPermissions?: boolean;
+  /** Abre los permisos de esta canción. Solo se ofrece en las que son del dueño. */
+  onPermissions?: (song: SongItem) => void;
 }
 
 const visibility = (key: string) => SONG_COLUMNS.find((c) => c.key === key)!.visibility;
@@ -30,7 +39,14 @@ const visibility = (key: string) => SONG_COLUMNS.find((c) => c.key === key)!.vis
  * Fila de la tabla de canciones. La fila entera lleva al detalle: los controles
  * que hacen de por sí otra cosa (copiar ISRC, vista rápida) detienen el clic.
  */
-export function SongRow({ song, onQuickView, onOwnerSplit, showsIncome = false }: SongRowProps) {
+export function SongRow({
+  song,
+  onQuickView,
+  onOwnerSplit,
+  showsIncome = false,
+  withPermissions = false,
+  onPermissions,
+}: SongRowProps) {
   const navigate = useNavigate();
   const cover = song?.spotifyData?.album?.images?.[0]?.url;
   const split = hasAnySplit(song);
@@ -48,7 +64,7 @@ export function SongRow({ song, onQuickView, onOwnerSplit, showsIncome = false }
   return (
     <div
       onClick={() => navigate(to)}
-      className={`${SONGS_GRID} group cursor-pointer px-5 py-2.5 transition-colors hover:bg-[#F4F5F7]`}
+      className={`${withPermissions ? SONGS_GRID_WITH_PERMISSIONS : SONGS_GRID} group cursor-pointer px-5 py-2.5 transition-colors hover:bg-[#F4F5F7]`}
     >
       {/* Canción */}
       <div className="flex min-w-0 items-center gap-3">
@@ -142,6 +158,26 @@ export function SongRow({ song, onQuickView, onOwnerSplit, showsIncome = false }
       <div className={visibility("labels")}>
         <SongLabelsBadge labels={getSongLabels(song)} count={songLabelCount(song)} />
       </div>
+
+      {/* Permisos: columna solo del dueño; en canciones ajenas la celda queda vacía */}
+      {withPermissions && (
+        <div className={PERMISSIONS_COLUMN.visibility}>
+          {isOwnerView && onPermissions && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onPermissions(song);
+              }}
+              title="Elegir qué ve cada colaborador y sello"
+              aria-label={`Permisos de ${song.trackTitle}`}
+              className="flex items-center gap-1.5 rounded-[15px] bg-[#F4F5F7] px-3 py-1.5 text-[11.5px] font-semibold text-[#1C1D22] transition-colors hover:bg-[#E8E8EC] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5C00]"
+            >
+              <ShieldCheck className="h-3.5 w-3.5 flex-shrink-0" />
+              Permisos
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Acciones */}
       <div className="flex items-center justify-end gap-1">

@@ -1,13 +1,19 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Disc3, SearchX, Music } from "lucide-react";
 import { useAlbumsLibrary } from "@/hooks/useAlbumsLibrary";
-import { AlbumRow } from "@/components/music/AlbumRow";
+import { AlbumRow, viewerOwnsAlbum } from "@/components/music/AlbumRow";
+import { PermissionsModal } from "@/components/music/PermissionsModal";
 import { AlbumCard } from "@/components/music/AlbumCard";
 import { MusicPagination } from "@/components/music/MusicPagination";
 import { MusicFilterDrawer } from "@/components/music/MusicFilterDrawer";
-import { ALBUM_COLUMNS, ALBUMS_GRID } from "@/components/music/albumsColumns";
+import {
+  ALBUM_COLUMNS,
+  ALBUM_PERMISSIONS_COLUMN,
+  ALBUMS_GRID,
+  ALBUMS_GRID_WITH_PERMISSIONS,
+} from "@/components/music/albumsColumns";
 import AlbumOwnerSplitModal from "../album/components/AlbumOwnerSplitModal";
-import type { MusicLayout } from "@/types/music.types";
+import type { AlbumItem, MusicLayout } from "@/types/music.types";
 
 interface AlbumsViewProps {
   /** Búsqueda compartida por los dos modos, elevada a la página. */
@@ -50,6 +56,9 @@ export function AlbumsView({
     setSelectedAlbum,
     refreshAlbums,
   } = library;
+
+  // Álbum cuyos permisos está editando el dueño.
+  const [permissionsAlbum, setPermissionsAlbum] = useState<AlbumItem | null>(null);
 
   // La búsqueda vive en la página para que sobreviva al cambio de agrupación.
   useEffect(() => {
@@ -118,6 +127,17 @@ export function AlbumsView({
     />
   );
 
+  // La columna de permisos solo existe para quien es dueño de algún álbum listado.
+  const withPermissions = displayAlbums.some(viewerOwnsAlbum);
+  const permissionsModal = permissionsAlbum && (
+    <PermissionsModal
+      resourceType="album"
+      resourceId={permissionsAlbum.upc}
+      title={permissionsAlbum.albumTitle}
+      onClose={() => setPermissionsAlbum(null)}
+    />
+  );
+
   const pagination = (
     <MusicPagination
       pageStart={library.pageStart}
@@ -178,19 +198,30 @@ export function AlbumsView({
 
   return (
     <div className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
-      <div className={`${ALBUMS_GRID} px-5 py-3`}>
+      <div className={`${withPermissions ? ALBUMS_GRID_WITH_PERMISSIONS : ALBUMS_GRID} px-5 py-3`}>
         <ColumnLabel>ÁLBUM</ColumnLabel>
         {ALBUM_COLUMNS.map((column) => (
           <div key={column.key} className={column.visibility}>
             <ColumnLabel>{column.label}</ColumnLabel>
           </div>
         ))}
+        {withPermissions && (
+          <div className={ALBUM_PERMISSIONS_COLUMN.visibility}>
+            <ColumnLabel>{ALBUM_PERMISSIONS_COLUMN.label}</ColumnLabel>
+          </div>
+        )}
         <div />
       </div>
       <div className="h-px bg-[#E8E8EC]" />
       <div className="flex flex-col divide-y divide-[#E8E8EC]">
         {displayAlbums.map((album) => (
-          <AlbumRow key={album.upc || album._id} album={album} onOwnerSplit={openSplit} />
+          <AlbumRow
+            key={album.upc || album._id}
+            album={album}
+            onOwnerSplit={openSplit}
+            withPermissions={withPermissions}
+            onPermissions={setPermissionsAlbum}
+          />
         ))}
       </div>
       <div className="h-px bg-[#E8E8EC]" />
@@ -198,6 +229,7 @@ export function AlbumsView({
 
       {drawer}
       {modal}
+      {permissionsModal}
     </div>
   );
 }

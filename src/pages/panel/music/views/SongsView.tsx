@@ -6,7 +6,14 @@ import { SongDetailsModal } from "@/components/music/SongDetailsModal";
 import OwnerSplitModal from "@/pages/panel/music/song/components/ownerfrom";
 import { MusicPagination } from "@/components/music/MusicPagination";
 import { MusicFilterDrawer } from "@/components/music/MusicFilterDrawer";
-import { SONG_COLUMNS, SONGS_GRID, isDescending } from "@/components/music/songsColumns";
+import {
+  PERMISSIONS_COLUMN,
+  SONG_COLUMNS,
+  SONGS_GRID,
+  SONGS_GRID_WITH_PERMISSIONS,
+  isDescending,
+} from "@/components/music/songsColumns";
+import { PermissionsModal } from "@/components/music/PermissionsModal";
 import { useSongsLibrary } from "@/hooks/useSongsLibrary";
 import { viewerOwnsSong } from "@/utils/ownerVisibility";
 import type { MusicLayout, SongItem, SortBy } from "@/types/music.types";
@@ -58,6 +65,8 @@ export function SongsView({
 
   // Canción cuyo split se está fijando desde el listado, sin abrir el detalle.
   const [splitSong, setSplitSong] = useState<SongItem | null>(null);
+  // Canción cuyos permisos está editando el dueño.
+  const [permissionsSong, setPermissionsSong] = useState<SongItem | null>(null);
 
   // La búsqueda vive en la página para que sobreviva al cambio de agrupación.
   useEffect(() => {
@@ -85,6 +94,17 @@ export function SongsView({
    * contaría lo que hay descontado antes. Ver `utils/ownerVisibility.ts`.
    */
   const showsIncome = songs.length > 0 && songs.every((song) => viewerOwnsSong(song));
+
+  // La columna de permisos solo existe para quien es dueño de alguna canción listada.
+  const withPermissions = songs.some((song) => viewerOwnsSong(song));
+  const permissionsModal = permissionsSong && (
+    <PermissionsModal
+      resourceType="song"
+      resourceId={permissionsSong._id}
+      title={permissionsSong.trackTitle}
+      onClose={() => setPermissionsSong(null)}
+    />
+  );
 
   const drawer = (
     <MusicFilterDrawer
@@ -214,7 +234,7 @@ export function SongsView({
 
   return (
     <div className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
-      <div className={`${SONGS_GRID} px-5 py-3`}>
+      <div className={`${withPermissions ? SONGS_GRID_WITH_PERMISSIONS : SONGS_GRID} px-5 py-3`}>
         <div className="flex min-w-0">
           <ColumnButton
             label="CANCIÓN"
@@ -242,6 +262,11 @@ export function SongsView({
             </div>
           );
         })}
+        {withPermissions && (
+          <div className={PERMISSIONS_COLUMN.visibility}>
+            <ColumnLabel>{PERMISSIONS_COLUMN.label}</ColumnLabel>
+          </div>
+        )}
         <div />
       </div>
       <div className="h-px bg-[#E8E8EC]" />
@@ -253,6 +278,8 @@ export function SongsView({
             onQuickView={library.handleOpenSongDetails}
             onOwnerSplit={setSplitSong}
             showsIncome={showsIncome}
+            withPermissions={withPermissions}
+            onPermissions={setPermissionsSong}
           />
         ))}
       </div>
@@ -262,6 +289,7 @@ export function SongsView({
       {drawer}
       {detailsModal}
       {splitModal}
+      {permissionsModal}
     </div>
   );
 }

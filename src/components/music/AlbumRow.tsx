@@ -1,12 +1,18 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, ChevronDown, Disc3, Play, Crown, Eye, Music } from "lucide-react";
+import { ChevronRight, ChevronDown, Disc3, Play, Crown, Eye, Music, ShieldCheck } from "lucide-react";
+import { viewerOwnsSong } from "@/utils/ownerVisibility";
 import { formatStreams, formatCurrency } from "@/utils/format.utils";
 import { albumSplitCoverage, getAlbumLabels, getSongLabels, songLabelCount } from "@/utils/music.utils";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { SplitCoverageBar } from "./SplitCoverageBar";
 import { SongLabelsBadge } from "./SongLabelsBadge";
-import { ALBUM_COLUMNS, ALBUMS_GRID } from "./albumsColumns";
+import {
+  ALBUM_COLUMNS,
+  ALBUM_PERMISSIONS_COLUMN,
+  ALBUMS_GRID,
+  ALBUMS_GRID_WITH_PERMISSIONS,
+} from "./albumsColumns";
 import type { AlbumItem } from "@/types/music.types";
 import type { AlbumTrack } from "@/types/album.types";
 
@@ -15,7 +21,15 @@ interface AlbumRowProps {
   onOwnerSplit: (album: AlbumItem) => void;
   /** Máximo de pistas visibles al desplegar antes de ofrecer el detalle completo. */
   previewTracks?: number;
+  /** La tabla lleva la columna de permisos (solo si quien mira es dueño de algún álbum). */
+  withPermissions?: boolean;
+  /** Abre los permisos del álbum. Solo se ofrece en los que son del dueño. */
+  onPermissions?: (album: AlbumItem) => void;
 }
+
+/** Dueño del álbum: el de sus pistas, que es quien las sube. */
+export const viewerOwnsAlbum = (album: AlbumItem): boolean =>
+  Array.isArray(album.tracks) && album.tracks.length > 0 && viewerOwnsSong(album.tracks[0]);
 
 const visibility = (key: string) => ALBUM_COLUMNS.find((c) => c.key === key)!.visibility;
 
@@ -29,8 +43,15 @@ const coverOf = (album: AlbumItem): string | undefined =>
  * detalle de una pista sin salir de la lista ni cambiar de agrupación. Las pistas
  * caen en la misma rejilla que la cabecera, así que las columnas siguen alineadas.
  */
-export function AlbumRow({ album, onOwnerSplit, previewTracks = 4 }: AlbumRowProps) {
+export function AlbumRow({
+  album,
+  onOwnerSplit,
+  previewTracks = 4,
+  withPermissions = false,
+  onPermissions,
+}: AlbumRowProps) {
   const [open, setOpen] = useState(false);
+  const grid = withPermissions ? ALBUMS_GRID_WITH_PERMISSIONS : ALBUMS_GRID;
   const { withSplit, total } = albumSplitCoverage(album);
   const complete = total > 0 && withSplit === total;
   const cover = coverOf(album);
@@ -39,7 +60,7 @@ export function AlbumRow({ album, onOwnerSplit, previewTracks = 4 }: AlbumRowPro
 
   return (
     <div className={open ? "bg-[#F4F5F7]" : ""}>
-      <div className={`${ALBUMS_GRID} group px-5 py-3`}>
+      <div className={`${grid} group px-5 py-3`}>
         {/* Álbum */}
         <div className="flex min-w-0 items-center gap-3">
           <button
@@ -119,6 +140,23 @@ export function AlbumRow({ album, onOwnerSplit, previewTracks = 4 }: AlbumRowPro
           <SongLabelsBadge labels={getAlbumLabels(album)} noun="álbum" />
         </div>
 
+        {/* Permisos: columna solo del dueño; en álbumes ajenos la celda queda vacía */}
+        {withPermissions && (
+          <div className={ALBUM_PERMISSIONS_COLUMN.visibility}>
+            {onPermissions && viewerOwnsAlbum(album) && (
+              <button
+                onClick={() => onPermissions(album)}
+                title="Elegir qué ve cada colaborador y sello"
+                aria-label={`Permisos de ${album.albumTitle}`}
+                className="flex items-center gap-1.5 rounded-[15px] bg-[#F4F5F7] px-3 py-1.5 text-[11.5px] font-semibold text-[#1C1D22] transition-colors hover:bg-[#E8E8EC]"
+              >
+                <ShieldCheck className="h-3.5 w-3.5 flex-shrink-0" />
+                Permisos
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Acciones */}
         <div className="flex items-center justify-end gap-1.5">
           <button
@@ -156,6 +194,7 @@ export function AlbumRow({ album, onOwnerSplit, previewTracks = 4 }: AlbumRowPro
                 <TrackRow
                   key={track._id || track.isrc || index}
                   track={track}
+                  grid={grid}
                   index={index}
                   last={index === Math.min(previewTracks, tracks.length) - 1}
                 />
@@ -177,11 +216,21 @@ export function AlbumRow({ album, onOwnerSplit, previewTracks = 4 }: AlbumRowPro
 }
 
 /** Una pista dentro del álbum desplegado, en la misma rejilla que la cabecera. */
-function TrackRow({ track, index, last }: { track: AlbumTrack; index: number; last: boolean }) {
+function TrackRow({
+  track,
+  grid,
+  index,
+  last,
+}: {
+  track: AlbumTrack;
+  grid: string;
+  index: number;
+  last: boolean;
+}) {
   const hasSplit = Boolean(track?.split || track?.ownerId?.split);
 
   return (
-    <div className={`${ALBUMS_GRID} py-2`}>
+    <div className={`${grid} py-2`}>
       <div className="flex min-w-0 items-center gap-3">
         <span className="flex h-7 w-[22px] flex-shrink-0 justify-center" aria-hidden="true">
           <span className={`w-px bg-[#E8E8EC] ${last ? "h-3.5" : "h-7"}`} />
@@ -241,6 +290,9 @@ function TrackRow({ track, index, last }: { track: AlbumTrack; index: number; la
       <div className={visibility("labels")}>
         <SongLabelsBadge labels={getSongLabels(track)} count={songLabelCount(track)} />
       </div>
+
+      {/* Celda vacía: mantiene las pistas alineadas con la columna de permisos */}
+      {grid === ALBUMS_GRID_WITH_PERMISSIONS && <div className={ALBUM_PERMISSIONS_COLUMN.visibility} />}
 
       <div className="flex items-center justify-end">
         <Link
