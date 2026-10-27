@@ -6,10 +6,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { User, X, LogOut, ChevronRight, Users } from "lucide-react";
 import SelectUser from "../../components/selectUser/selectUser";
 import { AuthService } from "@/services/auth";
+import AmbientBackground from "@/components/layout/AmbientBackground";
+import { PageHeaderSlotProvider } from "@/components/layout/PageHeader";
 
 export default function Panel() {
   const [showMenu, setShowMenu] = useState(false);
   const [openSelectUser, setOpenSelectUser] = useState(false);
+  const [headerSlot, setHeaderSlot] = useState<HTMLDivElement | null>(null);
   const navigate = useNavigate();
 
   // Check if onboarding is completed
@@ -24,7 +27,8 @@ export default function Panel() {
   }, [navigate]);
 
   return (
-    <div className="relative isolate flex h-screen w-full bg-white font-custom">
+    <div className="relative isolate flex h-screen w-full font-custom">
+      <AmbientBackground />
       {openSelectUser && (
         <SelectUser
           onClose={() => {
@@ -34,9 +38,25 @@ export default function Panel() {
         />
       )}
       <Sidebar />
-      <div className="ml-0 flex h-full w-full flex-col overflow-y-auto lg:ml-[260px]">
-        <Navbar onSwitchUser={() => setOpenSelectUser(true)} />
-        <Outlet />
+      {/* El sidebar flota a 16px del borde: el contenido arranca tras sus 240px más otros 16. */}
+      <div className="flex h-full w-full flex-col overflow-y-auto lg:pl-[272px]">
+        <Navbar onSwitchUser={() => setOpenSelectUser(true)} headerSlotRef={setHeaderSlot} />
+        <PageHeaderSlotProvider value={headerSlot}>
+          <main className="flex-1">
+            <Outlet />
+          </main>
+        </PageHeaderSlotProvider>
+        <footer className="px-4 pb-6 pt-8 text-center text-xs text-white/50 lg:pl-4 lg:pr-8">
+          Desarrollado por{" "}
+          <a
+            href="https://jpdev.com.co"
+            target="_blank"
+            rel="noopener"
+            className="text-white/70 underline underline-offset-2 transition-colors hover:text-white"
+          >
+            JP Development
+          </a>
+        </footer>
       </div>
 
       <AnimatePresence>

@@ -1,19 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import type { ApexOptions } from "apexcharts";
 import { useSplitPayments } from "@/hooks/useSplitPayments";
 import SongService from "@/services/songs";
 import type { TopSong } from "@/types";
 
-interface DataPoint {
+export interface DataPoint {
   date: string;
   streams: number;
   income: number;
-}
-
-function xaxisLabel(timeframe: string): string {
-  if (timeframe === "7d" || timeframe === "30d") return "dd MMM";
-  return "MMM yyyy";
 }
 
 /**
@@ -58,109 +52,6 @@ export function useHomeDashboard() {
     fetchData(selectedTimeframe);
   }, [selectedTimeframe, fetchData]);
 
-  const xCategories = useMemo(
-    () => dataPoints.map((p) => p.date),
-    [dataPoints]
-  );
-
-  const series = useMemo(
-    () => [
-      {
-        name: "Streams",
-        type: "area",
-        data: dataPoints.map((p) => p.streams),
-      },
-      {
-        name: "Revenue",
-        type: "area",
-        data: dataPoints.map((p) => Number(p.income.toFixed(2))),
-      },
-    ],
-    [dataPoints]
-  );
-
-  const chartOptions: ApexOptions = useMemo(
-    () => ({
-      chart: {
-        toolbar: { show: false },
-        background: "transparent",
-        fontFamily: '"Bricolage Grotesque", Poppins, sans-serif',
-      },
-      stroke: { width: [2, 2], curve: "smooth" },
-      fill: {
-        type: "gradient",
-        gradient: {
-          shadeIntensity: 1,
-          opacityFrom: 0.35,
-          opacityTo: 0.02,
-          stops: [0, 90, 100],
-        },
-      },
-      markers: { size: [0, 0] },
-      dataLabels: { enabled: false },
-      colors: ["#1C1D22", "#FF5C00"],
-      grid: {
-        borderColor: "#F3F4F6",
-        strokeDashArray: 0,
-        xaxis: { lines: { show: false } },
-        yaxis: { lines: { show: true } },
-      },
-      xaxis: {
-        type: "datetime",
-        categories: xCategories,
-        labels: {
-          style: { fontSize: "11px", colors: "#9CA3AF" },
-          datetimeFormatter: { day: "dd MMM", month: "MMM yy" },
-          format: xaxisLabel(selectedTimeframe),
-        },
-        axisBorder: { show: false },
-        axisTicks: { show: false },
-      },
-      yaxis: [
-        {
-          seriesName: "Streams",
-          labels: {
-            style: { colors: "#9CA3AF", fontSize: "11px" },
-            formatter: (val: number) => {
-              if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`;
-              if (val >= 1_000) return `${(val / 1_000).toFixed(1)}K`;
-              return String(Math.round(val));
-            },
-          },
-        },
-        {
-          seriesName: "Revenue",
-          opposite: true,
-          labels: {
-            style: { colors: "#FF5C00", fontSize: "11px" },
-            formatter: (val: number) => `$${val.toFixed(2)}`,
-          },
-        },
-      ],
-      tooltip: {
-        x: {
-          format: selectedTimeframe === "7d" || selectedTimeframe === "30d"
-            ? "dd MMM yyyy"
-            : "MMM yyyy",
-        },
-        theme: "light",
-        style: { fontSize: "12px" },
-        y: [
-          {
-            formatter: (val: number) => {
-              if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M streams`;
-              if (val >= 1_000) return `${(val / 1_000).toFixed(1)}K streams`;
-              return `${Math.round(val)} streams`;
-            },
-          },
-          { formatter: (val: number) => `$${val.toFixed(2)}` },
-        ],
-      },
-      legend: { show: false },
-    }),
-    [xCategories, selectedTimeframe]
-  );
-
   const netBalance = apiSummary.totalNetIncome - totalAmount;
 
   return {
@@ -171,7 +62,6 @@ export function useHomeDashboard() {
     summary: apiSummary,
     totalAmount,
     netBalance,
-    series,
-    chartOptions,
+    points: dataPoints,
   };
 }

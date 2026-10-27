@@ -3,12 +3,7 @@ import ReactApexChart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import { BarChart2, PieChart, BarChartHorizontal, TrendingUp, ChevronRight } from "lucide-react";
 import { formatCurrency, formatStreams, formatCompactCurrency } from "@/utils/format.utils";
-import spotifyLogo from "@/assets/images/logo/spotify.svg";
-import youtubeLogo from "@/assets/images/logo/youtube.svg";
-import metaLogo from "@/assets/images/logo/meta.svg";
-import appleMusicLogo from "@/assets/images/logo/apple-music-glyph.svg";
-import deezerLogo from "@/assets/images/logo/deezer.svg";
-import tiktokLogo from "@/assets/images/logo/tiktok.svg";
+import { PLATFORM_BRAND as platformConfig, luminance } from "@/const/platformBrand";
 
 interface ReproductionData {
   totalStreams: number;
@@ -39,34 +34,9 @@ interface PlatformDataItem {
 type ChartView = "bar" | "donut" | "horizontal";
 type Metric = "income" | "streams";
 
-/**
- * Cada plataforma con su color de marca: es como se reconocen de un vistazo,
- * sin tener que leer el nombre. El color viaja de la porción de la dona al chip
- * de la lista, así que también hace de leyenda.
- */
-const platformConfig: Record<string, { color: string; letter: string; logo?: string }> = {
-  "Spotify": { color: "#1DB954", letter: "S", logo: spotifyLogo },
-  "Apple Music": { color: "#FA243C", letter: "A", logo: appleMusicLogo },
-  "YouTube Official Content": { color: "#FF0000", letter: "Y", logo: youtubeLogo },
-  "YouTube UGC": { color: "#FF0000", letter: "Y", logo: youtubeLogo },
-  "Deezer": { color: "#A238FF", letter: "D", logo: deezerLogo },
-  "Amazon Premium": { color: "#00A8E1", letter: "A" },
-  "Amazon Ad-Supported": { color: "#00A8E1", letter: "A" },
-  "Facebook / Instagram": { color: "#E4405F", letter: "F", logo: metaLogo },
-  "iMusica": { color: "#FF6B35", letter: "I" },
-  "Yandex": { color: "#FFCC00", letter: "Y" },
-  "iTunes Match": { color: "#FA243C", letter: "I" },
-  "Audiomack": { color: "#FFA200", letter: "A" },
-  "TikTok": { color: "#010101", letter: "T", logo: tiktokLogo },
-  "Otros": { color: "#71757E", letter: "O" },
-};
 
 /** Sobre un chip claro (Yandex, Audiomack) el logo y la inicial van en tinta. */
-const isLight = (hex: string): boolean => {
-  const value = hex.replace("#", "");
-  const [r, g, b] = [0, 2, 4].map((offset) => parseInt(value.slice(offset, offset + 2), 16) / 255);
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.6;
-};
+const isLight = (hex: string): boolean => luminance(hex) > 0.6;
 
 const chartButtons: { view: ChartView; icon: JSX.Element; label: string }[] = [
   { view: "donut", icon: <PieChart className="h-[14px] w-[14px]" />, label: "Dona" },
