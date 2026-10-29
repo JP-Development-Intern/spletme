@@ -1,4 +1,4 @@
-import { Music, Disc3, DollarSign, Play, CircleAlert, ArrowRight, type LucideIcon } from "lucide-react";
+import { Music, Disc3, DollarSign, Play, CircleAlert, ArrowRight, Wallet, type LucideIcon } from "lucide-react";
 import { formatStreams, formatCurrency } from "@/utils/format.utils";
 
 interface MusicKpisProps {
@@ -7,6 +7,8 @@ interface MusicKpisProps {
   totalIncome: number;
   totalStreams: number;
   withoutSplits: number;
+  /** Pendiente de pago a colaboradores. Solo se pasa al owner; sin él, no hay KPI. */
+  totalToPay?: number;
   /** Deja a la vista solo lo que aún no reparte. */
   onShowWithoutSplits?: () => void;
 }
@@ -22,13 +24,18 @@ export function MusicKpis({
   totalIncome,
   totalStreams,
   withoutSplits,
+  totalToPay,
   onShowWithoutSplits,
 }: MusicKpisProps) {
   const withSplits = Math.max(0, totalSongs - withoutSplits);
+  const channelCount = 4 + (totalToPay !== undefined ? 1 : 0);
 
   return (
     <section className="glass flex flex-col rounded-[28px] p-1.5 xl:flex-row xl:items-stretch">
-      <div className="grid min-w-0 flex-1 grid-cols-1 divide-y divide-white/[0.09] sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x">
+      <div
+        style={{ "--cols": channelCount } as React.CSSProperties}
+        className="grid min-w-0 flex-1 grid-cols-1 divide-y divide-white/[0.09] sm:grid-cols-2 sm:divide-y-0 lg:[grid-template-columns:repeat(var(--cols),minmax(0,1fr))] lg:divide-x"
+      >
         <Channel
           icon={Music}
           label="Canciones"
@@ -44,6 +51,15 @@ export function MusicKpis({
           caption="neto acumulado"
         />
         <Channel icon={Play} label="Streams" value={formatStreams(totalStreams)} caption="en todo el catálogo" />
+        {totalToPay !== undefined && (
+          <Channel
+            icon={Wallet}
+            label="Total a pagar"
+            value={formatCurrency(totalToPay)}
+            valueClassName="text-[#FF8A3D]"
+            caption="a colaboradores · todo el catálogo"
+          />
+        )}
       </div>
 
       <div className="flex flex-col gap-3 rounded-[22px] border border-[#FF8A3D]/30 bg-[#FF5C00]/[0.14] px-[22px] py-[18px] xl:w-[250px] xl:flex-shrink-0">
