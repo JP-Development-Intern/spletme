@@ -80,3 +80,18 @@ export function viewerAmount(song: any, user: any = currentUser()): number {
 
   return Number(mine?.amountOwed ?? 0) || 0;
 }
+
+/**
+ * Si quien mira es el dueño de TODAS las canciones dadas. Un sello mezcla
+ * canciones; el total a pagar solo se enseña cuando ninguna es de otro.
+ */
+export const viewerOwnsAllSongs = (songs: any[], user: any = currentUser()): boolean =>
+  songs.length > 0 && songs.every((song) => viewerOwnsSong(song, user));
+
+/**
+ * Si quien mira es el titular de la cuenta (no una subcuenta). La lista de
+ * sellos solo trae agregados, sin canciones, así que no se puede preguntar por
+ * canción: se usa la misma regla de subcuentas de `resolveIsOwner`.
+ */
+export const viewerIsAccountOwner = (user: any = currentUser()): boolean =>
+  Boolean(user) && !user?.parentUserId;
