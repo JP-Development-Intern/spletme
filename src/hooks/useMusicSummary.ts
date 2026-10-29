@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import AlbumService from "@/services/albums";
 import { useSongsKpis } from "./useSongsKpis";
+import LabelsService from "@/services/labels";
 import CollaboratorService from "@/services/collaborator";
 import { viewerIsAccountOwner } from "@/utils/ownerVisibility";
 
@@ -12,6 +13,8 @@ export interface MusicSummary {
   withoutSplits: number;
   /** Pendiente de pago a colaboradores. `undefined` si quien mira no es el owner. */
   totalToPay?: number;
+  /** Ganancia del owner según sus splits. `undefined` si quien mira no es el owner. */
+  ownerEarnings?: number;
   loading: boolean;
 }
 
@@ -27,6 +30,7 @@ export function useMusicSummary(): MusicSummary {
   const [totalAlbums, setTotalAlbums] = useState(0);
   const [albumsLoading, setAlbumsLoading] = useState(true);
   const [totalToPay, setTotalToPay] = useState<number>();
+  const [ownerEarnings, setOwnerEarnings] = useState<number>();
 
   useEffect(() => {
     let active = true;
@@ -58,6 +62,15 @@ export function useMusicSummary(): MusicSummary {
       })
       .catch(() => active && setTotalToPay(0));
 
+    // La ganancia del owner ya viene calculada por sello con sus splits activos;
+    // sumar los sellos cubre todo el catálogo, incluidas las canciones sin sello.
+    LabelsService.getLabels()
+      .then((response) => {
+        const labels = response.data ?? [];
+        if (active) setOwnerEarnings(labels.reduce((sum, l) => sum + (l.ownerEarnings ?? 0), 0));
+      })
+      .catch(() => active && setOwnerEarnings(0));
+
     return () => {
       active = false;
     };
@@ -70,6 +83,7 @@ export function useMusicSummary(): MusicSummary {
     totalStreams: songs.totalStreams,
     withoutSplits: songs.withoutSplits,
     totalToPay,
+    ownerEarnings,
     loading: songs.loading || albumsLoading,
   };
 }

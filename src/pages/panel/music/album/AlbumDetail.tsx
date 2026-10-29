@@ -342,6 +342,18 @@ export default function AlbumDetail() {
     ...(isOwnerUser
       ? [
           {
+            key: "earnings",
+            label: "TU GANANCIA",
+            icon: <Crown className="h-[13px] w-[13px] text-[#FF5C00]" />,
+            value: formatCurrency(Number(album.ownerEarnings ?? 0) || 0),
+            valueColor: "#FF5C00",
+            caption: "según tus splits",
+          } as MetricChannel,
+        ]
+      : []),
+    ...(isOwnerUser
+      ? [
+          {
             key: "unassigned",
             label: "SIN REPARTIR",
             icon: <CircleAlert className="h-[13px] w-[13px] text-[#FF5C00]" />,
