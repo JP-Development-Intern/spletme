@@ -9,11 +9,13 @@ import {
   Play,
   DollarSign,
   Crown,
+  Wallet,
   ChartPie,
   TriangleAlert,
 } from "lucide-react";
 import { useCustomLabelSongs } from "@/hooks/useLabels";
-import { useLabelsLibrary, toCoverage } from "@/hooks/useLabelsLibrary";
+import { useLabelsLibrary, toCoverage, pendingToPay } from "@/hooks/useLabelsLibrary";
+import { viewerOwnsAllSongs } from "@/utils/ownerVisibility";
 import { formatCurrency, formatStreams } from "@/utils/format.utils";
 import { SplitCoverageMeter } from "@/components/labels/SplitCoverageMeter";
 
@@ -40,12 +42,17 @@ export default function CustomLabelDetail() {
     let streams = 0;
     let netIncome = 0;
     let ownerEarnings = 0;
+    let totalToPay = 0;
     let withSplits = 0;
 
     for (const song of songs) {
       streams += song.totalStreams ?? 0;
       netIncome += song.totalNetIncome ?? 0;
       ownerEarnings += song.ownerEarnings ?? 0;
+      totalToPay +=
+        song.collaboratorsPending ??
+        song.collaboratorsEarnings ??
+        pendingToPay(song.totalNetIncome, song.ownerEarnings);
       if (song.ownerSplit) withSplits += 1;
     }
 
@@ -53,9 +60,12 @@ export default function CustomLabelDetail() {
       streams,
       netIncome,
       ownerEarnings,
+      totalToPay,
       coverage: toCoverage(songs.length, withSplits, false),
     };
   }, [songs]);
+
+  const showToPay = useMemo(() => viewerOwnsAllSongs(songs), [songs]);
 
   const grouped = useMemo(
     () =>
@@ -168,6 +178,17 @@ export default function CustomLabelDetail() {
             icon={<Play className="h-[13px] w-[13px] text-[#71757E]" />}
             value={loading ? "—" : formatStreams(totals.streams)}
           />
+          {showToPay && (
+            <Channel
+              label="TOTAL A PAGAR"
+              icon={<Wallet className="h-[13px] w-[13px] text-[#FF5C00]" />}
+              value={loading ? "—" : formatCurrency(totals.totalToPay)}
+              className="lg:w-[236px] lg:flex-shrink-0"
+            >
+              <span className="text-[10.5px] text-[#A6AAB2]">a colaboradores</span>
+            </Channel>
+          )}
+
           <Channel
             label="TU GANANCIA"
             icon={<Crown className="h-[13px] w-[13px] text-[#FF5C00]" />}

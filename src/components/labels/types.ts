@@ -34,6 +34,8 @@ export interface LabelListItem {
   totalStreams: number;
   totalNetIncome: number;
   ownerEarnings: number;
+  /** Total a pagar a colaboradores: lo que no es del owner. Dato solo del owner. */
+  totalToPay: number;
   coverage: SplitCoverage;
   /** Sello artístico original, cuando lo hay. */
   source?: Label;
