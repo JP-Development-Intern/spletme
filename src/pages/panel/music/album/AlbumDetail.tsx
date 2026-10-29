@@ -38,6 +38,7 @@ import { MyShareCard } from "@/components/music/MyShareCard";
 import { MetricConsole, type MetricChannel } from "@/components/ui/MetricConsole";
 import Loading from "@/components/loading/loading";
 import Platforms from "../song/components/platforms";
+import Performance from "../song/components/performance";
 import AlbumOwnerSplitModal from "./components/AlbumOwnerSplitModal";
 import { InviteAlbumCollaboratorModal } from "./components/InviteAlbumCollaboratorModal";
 import BulkCollaboratorSplitModal from "@/components/splits/BulkCollaboratorSplitModal";
@@ -165,6 +166,17 @@ export default function AlbumDetail() {
       alive = false;
     };
   }, [album]);
+
+  /** La serie del álbum, en la forma que dibuja el gráfico de rendimiento. */
+  const monthlyEntries = useMemo(
+    () =>
+      monthly.map((entry) => ({
+        name: entry.month,
+        totalNetIncome: entry.revenue,
+        totalStreams: entry.streams,
+      })),
+    [monthly],
+  );
 
   const coverage = useMemo(
     () => (album ? albumSplitCoverage(album as AlbumItem) : { withSplit: 0, total: 0 }),
@@ -453,7 +465,10 @@ export default function AlbumDetail() {
               <MyShareCard percentage={myAlbumShare.percentage} amount={myAlbumShare.amount} />
             )}
             <Platforms reproductions={reproductions} />
-            {monthly.length > 0 && <MonthlyChart data={monthly} />}
+            <Performance
+              data={monthlyEntries}
+              subtitle="Streams e ingresos del álbum, mes a mes"
+            />
           </div>
         )}
 
@@ -689,41 +704,6 @@ function TracksTable({
         </ul>
       )}
     </div>
-  );
-}
-
-/** Ingresos mes a mes del álbum. */
-function MonthlyChart({ data }: { data: MonthlyMetric[] }) {
-  const max = Math.max(1, ...data.map((entry) => entry.revenue));
-
-  return (
-    <section className="col-span-12 flex min-w-0 flex-col gap-4 rounded-[26px] border border-[#E8E8EC] bg-white p-6 shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
-      <div className="flex flex-col gap-0.5">
-        <h2 className="font-display text-base font-semibold text-[#1C1D22]">Rendimiento</h2>
-        <p className="text-[11.5px] text-[#71757E]">Ingresos del álbum, mes a mes</p>
-      </div>
-
-      <div className="flex h-[150px] items-end gap-1.5">
-        {data.map((entry, index) => (
-          <span
-            key={entry.month}
-            title={`${entry.month}: ${formatCurrency(entry.revenue)}`}
-            className="flex flex-1 flex-col items-center gap-1.5"
-          >
-            <span
-              className="w-full rounded-t-lg"
-              style={{
-                height: Math.max(3, (entry.revenue / max) * 118),
-                backgroundColor: index === data.length - 1 ? "#FF5C00" : "#F4F5F7",
-              }}
-            />
-            <span className="font-mono text-[9px] text-[#A6AAB2]">
-              {entry.month.slice(5) || entry.month.slice(0, 3)}
-            </span>
-          </span>
-        ))}
-      </div>
-    </section>
   );
 }
 

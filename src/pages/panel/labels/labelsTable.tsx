@@ -10,6 +10,7 @@ import {
   ArrowDown,
 } from "lucide-react";
 import { useLabelsLibrary } from "@/hooks/useLabelsLibrary";
+import { viewerIsAccountOwner } from "@/utils/ownerVisibility";
 import { LabelsKpis } from "@/components/labels/LabelsKpis";
 import { LabelsFilterBar } from "@/components/labels/LabelsFilterBar";
 import { LabelRow } from "@/components/labels/LabelRow";
@@ -132,6 +133,7 @@ export default function LabelsTable() {
               totalStreams={totals.streams}
               totalNetIncome={totals.netIncome}
               ownerEarnings={totals.ownerEarnings}
+              totalToPay={viewerIsAccountOwner() ? totals.totalToPay : undefined}
               coverage={totals.coverage}
               onShowIncomplete={pendingSongs > 0 ? showOnlyIncomplete : undefined}
             />

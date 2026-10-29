@@ -40,6 +40,7 @@ export function useLabelsLibrary() {
         totalStreams: label.totalStreams ?? 0,
         totalNetIncome: label.totalNetIncome ?? 0,
         ownerEarnings: label.ownerEarnings ?? 0,
+        totalToPay: label.totalToPay ?? pendingToPay(label.totalNetIncome, label.ownerEarnings),
         coverage: toCoverage(
           label.splitProgress?.total ?? label.count ?? 0,
           label.splitProgress?.withSplits ?? 0,
@@ -74,6 +75,9 @@ export function useLabelsLibrary() {
           totalStreams: custom.stats?.totalStreams ?? 0,
           totalNetIncome: custom.stats?.totalNetIncome ?? 0,
           ownerEarnings: custom.stats?.ownerEarnings ?? 0,
+          totalToPay:
+            custom.stats?.totalToPay ??
+            pendingToPay(custom.stats?.totalNetIncome, custom.stats?.ownerEarnings),
           coverage: toCoverage(total, withSplits, true),
         };
       }),
@@ -93,6 +97,7 @@ export function useLabelsLibrary() {
     let streams = 0;
     let netIncome = 0;
     let ownerEarnings = 0;
+    let totalToPay = 0;
     let coveredSongs = 0;
     let splitTotal = 0;
 
@@ -101,6 +106,7 @@ export function useLabelsLibrary() {
       streams += item.totalStreams;
       netIncome += item.totalNetIncome;
       ownerEarnings += item.ownerEarnings;
+      totalToPay += item.totalToPay;
       coveredSongs += item.coverage.withSplits;
       splitTotal += item.coverage.total;
     }
@@ -110,6 +116,7 @@ export function useLabelsLibrary() {
       streams,
       netIncome,
       ownerEarnings,
+      totalToPay,
       coverage: toCoverage(splitTotal, coveredSongs, false),
       customCount: customItems.length,
       artisticCount: artisticItems.length,
@@ -182,6 +189,14 @@ export function useLabelsLibrary() {
     clearAllFilters,
     showOnlyIncomplete,
   };
+}
+
+/**
+ * Lo que queda por pagar a colaboradores: el neto menos la parte del owner.
+ * Es la misma cuenta de respaldo que usa la vista de una canción.
+ */
+export function pendingToPay(netIncome = 0, ownerEarnings = 0): number {
+  return Math.max(0, (netIncome ?? 0) - (ownerEarnings ?? 0));
 }
 
 /** Normaliza un progreso de splits a la forma que usa toda la sección. */

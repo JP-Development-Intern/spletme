@@ -1,4 +1,4 @@
-import { Tag, Music, ChartPie, DollarSign, Crown, ArrowRight } from "lucide-react";
+import { Tag, Music, ChartPie, DollarSign, Crown, ArrowRight, Wallet } from "lucide-react";
 import { formatCurrency, formatStreams } from "@/utils/format.utils";
 import type { SplitCoverage } from "./types";
 
@@ -9,6 +9,8 @@ interface LabelsKpisProps {
   totalStreams: number;
   totalNetIncome: number;
   ownerEarnings: number;
+  /** Acumulado a pagar de todos los sellos. Solo se pasa al owner; sin él, no hay KPI. */
+  totalToPay?: number;
   coverage: SplitCoverage;
   /** Filtra la lista a los sellos que aún tienen canciones sin repartir. */
   onShowIncomplete?: () => void;
@@ -31,6 +33,7 @@ export function LabelsKpis({
   totalStreams,
   totalNetIncome,
   ownerEarnings,
+  totalToPay,
   coverage,
   onShowIncomplete,
 }: LabelsKpisProps) {
@@ -99,6 +102,17 @@ export function LabelsKpis({
         <span className="text-[10.5px] text-[#A6AAB2]">neto acumulado</span>
       </Channel>
 
+      {totalToPay !== undefined && (
+        <Channel
+          label="TOTAL A PAGAR"
+          icon={<Wallet className="h-[13px] w-[13px] text-[#FF5C00]" />}
+          value={formatCurrency(totalToPay)}
+          valueClassName="text-[#1C1D22] text-[24px]"
+          className="lg:w-[230px] lg:flex-shrink-0"
+        >
+          <span className="text-[10.5px] text-[#A6AAB2]">a colaboradores · todos los sellos</span>
+        </Channel>
+      )}
       <Channel
         label="TU GANANCIA"
         icon={<Crown className="h-[13px] w-[13px] text-[#FF5C00]" />}

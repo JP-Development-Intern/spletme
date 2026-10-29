@@ -9,6 +9,7 @@ import {
   Play,
   DollarSign,
   Crown,
+  Wallet,
   ChartPie,
   Tag,
   TriangleAlert,
@@ -18,7 +19,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { useLabelSongs } from "@/hooks/useLabels";
-import { toCoverage } from "@/hooks/useLabelsLibrary";
+import { toCoverage, pendingToPay } from "@/hooks/useLabelsLibrary";
 import { formatCurrency, formatStreams } from "@/utils/format.utils";
 import { SplitCoverageMeter } from "@/components/labels/SplitCoverageMeter";
 import { CopyButton } from "@/components/ui/CopyButton";
@@ -26,7 +27,7 @@ import type { LabelSong } from "@/services/labels";
 import CreateSplitsByLabelModal from "@/components/modal/CreateSplitsByLabelModal";
 import InviteCollaboratorToLabelModal from "@/components/labels/InviteCollaboratorToLabelModal";
 import BulkCollaboratorSplitModal from "@/components/splits/BulkCollaboratorSplitModal";
-import { viewerOwnsSong } from "@/utils/ownerVisibility";
+import { viewerOwnsSong, viewerOwnsAllSongs } from "@/utils/ownerVisibility";
 
 type SongSortBy = "income_desc" | "income_asc" | "title_asc" | "streams_desc" | "owner_desc";
 
@@ -73,12 +74,17 @@ export default function LabelDetail() {
     let streams = 0;
     let netIncome = 0;
     let ownerEarnings = 0;
+    let totalToPay = 0;
     let withSplits = 0;
 
     for (const song of songs) {
       streams += song.totalStreams ?? 0;
       netIncome += song.totalNetIncome ?? 0;
       ownerEarnings += song.ownerEarnings ?? 0;
+      totalToPay +=
+        song.collaboratorsPending ??
+        song.collaboratorsEarnings ??
+        pendingToPay(song.totalNetIncome, song.ownerEarnings);
       if (song.ownerSplit) withSplits += 1;
     }
 
@@ -86,9 +92,12 @@ export default function LabelDetail() {
       streams,
       netIncome,
       ownerEarnings,
+      totalToPay,
       coverage: toCoverage(songs.length, withSplits, false),
     };
   }, [songs]);
+
+  const showToPay = useMemo(() => viewerOwnsAllSongs(songs), [songs]);
 
   /** Las canciones del sello, en la forma común de los repartos en bloque. */
   const splitTracks = useMemo(
@@ -272,6 +281,17 @@ export default function LabelDetail() {
             icon={<Play className="h-[13px] w-[13px] text-[#71757E]" />}
             value={loading ? "—" : formatStreams(totals.streams)}
           />
+          {showToPay && (
+            <Channel
+              label="TOTAL A PAGAR"
+              icon={<Wallet className="h-[13px] w-[13px] text-[#FF5C00]" />}
+              value={loading ? "—" : formatCurrency(totals.totalToPay)}
+              className="lg:w-[236px] lg:flex-shrink-0"
+            >
+              <span className="text-[10.5px] text-[#A6AAB2]">a colaboradores</span>
+            </Channel>
+          )}
+
           <Channel
             label="TU GANANCIA"
             icon={<Crown className="h-[13px] w-[13px] text-[#FF5C00]" />}

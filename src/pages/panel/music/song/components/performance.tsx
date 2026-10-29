@@ -2,8 +2,18 @@ import { useMemo, useState } from "react";
 import useMetricPayments from "@/hooks/useMetricPayments";
 import { formatCurrency, formatStreams, formatCompactCurrency } from "@/utils/format.utils";
 
+/** Un mes de la serie: el nombre puede ser "enero" o "2025-01". */
+export interface PerformanceEntry {
+  name: string;
+  totalNetIncome: number;
+  totalStreams?: number;
+}
+
 interface PerformanceProps {
   songId?: string;
+  /** Serie ya cargada (p. ej. un álbum). Sin ella se pide la de la canción. */
+  data?: PerformanceEntry[];
+  subtitle?: string;
 }
 
 type Range = "6m" | "12m" | "all";
@@ -52,8 +62,12 @@ const monthLabel = (name: string): string => {
  * streams la línea que las cruza. Al posarse sobre un mes se lee la cifra
  * exacta de ambas, que es lo que casi siempre se viene a mirar.
  */
-const Performance = ({ songId }: PerformanceProps) => {
-  const { metricsData, loading } = useMetricPayments(songId, "month");
+const Performance = ({ songId, data: external, subtitle }: PerformanceProps) => {
+  const { metricsData: fetched, loading } = useMetricPayments(
+    external ? undefined : songId,
+    "month",
+  );
+  const metricsData = external ?? fetched;
   const [range, setRange] = useState<Range>("12m");
   const [hovered, setHovered] = useState<number | null>(null);
 
@@ -94,7 +108,7 @@ const Performance = ({ songId }: PerformanceProps) => {
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <div className="flex flex-col gap-0.5">
           <h2 className="font-display text-lg font-semibold text-[#1C1D22]">Rendimiento</h2>
-          <p className="text-[12.5px] text-[#71757E]">Streams e ingresos mes a mes</p>
+          <p className="text-[12.5px] text-[#71757E]">{subtitle ?? "Streams e ingresos mes a mes"}</p>
         </div>
 
         <div
