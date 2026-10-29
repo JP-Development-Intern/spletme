@@ -106,7 +106,8 @@ export default function Music() {
         totalIncome={summary.totalIncome}
         totalStreams={summary.totalStreams}
         withoutSplits={summary.withoutSplits}
-          totalToPay={summary.totalToPay}
+        totalToPay={summary.totalToPay}
+        ownerEarnings={summary.ownerEarnings}
         onShowWithoutSplits={summary.withoutSplits > 0 ? () => setFiltersOpen(true) : undefined}
       />
 

@@ -205,6 +205,14 @@ export default function Song() {
     ...(isOwnerUser
       ? [
           {
+            key: "earnings",
+            label: "TU GANANCIA",
+            icon: <Crown className="h-[13px] w-[13px] text-[#FF5C00]" />,
+            value: formatCurrency(ownerAmount),
+            valueColor: "#FF5C00",
+            caption: "según tus splits",
+          } as MetricChannel,
+          {
             key: "topay",
             label: "POR PAGAR",
             icon: <HandCoins className="h-[13px] w-[13px] text-[#FF5C00]" />,

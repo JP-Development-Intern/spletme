@@ -1,4 +1,4 @@
-import { Music, Disc3, DollarSign, Play, CircleAlert, ArrowRight, Wallet, type LucideIcon } from "lucide-react";
+import { Music, Disc3, DollarSign, Play, CircleAlert, ArrowRight, Wallet, Crown, type LucideIcon } from "lucide-react";
 import { formatStreams, formatCurrency } from "@/utils/format.utils";
 
 interface MusicKpisProps {
@@ -9,6 +9,8 @@ interface MusicKpisProps {
   withoutSplits: number;
   /** Pendiente de pago a colaboradores. Solo se pasa al owner; sin él, no hay KPI. */
   totalToPay?: number;
+  /** Ganancia del owner según sus splits. Solo se pasa al owner. */
+  ownerEarnings?: number;
   /** Deja a la vista solo lo que aún no reparte. */
   onShowWithoutSplits?: () => void;
 }
@@ -25,10 +27,11 @@ export function MusicKpis({
   totalStreams,
   withoutSplits,
   totalToPay,
+  ownerEarnings,
   onShowWithoutSplits,
 }: MusicKpisProps) {
   const withSplits = Math.max(0, totalSongs - withoutSplits);
-  const channelCount = 4 + (totalToPay !== undefined ? 1 : 0);
+  const channelCount = 4 + (totalToPay !== undefined ? 1 : 0) + (ownerEarnings !== undefined ? 1 : 0);
 
   return (
     <section className="glass flex flex-col rounded-[28px] p-1.5 xl:flex-row xl:items-stretch">
@@ -58,6 +61,15 @@ export function MusicKpis({
             value={formatCurrency(totalToPay)}
             valueClassName="text-[#FF8A3D]"
             caption="a colaboradores · todo el catálogo"
+          />
+        )}
+        {ownerEarnings !== undefined && (
+          <Channel
+            icon={Crown}
+            label="Tu ganancia"
+            value={formatCurrency(ownerEarnings)}
+            valueClassName="text-[#FF8A3D]"
+            caption="según tus splits"
           />
         )}
       </div>
