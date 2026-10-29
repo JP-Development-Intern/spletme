@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import AlbumService from "@/services/albums";
 import { useSongsKpis } from "./useSongsKpis";
+import CollaboratorService from "@/services/collaborator";
+import { viewerIsAccountOwner } from "@/utils/ownerVisibility";
 
 export interface MusicSummary {
   totalSongs: number;
@@ -8,6 +10,8 @@ export interface MusicSummary {
   totalIncome: number;
   totalStreams: number;
   withoutSplits: number;
+  /** Pendiente de pago a colaboradores. `undefined` si quien mira no es el owner. */
+  totalToPay?: number;
   loading: boolean;
 }
 
@@ -22,6 +26,7 @@ export function useMusicSummary(): MusicSummary {
   const songs = useSongsKpis();
   const [totalAlbums, setTotalAlbums] = useState(0);
   const [albumsLoading, setAlbumsLoading] = useState(true);
+  const [totalToPay, setTotalToPay] = useState<number>();
 
   useEffect(() => {
     let active = true;
@@ -41,12 +46,30 @@ export function useMusicSummary(): MusicSummary {
     };
   }, []);
 
+  // El total a pagar es una cuenta del owner: a los demás ni se les pide.
+  useEffect(() => {
+    if (!viewerIsAccountOwner()) return;
+    let active = true;
+
+    CollaboratorService.getMetrics()
+      .then((response) => {
+        const pending = response?.data?.summary?.totalPending;
+        if (active) setTotalToPay(typeof pending === "number" ? pending : 0);
+      })
+      .catch(() => active && setTotalToPay(0));
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return {
     totalSongs: songs.totalSongs,
     totalAlbums,
     totalIncome: songs.totalIncome,
     totalStreams: songs.totalStreams,
     withoutSplits: songs.withoutSplits,
+    totalToPay,
     loading: songs.loading || albumsLoading,
   };
 }
