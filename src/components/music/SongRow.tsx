@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Music, Play, Tag, ChevronRight, Eye, Crown } from "lucide-react";
+import { Music, Tag, ChevronRight, Eye, Crown, Check } from "lucide-react";
 import { hasAnySplit, hasOwnerSplit } from "@/utils/music.utils";
 import { viewerOwnsSong, viewerSplitPercentage, viewerAmount } from "@/utils/ownerVisibility";
 import { formatStreams, formatCurrency } from "@/utils/format.utils";
@@ -47,18 +47,18 @@ export function SongRow({ song, onQuickView, onOwnerSplit, showsIncome = false }
   return (
     <div
       onClick={() => navigate(to)}
-      className={`${SONGS_GRID} group cursor-pointer px-5 py-2.5 transition-colors hover:bg-[#F4F5F7]`}
+      className={`${SONGS_GRID} group cursor-pointer px-5 py-3 transition-colors hover:bg-white/[0.04]`}
     >
       {/* Canción */}
       <div className="flex min-w-0 items-center gap-3">
-        <div className="h-11 w-11 flex-shrink-0 overflow-hidden rounded-[13px]">
+        <div className="h-11 w-11 flex-shrink-0 overflow-hidden rounded-xl">
           {cover ? (
             <img src={cover} alt={song.trackTitle} className="h-full w-full object-cover" />
           ) : (
             <div
-              className={`flex h-full w-full items-center justify-center ${split ? "bg-[#F4F5F7]" : "bg-[#FFEADD]"}`}
+              className={`flex h-full w-full items-center justify-center ${split ? "bg-white/[0.08]" : "bg-[#FF5C00]/[0.16]"}`}
             >
-              <Music className={`h-4 w-4 ${split ? "text-[#A6AAB2]" : "text-[#FF5C00]"}`} />
+              <Music className={`h-4 w-4 ${split ? "text-white/50" : "text-[#FF8A3D]"}`} />
             </div>
           )}
         </div>
@@ -66,19 +66,23 @@ export function SongRow({ song, onQuickView, onOwnerSplit, showsIncome = false }
           <Link
             to={to}
             onClick={(e) => e.stopPropagation()}
-            className="truncate text-[13.5px] font-semibold text-[#1C1D22] transition-colors group-hover:text-[#FF5C00]"
+            className="truncate text-[13.5px] font-semibold text-white transition-colors group-hover:text-[#FFB067]"
             title={song.trackTitle}
           >
             {song.trackTitle}
           </Link>
           <span className="flex min-w-0 items-center gap-1.5">
-            <span className="truncate text-[11.5px] text-[#A6AAB2]">{song?.artistName ?? "—"}</span>
+            <span className="truncate text-[11.5px] text-white/50">{song?.artistName ?? "—"}</span>
             {song?.isrc && (
               <>
-                <span className="text-[11px] text-[#A6AAB2]">·</span>
-                <span className="truncate font-mono text-[10.5px] text-[#A6AAB2]">{song.isrc}</span>
+                <span className="text-[11px] text-white/40">·</span>
+                <span className="truncate text-[11px] text-white/50">{song.isrc}</span>
                 <span onClick={(e) => e.stopPropagation()}>
-                  <CopyButton value={song.isrc} title="Copiar ISRC" />
+                  <CopyButton
+                    value={song.isrc}
+                    title="Copiar ISRC"
+                    className="!text-white/45 hover:!bg-white/10 hover:!text-[#FFB067]"
+                  />
                 </span>
               </>
             )}
@@ -93,15 +97,15 @@ export function SongRow({ song, onQuickView, onOwnerSplit, showsIncome = false }
       <div className={visibility("status")}>
         <span
           className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1"
-          style={{ backgroundColor: split ? "#E4F5EC" : "#FFEADD" }}
+          style={{ backgroundColor: split ? "rgba(69, 211, 154, 0.12)" : "rgba(255, 92, 0, 0.16)" }}
         >
           <span
             className="h-1.5 w-1.5 rounded-full"
-            style={{ backgroundColor: split ? "#2FB37E" : "#FF5C00" }}
+            style={{ backgroundColor: split ? "#45D39A" : "#FF8A3D" }}
           />
           <span
-            className="text-[10.5px] font-semibold"
-            style={{ color: split ? "#2FB37E" : "#FF5C00" }}
+            className="text-[11.5px] font-semibold"
+            style={{ color: split ? "#45D39A" : "#FF8A3D" }}
           >
             {split ? "Con split" : "Sin split"}
           </span>
@@ -109,16 +113,15 @@ export function SongRow({ song, onQuickView, onOwnerSplit, showsIncome = false }
       </div>
 
       {/* Streams */}
-      <div className={`${visibility("streams")} items-center gap-1.5`}>
-        <Play className="h-3 w-3 flex-shrink-0 text-[#A6AAB2]" />
-        <span className="font-mono text-[11.5px] text-[#71757E]">
+      <div className={`${visibility("streams")} items-center`}>
+        <span className="text-[13px] font-medium text-white">
           {formatStreams(song?.totalStreams ?? 0)}
         </span>
       </div>
 
       {/* Ingresos */}
       <div className={visibility("income")}>
-        <span className="font-mono text-[13px] font-semibold text-[#2FB37E]">
+        <span className="font-mono text-[15px] text-[#45D39A]">
           {formatCurrency(money)}
         </span>
       </div>
@@ -131,12 +134,12 @@ export function SongRow({ song, onQuickView, onOwnerSplit, showsIncome = false }
       {/* % · Sello */}
       <div className={`${visibility("percentage")} items-center gap-2`}>
         <span
-          className={`font-mono text-[12.5px] font-semibold ${myPercentage !== null ? "text-[#1C1D22]" : "text-[#A6AAB2]"}`}
+          className={`text-[13px] font-semibold ${myPercentage !== null ? "text-white" : "text-white/50"}`}
         >
           {myPercentage !== null ? `${myPercentage}%` : "—"}
         </span>
         {(song?.labelCount ?? 0) > 0 && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#FFEADD] px-2 py-0.5 font-mono text-[10px] font-semibold text-[#FF5C00]">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#FF5C00]/[0.16] px-2 py-0.5 text-[10.5px] font-semibold text-[#FF9A5C]">
             <Tag className="h-2.5 w-2.5" />
             {song.labelCount}
           </span>
@@ -162,13 +165,17 @@ export function SongRow({ song, onQuickView, onOwnerSplit, showsIncome = false }
                 ? `${song.trackTitle} ya tiene split`
                 : `Asignar split a ${song.trackTitle}`
             }
-            className={`flex flex-shrink-0 items-center gap-1.5 rounded-[15px] px-2 py-1.5 text-[11.5px] font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5C00] lg:px-3 ${
+            className={`flex flex-shrink-0 items-center gap-1.5 rounded-full border px-2 py-[7px] text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 lg:px-3 ${
               ownerSplitDone
-                ? "cursor-not-allowed bg-[#F4F5F7] text-[#A6AAB2]"
-                : "bg-[#FFEADD] text-[#FF5C00] hover:bg-[#FFDCC7]"
+                ? "cursor-not-allowed border-transparent bg-[#45D39A]/10 text-[#45D39A]"
+                : "border-[#FF8A3D]/35 bg-[#FF5C00]/[0.16] text-[#FF9A5C] hover:bg-[#FF5C00]/25"
             }`}
           >
-            <Crown className="h-3.5 w-3.5 flex-shrink-0" />
+            {ownerSplitDone ? (
+              <Check className="h-3.5 w-3.5 flex-shrink-0" />
+            ) : (
+              <Crown className="h-3.5 w-3.5 flex-shrink-0" />
+            )}
             <span className="hidden lg:inline">{ownerSplitDone ? "Listo" : "Split"}</span>
           </button>
         )}
@@ -179,11 +186,11 @@ export function SongRow({ song, onQuickView, onOwnerSplit, showsIncome = false }
           }}
           title="Vista rápida"
           aria-label={`Vista rápida de ${song.trackTitle}`}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-[#A6AAB2] transition-colors hover:bg-white hover:text-[#1C1D22] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5C00]"
+          className="flex h-[34px] w-[34px] items-center justify-center rounded-full bg-white/[0.06] text-white/70 transition-colors hover:bg-white/[0.12] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
         >
           <Eye className="h-4 w-4" />
         </button>
-        <ChevronRight className="h-4 w-4 flex-shrink-0 text-[#A6AAB2]" />
+        <ChevronRight className="h-4 w-4 flex-shrink-0 text-white/40" />
       </div>
     </div>
   );

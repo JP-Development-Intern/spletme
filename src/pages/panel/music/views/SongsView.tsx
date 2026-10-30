@@ -191,7 +191,7 @@ export function SongsView({
   if (layout === "grid") {
     return (
       <div className="flex flex-col gap-5">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 xl:grid-cols-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {songs.map((song) => (
             <SongCard
               key={song._id}
@@ -202,7 +202,7 @@ export function SongsView({
             />
           ))}
         </div>
-        <div className="px-1">{pagination}</div>
+        <div className="glass rounded-[22px] px-5 py-3.5">{pagination}</div>
         {drawer}
         {detailsModal}
         {splitModal}
@@ -213,8 +213,8 @@ export function SongsView({
   const titleActive = sortBy === "alpha" || sortBy === "title_desc";
 
   return (
-    <div className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
-      <div className={`${SONGS_GRID} px-5 py-3`}>
+    <div className="glass overflow-hidden rounded-[28px]">
+      <div className={`${SONGS_GRID} bg-black/[0.08] px-5 py-3`}>
         <div className="flex min-w-0">
           <ColumnButton
             label="CANCIÓN"
@@ -244,8 +244,8 @@ export function SongsView({
         })}
         <div />
       </div>
-      <div className="h-px bg-[#E8E8EC]" />
-      <div className="flex flex-col divide-y divide-[#E8E8EC]">
+      <div className="h-px bg-white/[0.09]" />
+      <div className="flex flex-col divide-y divide-white/[0.09]">
         {songs.map((song) => (
           <SongRow
             key={song._id}
@@ -256,8 +256,8 @@ export function SongsView({
           />
         ))}
       </div>
-      <div className="h-px bg-[#E8E8EC]" />
-      <div className="px-5 py-3">{pagination}</div>
+      <div className="h-px bg-white/[0.09]" />
+      <div className="px-5 py-3.5">{pagination}</div>
 
       {drawer}
       {detailsModal}
@@ -281,18 +281,23 @@ function ColumnButton({
     <button
       onClick={onClick}
       className={`flex items-center gap-1 transition-colors ${
-        active ? "text-[#FF5C00]" : "text-[#A6AAB2] hover:text-[#71757E]"
+        active ? "text-white" : "text-white/50 hover:text-white/80"
       }`}
     >
-      <span className="font-mono text-[9.5px] font-medium tracking-[1.2px]">{label}</span>
-      {active && (descending ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />)}
+      <span className="text-[10.5px] font-medium tracking-[1.4px]">{label}</span>
+      {active &&
+        (descending ? (
+          <ArrowDown className="h-3 w-3 text-[#FF8A3D]" />
+        ) : (
+          <ArrowUp className="h-3 w-3 text-[#FF8A3D]" />
+        ))}
     </button>
   );
 }
 
 function ColumnLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="truncate font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+    <span className="truncate text-[10.5px] font-medium tracking-[1.4px] text-white/50">
       {children}
     </span>
   );
@@ -301,8 +306,8 @@ function ColumnLabel({ children }: { children: React.ReactNode }) {
 function SongsSkeleton() {
   const widths = ["w-[168px]", "w-[132px]", "w-[190px]", "w-[150px]"];
   return (
-    <div className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white">
-      <div className={`${SONGS_GRID} px-5 py-3`}>
+    <div className="glass overflow-hidden rounded-[28px]" aria-busy="true">
+      <div className={`${SONGS_GRID} bg-black/[0.08] px-5 py-3`}>
         <ColumnLabel>CANCIÓN</ColumnLabel>
         {SONG_COLUMNS.map((column) => (
           <div key={column.key} className={column.visibility}>
@@ -311,16 +316,16 @@ function SongsSkeleton() {
         ))}
         <div />
       </div>
-      <div className="h-px bg-[#E8E8EC]" />
-      <div className="flex flex-col divide-y divide-[#E8E8EC]">
+      <div className="h-px bg-white/[0.09]" />
+      <div className="flex flex-col divide-y divide-white/[0.09]">
         {widths.map((width, index) => (
           <div key={width} className={`${SONGS_GRID} px-5 py-3.5`}>
             <div className="flex min-w-0 items-center gap-3">
-              <div className="h-11 w-11 flex-shrink-0 animate-pulse rounded-[13px] bg-[#F4F5F7]" />
+              <div className="h-11 w-11 flex-shrink-0 animate-pulse rounded-xl bg-white/[0.08]" />
               <div className="flex flex-1 flex-col gap-2">
-                <div className={`h-2.5 animate-pulse rounded-full bg-[#F4F5F7] ${width}`} />
+                <div className={`h-2.5 animate-pulse rounded-full bg-white/[0.08] ${width}`} />
                 <div
-                  className={`h-2 animate-pulse rounded-full bg-[#F4F5F7]/70 ${
+                  className={`h-2 animate-pulse rounded-full bg-white/[0.06] ${
                     index % 2 ? "w-[96px]" : "w-[120px]"
                   }`}
                 />
@@ -328,11 +333,11 @@ function SongsSkeleton() {
             </div>
             {SONG_COLUMNS.map((column) => (
               <div key={column.key} className={column.visibility}>
-                <div className="h-2.5 w-[70%] animate-pulse rounded-full bg-[#F4F5F7]" />
+                <div className="h-2.5 w-[70%] animate-pulse rounded-full bg-white/[0.08]" />
               </div>
             ))}
             <div className="flex justify-end">
-              <div className="h-7 w-7 animate-pulse rounded-full bg-[#F4F5F7]" />
+              <div className="h-8 w-8 animate-pulse rounded-full bg-white/[0.08]" />
             </div>
           </div>
         ))}
@@ -357,19 +362,23 @@ function EmptySongs({
   const searching = query.trim() !== "";
 
   return (
-    <div className="flex flex-col items-center gap-3 rounded-[26px] border border-[#E8E8EC] bg-white px-6 py-[50px]">
-      <span className="flex h-[52px] w-[52px] items-center justify-center rounded-[18px] bg-[#F4F5F7]">
+    <div className="glass flex flex-col items-center gap-3 rounded-[28px] px-6 py-[50px]">
+      <span
+        className={`flex h-14 w-14 items-center justify-center rounded-[20px] ${
+          searching ? "bg-white/[0.08]" : "bg-[#FF5C00]/[0.16]"
+        }`}
+      >
         {searching ? (
-          <SearchX className="h-[22px] w-[22px] text-[#71757E]" />
+          <SearchX className="h-6 w-6 text-white/70" />
         ) : (
-          <MusicIcon className="h-[22px] w-[22px] text-[#71757E]" />
+          <MusicIcon className="h-6 w-6 text-[#FF8A3D]" />
         )}
       </span>
 
-      <h3 className="text-center font-display text-base font-semibold text-[#1C1D22]">
+      <h3 className="text-center font-display text-lg font-medium text-white">
         {searching ? `Ninguna canción coincide con «${query}»` : "Tu catálogo todavía está vacío"}
       </h3>
-      <p className="max-w-[520px] text-center text-[12.5px] leading-relaxed text-[#71757E]">
+      <p className="max-w-[520px] text-center text-[12.5px] leading-relaxed text-white/65">
         {hasFilters
           ? "Hay filtros puestos que pueden estar dejando fuera lo que buscas."
           : searching
@@ -381,7 +390,7 @@ function EmptySongs({
         {hasFilters && (
           <button
             onClick={onClearFilters}
-            className="flex items-center gap-1.5 rounded-2xl bg-[#FF5C00] px-4 py-2.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-[#EA580C]"
+            className="flex items-center gap-1.5 rounded-full bg-[#FF5C00] px-4 py-2.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-[#EA580C]"
           >
             <CircleX className="h-3.5 w-3.5" />
             Limpiar filtros
@@ -391,14 +400,14 @@ function EmptySongs({
           <>
             <button
               onClick={onSwitchToAlbums}
-              className="flex items-center gap-1.5 rounded-2xl bg-[#FF5C00] px-4 py-2.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-[#EA580C]"
+              className="glass-control flex items-center gap-1.5 rounded-full px-4 py-2.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-white/[0.12]"
             >
               <Disc3 className="h-3.5 w-3.5" />
               Buscar en álbumes
             </button>
             <button
               onClick={onClearSearch}
-              className="rounded-2xl border border-[#E8E8EC] bg-white px-4 py-2.5 text-[12.5px] font-semibold text-[#1C1D22] transition-colors hover:bg-[#F4F5F7]"
+              className="glass-control rounded-full px-4 py-2.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-white/[0.12]"
             >
               Borrar búsqueda
             </button>

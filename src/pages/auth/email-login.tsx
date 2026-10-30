@@ -18,7 +18,7 @@ import {
 import { AuthService } from "../../services/auth";
 import { readPendingInvite } from "@/utils/pendingInvite";
 import { setAuth } from "../../store/states/authSlice";
-import logo from "../../assets/images/2 - BLANCO.png";
+import { SplitmeLogo } from "@/components/brand/SplitmeLogo";
 
 /** Clave donde se guarda el correo cuando el usuario marca "Recuérdame". */
 const REMEMBERED_EMAIL_KEY = "rememberedEmail";
@@ -136,7 +136,7 @@ export default function EmailLogin() {
     <div className="flex min-h-screen bg-white">
       {/* Formulario */}
       <div className="flex w-full flex-col justify-between gap-10 px-6 py-10 sm:px-12 lg:w-[560px] lg:flex-shrink-0 lg:px-[72px] lg:py-12">
-        <img src={logo} alt="SplitMe" className="h-[42px] w-auto self-start" />
+        <SplitmeLogo className="h-[42px] self-start text-[#1C1D22]" />
 
         <div className="flex flex-col gap-[22px]">
           <div className="flex flex-col gap-1.5">

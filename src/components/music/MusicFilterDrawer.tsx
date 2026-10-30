@@ -1,4 +1,4 @@
-import { X, Check, Calendar, Info } from "lucide-react";
+import { X, Calendar, Info } from "lucide-react";
 import type { MusicMode, SortBy, SplitFilter } from "@/types/music.types";
 
 interface MusicFilterDrawerProps {
@@ -100,32 +100,32 @@ export function MusicFilterDrawer({
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-[#101114]/65 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-40 bg-[#0B0604]/60 backdrop-blur-sm" onClick={onClose} />
 
       <aside
         role="dialog"
         aria-label="Filtros del catálogo"
-        className="fixed right-0 top-0 z-50 flex h-full w-full max-w-[440px] flex-col bg-white shadow-[-16px_0_48px_-12px_rgba(16,17,20,0.35)]"
+        className="glass-menu fixed bottom-4 right-4 top-4 z-50 flex w-[calc(100%-32px)] max-w-[440px] flex-col overflow-hidden rounded-[30px]"
       >
-        <div className="flex flex-shrink-0 items-start justify-between gap-3.5 px-6 pb-[18px] pt-6">
+        <div className="flex flex-shrink-0 items-start justify-between gap-3.5 px-6 pb-[18px] pt-[22px]">
           <div className="flex flex-col gap-1">
-            <h2 className="font-display text-xl font-semibold text-[#1C1D22]">Filtros</h2>
-            <p className="text-[12px] text-[#71757E]">
+            <h2 className="font-display text-[21px] font-medium text-white">Filtros</h2>
+            <p className="text-[12.5px] text-white/65">
               Se aplican al catálogo completo, en los dos modos.
             </p>
           </div>
           <button
             onClick={onClose}
             aria-label="Cerrar filtros"
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#F4F5F7] text-[#71757E] transition-colors hover:bg-[#E8E8EC] hover:text-[#1C1D22]"
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-white transition-colors hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
           >
-            <X className="h-[15px] w-[15px]" />
+            <X className="h-[17px] w-[17px]" />
           </button>
         </div>
 
-        <div className="h-px flex-shrink-0 bg-[#E8E8EC]" />
+        <div className="h-px flex-shrink-0 bg-white/[0.09]" />
 
-        <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-6 py-[18px]">
+        <div className="flex min-h-0 flex-1 flex-col gap-[22px] overflow-y-auto px-6 py-5">
           {/* Orden */}
           <Group title="ORDEN" scope="Ambos">
             <Field label="Ordenar por">
@@ -133,7 +133,7 @@ export function MusicFilterDrawer({
                 aria-label="Ordenar catálogo"
                 value={sortBy}
                 onChange={(e) => onSortChange(e.target.value as SortBy)}
-                className="w-full rounded-[14px] border border-[#E8E8EC] bg-white px-3.5 py-2.5 text-[12.5px] font-medium text-[#1C1D22] focus:border-[#FF5C00] focus:outline-none focus:ring-[3px] focus:ring-[#FF5C00]/15"
+                className="w-full rounded-[14px] border border-white/[0.14] bg-white/[0.05] px-3.5 py-2.5 text-[12.5px] font-medium text-white [color-scheme:dark] focus:border-[#FF8A3D]/60 focus:outline-none focus:ring-2 focus:ring-[#FF5C00]/40 [&>option]:bg-[#1E140F] [&>option]:text-white"
               >
                 {SORT_OPTIONS[mode].map((option) => (
                   <option key={option.value} value={option.value}>
@@ -146,7 +146,7 @@ export function MusicFilterDrawer({
 
           {/* Estado del split */}
           <Group title="ESTADO DEL SPLIT" scope="Ambos">
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2">
               {SPLIT_OPTIONS.map((option) => {
                 const active = splitFilter === option.value;
                 return (
@@ -154,27 +154,24 @@ export function MusicFilterDrawer({
                     key={option.value}
                     onClick={() => onSplitFilterChange(option.value)}
                     aria-pressed={active}
-                    className={`flex items-center gap-2.5 rounded-[14px] px-3.5 py-2.5 text-left transition-colors ${
+                    className={`flex items-center gap-3 rounded-[14px] border px-3.5 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
                       active
-                        ? "border-[1.5px] border-[#FF5C00] bg-[#FFEADD]"
-                        : "border border-[#E8E8EC] bg-white hover:border-[#D9DAE0]"
+                        ? "border-[#F7EDE6]/40 bg-[#F7EDE6]/[0.12]"
+                        : "border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06]"
                     }`}
                   >
-                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <span
-                        className={`text-[12.5px] font-semibold ${
-                          active ? "text-[#EA580C]" : "text-[#1C1D22]"
-                        }`}
-                      >
-                        {option.label}
-                      </span>
-                      <span
-                        className={`text-[10.5px] ${active ? "text-[#EA580C]" : "text-[#A6AAB2]"}`}
-                      >
-                        {option.detail}
-                      </span>
+                    <span
+                      aria-hidden="true"
+                      className={`flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-full border-[1.5px] ${
+                        active ? "border-[#F7EDE6]" : "border-white/35"
+                      }`}
+                    >
+                      {active && <span className="h-2 w-2 rounded-full bg-[#F7EDE6]" />}
                     </span>
-                    {active && <Check className="h-[15px] w-[15px] flex-shrink-0 text-[#FF5C00]" />}
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="text-[12.5px] font-semibold text-white">{option.label}</span>
+                      <span className="text-[11px] text-white/50">{option.detail}</span>
+                    </span>
                   </button>
                 );
               })}
@@ -249,19 +246,19 @@ export function MusicFilterDrawer({
               onClick={() => onGroupByTrackCountChange(!groupAlbumsByTrackCount)}
               disabled={songsMode}
               aria-pressed={groupAlbumsByTrackCount}
-              className="flex items-center gap-3 rounded-[14px] bg-[#F4F5F7] px-3.5 py-3 text-left transition-colors enabled:hover:bg-[#E8E8EC] disabled:cursor-not-allowed"
+              className="flex items-center gap-3 rounded-[14px] border border-white/[0.08] bg-white/[0.03] px-3.5 py-3 text-left transition-colors enabled:hover:bg-white/[0.06] disabled:cursor-not-allowed"
             >
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="text-[12px] font-semibold text-[#1C1D22]">
+                <span className="text-xs font-semibold text-white">
                   Agrupar por número de pistas
                 </span>
-                <span className="text-[10.5px] text-[#A6AAB2]">
+                <span className="text-[11px] text-white/50">
                   Separa sencillos, EP y álbumes largos
                 </span>
               </span>
               <span
                 className={`flex h-[22px] w-[38px] flex-shrink-0 items-center rounded-full p-0.5 transition-colors ${
-                  groupAlbumsByTrackCount ? "bg-[#FF5C00]" : "bg-[#E8E8EC]"
+                  groupAlbumsByTrackCount ? "bg-[#FF5C00]" : "bg-white/15"
                 }`}
               >
                 <span
@@ -273,17 +270,17 @@ export function MusicFilterDrawer({
             </button>
           </Group>
 
-          <p className="flex items-start gap-2.5 rounded-[14px] bg-[#F4F5F7] px-3.5 py-3 text-[11px] leading-relaxed text-[#71757E]">
+          <p className="flex items-start gap-2.5 rounded-[14px] bg-white/[0.04] px-3.5 py-3 text-[11px] leading-relaxed text-white/65">
             <Info className="mt-px h-3.5 w-3.5 flex-shrink-0" />
             Los grupos atenuados no aplican a la agrupación que tienes activa, pero se conservan
             al cambiar de modo.
           </p>
         </div>
 
-        <div className="h-px flex-shrink-0 bg-[#E8E8EC]" />
+        <div className="h-px flex-shrink-0 bg-white/[0.09]" />
 
-        <div className="flex flex-shrink-0 items-center gap-2.5 px-6 pb-5 pt-4">
-          <span className="flex-1 text-[11.5px] font-semibold text-[#71757E]">
+        <div className="flex flex-shrink-0 items-center gap-2.5 bg-black/20 px-6 py-4">
+          <span className="flex-1 text-[12.5px] font-medium text-white/65">
             {activeFilterCount === 0
               ? "Sin filtros"
               : `${activeFilterCount} ${activeFilterCount === 1 ? "filtro puesto" : "filtros puestos"}`}
@@ -291,13 +288,13 @@ export function MusicFilterDrawer({
           <button
             onClick={onClearAll}
             disabled={activeFilterCount === 0}
-            className="rounded-[20px] border border-[#E8E8EC] bg-white px-4 py-2.5 text-[12px] font-semibold text-[#71757E] transition-colors enabled:hover:bg-[#F4F5F7] disabled:opacity-40"
+            className="rounded-full bg-white/[0.08] px-4 py-2.5 text-[12.5px] font-semibold text-white transition-colors enabled:hover:bg-white/[0.14] disabled:opacity-40"
           >
             Limpiar
           </button>
           <button
             onClick={onClose}
-            className="rounded-[20px] bg-[#FF5C00] px-4 py-2.5 text-[12px] font-semibold text-white shadow-[0_6px_16px_-4px_rgba(255,92,0,0.4)] transition-colors hover:bg-[#EA580C]"
+            className="rounded-full bg-[#FF5C00] px-4 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C]"
           >
             {resultCount === undefined
               ? "Ver resultados"
@@ -323,14 +320,14 @@ function Group({
   children: React.ReactNode;
 }) {
   return (
-    <section className={`flex flex-col gap-3 ${dimmed ? "opacity-45" : ""}`}>
-      <div className="flex items-center gap-2">
-        <span className="font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#71757E]">
+    <section className={`flex flex-col gap-2.5 ${dimmed ? "opacity-40" : ""}`}>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10.5px] font-medium tracking-[1.4px] text-white/50">
           {title}
         </span>
         <span
-          className={`rounded-[10px] px-[7px] py-[2px] text-[9.5px] font-semibold ${
-            scope === "Ambos" ? "bg-[#F4F5F7] text-[#71757E]" : "bg-[#FFEADD] text-[#FF5C00]"
+          className={`rounded-full px-2 py-[2px] text-[10.5px] font-semibold ${
+            scope === "Ambos" ? "bg-white/[0.08] text-white/70" : "bg-[#FF5C00]/[0.16] text-[#FF9A5C]"
           }`}
         >
           {scope}
@@ -344,7 +341,7 @@ function Group({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-[11.5px] text-[#71757E]">{label}</span>
+      <span className="text-xs font-semibold text-white/85">{label}</span>
       {children}
     </label>
   );
@@ -368,10 +365,8 @@ function Input({
       disabled={disabled}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className={`w-full rounded-[14px] px-3.5 py-2.5 text-[12.5px] text-[#1C1D22] placeholder:text-[#A6AAB2] focus:outline-none focus:ring-[3px] focus:ring-[#FF5C00]/15 disabled:cursor-not-allowed ${
-        value
-          ? "border-[1.5px] border-[#FF5C00] font-medium"
-          : "border border-[#E8E8EC] focus:border-[#FF5C00]"
+      className={`w-full rounded-[14px] border bg-white/[0.05] px-3.5 py-2.5 text-[12.5px] text-white placeholder:text-white/45 focus:outline-none focus:ring-2 focus:ring-[#FF5C00]/40 disabled:cursor-not-allowed ${
+        value ? "border-[#FF8A3D]/60 font-medium" : "border-white/[0.14] focus:border-[#FF8A3D]/60"
       }`}
     />
   );
@@ -380,15 +375,13 @@ function Input({
 function DateInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <span className="relative flex items-center">
-      <Calendar className="pointer-events-none absolute left-3.5 h-3.5 w-3.5 text-[#A6AAB2]" />
+      <Calendar className="pointer-events-none absolute left-3.5 h-3.5 w-3.5 text-white/50" />
       <input
         type="date"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full rounded-[14px] py-2.5 pl-9 pr-3 text-[12.5px] text-[#1C1D22] focus:outline-none focus:ring-[3px] focus:ring-[#FF5C00]/15 ${
-          value
-            ? "border-[1.5px] border-[#FF5C00] font-medium"
-            : "border border-[#E8E8EC] focus:border-[#FF5C00]"
+        className={`w-full rounded-[14px] border bg-white/[0.05] py-2.5 pl-9 pr-3 text-[12.5px] text-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-[#FF5C00]/40 ${
+          value ? "border-[#FF8A3D]/60 font-medium" : "border-white/[0.14] focus:border-[#FF8A3D]/60"
         }`}
       />
     </span>

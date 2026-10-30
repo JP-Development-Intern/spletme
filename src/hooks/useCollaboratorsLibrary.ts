@@ -6,7 +6,7 @@ import {
   resolveCollaboratorState,
 } from "@/utils/collaborators.utils";
 import type { Collaborator } from "@/types";
-import type { CollaboratorSortBy } from "@/components/collaborators/collaboratorsColumns";
+import type { CollaboratorSortBy } from "@/components/collaborators/collaboratorsSort";
 
 /* ── Contrato del API ──────────────────────────────────────────────────────── */
 
@@ -42,8 +42,6 @@ interface ApiSummary {
   totalAmountReceived: number;
 }
 
-export type StateFilter = "all" | "can_pay" | "no_payout_data" | "settled";
-
 const resolveStatus = (raw: ApiCollaborator): Collaborator["status"] => {
   if (!raw.hasWallet) return "no_wallet";
   if (raw.paymentStatus === "pending") return "pending";
@@ -70,7 +68,7 @@ const adapt = (raw: ApiCollaborator, index: number): Collaborator => ({
 });
 
 /**
- * Estado de la página de colaboradores: datos, filtros y selección múltiple.
+ * Estado de la página de colaboradores: datos, búsqueda y orden.
  *
  * Los colaboradores y el resumen salen de `/collaborators/metrics`.
  */
@@ -81,10 +79,7 @@ export function useCollaboratorsLibrary() {
   const [error, setError] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
-  const [stateFilter, setStateFilter] = useState<StateFilter>("all");
-  const [roleFilter, setRoleFilter] = useState("all");
   const [sortBy, setSortBy] = useState<CollaboratorSortBy>("pending_desc");
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -116,7 +111,6 @@ export function useCollaboratorsLibrary() {
   const refresh = useCallback(async () => {
     // Un pago cambia los saldos de todo el mundo.
     await load();
-    setSelectedIds(new Set());
   }, [load]);
 
   /** Quienes tienen saldo pendiente y pueden recibirlo ya. */
@@ -134,58 +128,15 @@ export function useCollaboratorsLibrary() {
     [collaborators],
   );
 
-  const roles = useMemo(() => {
-    const names = new Set<string>();
-    for (const c of collaborators) for (const role of c.roles ?? []) names.add(role);
-    return [...names].sort((a, b) => a.localeCompare(b, "es"));
-  }, [collaborators]);
-
   const visible = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    const filtered = collaborators.filter((c) => {
-      if (query && !`${c.name} ${c.email}`.toLowerCase().includes(query)) return false;
-      if (roleFilter !== "all" && !(c.roles ?? []).includes(roleFilter)) return false;
-      if (stateFilter === "all") return true;
-
-      const state = resolveCollaboratorState(c);
-      if (stateFilter === "settled") return state === "settled" || state === "no_activity";
-      return state === stateFilter;
-    });
+    const filtered = query
+      ? collaborators.filter((c) => `${c.name} ${c.email}`.toLowerCase().includes(query))
+      : collaborators;
 
     return [...filtered].sort(comparators[sortBy]);
-  }, [collaborators, search, roleFilter, stateFilter, sortBy]);
-
-  /** Solo se pueden seleccionar quienes pueden cobrar: el resto no es pagable. */
-  const selected = useMemo(
-    () => payable.filter((c) => selectedIds.has(c.id)),
-    [payable, selectedIds],
-  );
-
-  const selectedTotal = useMemo(
-    () => selected.reduce((sum, c) => sum + c.amountPending, 0),
-    [selected],
-  );
-
-  const toggleSelect = useCallback((id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
-
-  const toggleSelectAll = useCallback(() => {
-    setSelectedIds((prev) => {
-      const visiblePayable = visible.filter((c) => resolveCollaboratorState(c) === "can_pay");
-      const allSelected =
-        visiblePayable.length > 0 && visiblePayable.every((c) => prev.has(c.id));
-      return allSelected ? new Set() : new Set(visiblePayable.map((c) => c.id));
-    });
-  }, [visible]);
-
-  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+  }, [collaborators, search, sortBy]);
 
   const totals = useMemo(() => {
     const totalPaid = collaborators.reduce((sum, c) => sum + c.paid, 0);
@@ -222,13 +173,6 @@ export function useCollaboratorsLibrary() {
     [summary, collaborators],
   );
 
-  const hasFilters = stateFilter !== "all" || roleFilter !== "all";
-
-  const clearFilters = useCallback(() => {
-    setStateFilter("all");
-    setRoleFilter("all");
-  }, []);
-
   return {
     loading,
     error,
@@ -238,25 +182,12 @@ export function useCollaboratorsLibrary() {
     visible,
     payable,
     blocked,
-    roles,
     totals,
     catalogSize,
     search,
     setSearch,
-    stateFilter,
-    setStateFilter,
-    roleFilter,
-    setRoleFilter,
     sortBy,
     setSortBy,
-    hasFilters,
-    clearFilters,
-    selected,
-    selectedIds,
-    selectedTotal,
-    toggleSelect,
-    toggleSelectAll,
-    clearSelection,
   };
 }
 

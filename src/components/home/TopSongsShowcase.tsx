@@ -47,7 +47,7 @@ export function TopSongsShowcase({ songs, historicalIncome }: TopSongsShowcasePr
   const [featured, ...rest] = songs;
 
   return (
-    <section className="glass flex flex-col gap-[18px] rounded-[32px] px-7 py-6">
+    <section className="glass flex flex-col gap-[18px] rounded-[32px] px-7 py-6" data-tour="top-songs">
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5">
           <h2 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">
@@ -82,7 +82,7 @@ export function TopSongsShowcase({ songs, historicalIncome }: TopSongsShowcasePr
           </Link>
         </div>
       ) : (
-        <div className="flex flex-col gap-6 lg:flex-row">
+        <div className="flex flex-col gap-6 min-[1360px]:flex-row">
           <FeaturedSong song={featured} historicalIncome={historicalIncome} />
           {rest.length > 0 && (
             <div className="flex min-w-0 flex-1 flex-col divide-y divide-white/[0.09]">
@@ -108,7 +108,7 @@ function FeaturedSong({ song, historicalIncome }: { song: TopSong; historicalInc
   return (
     <Link
       to={`/panel/song/${song._id}`}
-      className="group flex flex-col gap-4 rounded-3xl border border-white/[0.16] bg-black/[0.22] p-[18px] transition-colors hover:bg-black/30 lg:w-[340px] lg:flex-shrink-0"
+      className="group flex flex-col gap-4 rounded-3xl border border-white/[0.16] bg-black/[0.22] p-[18px] transition-colors hover:bg-black/30 min-[1360px]:w-[300px] min-[1360px]:flex-shrink-0"
     >
       <span className="w-fit rounded-full bg-[#FF5C00] px-2.5 py-1 text-[11px] font-semibold text-white">
         #1 en ingresos
