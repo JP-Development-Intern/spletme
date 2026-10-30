@@ -1,4 +1,4 @@
-import { Music, Disc3, DollarSign, Play, CircleAlert, ArrowRight } from "lucide-react";
+import { Music, Disc3, DollarSign, Play, CircleAlert, ArrowRight, type LucideIcon } from "lucide-react";
 import { formatStreams, formatCurrency } from "@/utils/format.utils";
 
 interface MusicKpisProps {
@@ -13,7 +13,8 @@ interface MusicKpisProps {
 
 /**
  * Consola del catálogo. Canciones y álbumes se leen juntos porque son el mismo
- * catálogo; el último canal va en naranja porque es el único dato accionable.
+ * catálogo; el último canal va teñido de naranja porque es el único dato
+ * accionable.
  */
 export function MusicKpis({
   totalSongs,
@@ -26,93 +27,81 @@ export function MusicKpis({
   const withSplits = Math.max(0, totalSongs - withoutSplits);
 
   return (
-    <div className="flex flex-col divide-y divide-[#E8E8EC] overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)] lg:flex-row lg:divide-x lg:divide-y-0">
-      <Channel
-        label="CANCIONES"
-        icon={<Music className="h-[13px] w-[13px] text-[#71757E]" />}
-        value={totalSongs.toLocaleString()}
-        caption={`${withSplits.toLocaleString()} con split`}
-      />
-      <Channel
-        label="ÁLBUMES"
-        icon={<Disc3 className="h-[13px] w-[13px] text-[#71757E]" />}
-        value={totalAlbums.toLocaleString()}
-        caption="agrupados por UPC"
-      />
-      <Channel
-        label="INGRESOS TOTALES"
-        icon={<DollarSign className="h-[13px] w-[13px] text-[#2FB37E]" />}
-        value={formatCurrency(totalIncome)}
-        valueClassName="text-[#2FB37E] text-[26px] sm:text-[28px]"
-        className="lg:w-[320px] lg:flex-shrink-0"
-        caption="neto acumulado"
-      />
-      <Channel
-        label="STREAMS"
-        icon={<Play className="h-[13px] w-[13px] text-[#71757E]" />}
-        value={formatStreams(totalStreams)}
-      />
-      <Channel
-        label="SIN SPLIT"
-        labelClassName="text-[#FF5C00]"
-        icon={<CircleAlert className="h-[13px] w-[13px] text-[#FF5C00]" />}
-        value={withoutSplits > 0 ? withoutSplits.toLocaleString() : "Ninguna"}
-        valueClassName={`text-[#FF5C00] ${withoutSplits > 0 ? "text-[26px]" : "text-[22px]"}`}
-        className="bg-[#FFEADD] lg:w-[250px] lg:flex-shrink-0"
-      >
-        {withoutSplits > 0 ? (
-          <button
-            onClick={onShowWithoutSplits}
-            disabled={!onShowWithoutSplits}
-            className="flex items-center gap-1.5 text-[11.5px] font-semibold text-[#EA580C] transition-colors enabled:hover:text-[#FF5C00] disabled:cursor-default"
-          >
-            Ver solo estas
-            {onShowWithoutSplits && <ArrowRight className="h-3 w-3" />}
-          </button>
-        ) : (
-          <span className="text-[11.5px] font-semibold text-[#EA580C]">
-            Todo el catálogo reparte
+    <section className="glass flex flex-col rounded-[28px] p-1.5 xl:flex-row xl:items-stretch">
+      <div className="grid min-w-0 flex-1 grid-cols-1 divide-y divide-white/[0.09] sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x">
+        <Channel
+          icon={Music}
+          label="Canciones"
+          value={totalSongs.toLocaleString()}
+          caption={`${withSplits.toLocaleString()} con split`}
+        />
+        <Channel icon={Disc3} label="Álbumes" value={totalAlbums.toLocaleString()} caption="agrupados por UPC" />
+        <Channel
+          icon={DollarSign}
+          label="Ingresos totales"
+          value={formatCurrency(totalIncome)}
+          valueClassName="text-[#45D39A]"
+          caption="neto acumulado"
+        />
+        <Channel icon={Play} label="Streams" value={formatStreams(totalStreams)} caption="en todo el catálogo" />
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-[22px] border border-[#FF8A3D]/30 bg-[#FF5C00]/[0.14] px-[22px] py-[18px] xl:w-[250px] xl:flex-shrink-0">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#FF5C00]/[0.22]">
+            <CircleAlert className="h-[15px] w-[15px] text-[#FF8A3D]" />
           </span>
-        )}
-      </Channel>
-    </div>
+          <h2 className="text-[12.5px] font-medium text-[#FFB48A]">Sin split</h2>
+        </div>
+        <div className="flex flex-col gap-1">
+          <p
+            className={`font-mono font-light leading-[1.1] tracking-[-0.015em] text-white ${
+              withoutSplits > 0 ? "text-[30px]" : "text-[24px]"
+            }`}
+          >
+            {withoutSplits > 0 ? withoutSplits.toLocaleString() : "Ninguna"}
+          </p>
+          {withoutSplits > 0 ? (
+            <button
+              onClick={onShowWithoutSplits}
+              disabled={!onShowWithoutSplits}
+              className="flex w-fit items-center gap-1 text-xs font-semibold text-[#FF8A3D] transition-colors enabled:hover:text-[#FFB48A] disabled:cursor-default"
+            >
+              Ver solo estas
+              {onShowWithoutSplits && <ArrowRight className="h-3.5 w-3.5" />}
+            </button>
+          ) : (
+            <span className="text-xs font-semibold text-[#FF8A3D]">Todo el catálogo reparte</span>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }
 
 interface ChannelProps {
+  icon: LucideIcon;
   label: string;
-  labelClassName?: string;
-  icon: React.ReactNode;
   value: string;
-  valueClassName?: string;
-  className?: string;
   caption?: string;
-  children?: React.ReactNode;
+  valueClassName?: string;
 }
 
-function Channel({
-  label,
-  labelClassName = "text-[#71757E]",
-  icon,
-  value,
-  valueClassName = "text-[#1C1D22] text-[26px]",
-  className = "",
-  caption,
-  children,
-}: ChannelProps) {
+function Channel({ icon: Icon, label, value, caption, valueClassName = "text-white" }: ChannelProps) {
   return (
-    <div className={`flex min-w-0 flex-1 flex-col justify-center gap-2 px-6 py-[22px] ${className}`}>
-      <div className="flex items-center gap-1.5">
-        {icon}
-        <span className={`font-mono text-[9.5px] font-medium tracking-[1.3px] ${labelClassName}`}>
-          {label}
+    <div className="flex min-w-0 flex-col justify-center gap-3 px-[22px] py-[18px]">
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white/[0.12]">
+          <Icon className="h-[15px] w-[15px] text-white" />
         </span>
+        <h2 className="truncate text-[12.5px] font-medium text-white/70">{label}</h2>
       </div>
-      <p className={`font-mono font-semibold leading-none tracking-tight ${valueClassName}`}>
-        {value}
-      </p>
-      {caption && <span className="text-[10.5px] text-[#A6AAB2]">{caption}</span>}
-      {children}
+      <div className="flex flex-col gap-1">
+        <p className={`truncate font-mono text-[30px] font-light leading-[1.1] tracking-[-0.015em] ${valueClassName}`}>
+          {value}
+        </p>
+        {caption && <span className="truncate text-xs text-white/50">{caption}</span>}
+      </div>
     </div>
   );
 }

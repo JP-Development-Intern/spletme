@@ -85,6 +85,23 @@ export const STATE_META: Record<CollaboratorState, StateMeta> = {
   no_activity: { label: "Sin movimientos", fg: "#A6AAB2", bg: "#F4F5F7" },
 };
 
+/** Los mismos estados sobre el vidrio oscuro del panel: tonos claros que pasan contraste. */
+export const STATE_META_ON_GLASS: Record<CollaboratorState, StateMeta> = {
+  can_pay: { label: "Puede cobrar", fg: "#45D39A", bg: "rgba(69, 211, 154, 0.12)" },
+  no_payout_data: { label: "Sin datos de cobro", fg: "#FF8F92", bg: "rgba(229, 72, 77, 0.16)" },
+  settled: { label: "Al día", fg: "rgba(255, 255, 255, 0.7)", bg: "rgba(255, 255, 255, 0.08)" },
+  no_activity: { label: "Sin movimientos", fg: "rgba(255, 255, 255, 0.5)", bg: "rgba(255, 255, 255, 0.05)" },
+};
+
+/**
+ * Color de las iniciales sobre el color de identidad. Los tonos claros de la
+ * paleta (naranja, verde, ámbar, rojo, verde azulado) llevan tinta: en blanco
+ * no llegan al contraste mínimo.
+ */
+export function avatarTextColor(background: string): string {
+  return ["#1C1D22", "#7C5CFF", "#0B7DDA"].includes(background.toUpperCase()) ? "#FFFFFF" : "#1C1D22";
+}
+
 /** Porcentaje del total que ya está pagado, 0-100. */
 export function settledPercentage(paid: number, pending: number): number {
   const total = (paid ?? 0) + (pending ?? 0);

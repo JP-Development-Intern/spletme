@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, Rows3, LayoutGrid, SlidersHorizontal } from "lucide-react";
+import { Search, Rows3, LayoutGrid, SlidersHorizontal, Info } from "lucide-react";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { MusicKpis } from "@/components/music/MusicKpis";
 import { MusicModeSwitch } from "@/components/music/MusicModeSwitch";
 import { useMusicSummary } from "@/hooks/useMusicSummary";
@@ -74,131 +75,111 @@ export default function Music() {
   };
 
   return (
-    <div className="min-h-full bg-[#F7F7F9]">
-      <div className="flex flex-col gap-5 px-4 py-6 lg:px-8">
-        {/* Encabezado */}
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="flex flex-col gap-0.5">
-            <h1 className="font-display text-2xl font-semibold text-[#1C1D22]">Música</h1>
-            <p className="flex flex-wrap items-center gap-2 text-[13px] text-[#71757E]">
-              <span>{summary.totalSongs.toLocaleString()} canciones</span>
-              <span className="text-[#A6AAB2]">en</span>
-              <span>{summary.totalAlbums.toLocaleString()} álbumes</span>
-              {summary.withoutSplits > 0 && (
-                <>
-                  <span className="text-[#A6AAB2]">·</span>
-                  <button
-                    onClick={() => setFiltersOpen(true)}
-                    className="font-semibold text-[#FF5C00] transition-colors hover:text-[#EA580C]"
-                  >
-                    {summary.withoutSplits.toLocaleString()} sin split
-                  </button>
-                </>
-              )}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative w-full sm:w-[320px]">
-              <Search
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A6AAB2]"
-                size={16}
-              />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={
-                  mode === "albums"
-                    ? "Buscar por título de álbum, artista o UPC…"
-                    : "Buscar por título, artista o ISRC…"
-                }
-                className="w-full rounded-[22px] border border-[#E8E8EC] bg-white py-2.5 pl-11 pr-4 text-[12.5px] text-[#1C1D22] placeholder:text-[#A6AAB2] focus:border-[#FF5C00] focus:outline-none focus:ring-[3px] focus:ring-[#FF5C00]/15"
-              />
-            </div>
-
-            <div className="flex flex-shrink-0 items-center gap-0.5 rounded-[22px] bg-[#F4F5F7] p-[3px]">
-              <LayoutButton
-                active={layout === "list"}
-                onClick={() => setLayout("list")}
-                title="Lista"
-              >
-                <Rows3 className="h-4 w-4" />
-              </LayoutButton>
-              <LayoutButton
-                active={layout === "grid"}
-                onClick={() => setLayout("grid")}
-                title="Cuadrícula"
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </LayoutButton>
-            </div>
-          </div>
+    <div className="flex flex-col gap-6 px-4 lg:pl-4 lg:pr-8">
+      <PageHeader>
+        <div className="flex flex-col gap-1">
+          <h1 className="truncate font-display text-[32px] font-light leading-[38px] tracking-[-0.015em] text-white sm:text-[40px] sm:leading-[46px]">
+            Música
+          </h1>
+          <p className="flex flex-wrap items-center gap-2 text-sm text-white/65">
+            <span>
+              {summary.totalSongs.toLocaleString()} canciones en {summary.totalAlbums.toLocaleString()} álbumes
+            </span>
+            {summary.withoutSplits > 0 && (
+              <>
+                <span className="text-white/50">·</span>
+                <button
+                  onClick={() => setFiltersOpen(true)}
+                  className="font-semibold text-[#FF8A3D] underline-offset-2 transition-colors hover:text-[#FFB48A] hover:underline"
+                >
+                  {summary.withoutSplits.toLocaleString()} sin split
+                </button>
+              </>
+            )}
+          </p>
         </div>
+      </PageHeader>
 
-        <MusicKpis
-          totalSongs={summary.totalSongs}
-          totalAlbums={summary.totalAlbums}
-          totalIncome={summary.totalIncome}
-          totalStreams={summary.totalStreams}
-          withoutSplits={summary.withoutSplits}
-          onShowWithoutSplits={
-            summary.withoutSplits > 0 ? () => setFiltersOpen(true) : undefined
-          }
+      <MusicKpis
+        totalSongs={summary.totalSongs}
+        totalAlbums={summary.totalAlbums}
+        totalIncome={summary.totalIncome}
+        totalStreams={summary.totalStreams}
+        withoutSplits={summary.withoutSplits}
+        onShowWithoutSplits={summary.withoutSplits > 0 ? () => setFiltersOpen(true) : undefined}
+      />
+
+      {/* Agrupación, búsqueda, filtros y disposición */}
+      <div className="flex flex-wrap items-center gap-2.5">
+        <MusicModeSwitch
+          mode={mode}
+          onChange={setMode}
+          songsCount={counts.songs}
+          albumsCount={counts.albums}
         />
 
-        {/* Agrupación y filtros */}
-        <div className="flex flex-wrap items-center gap-3">
-          <MusicModeSwitch
-            mode={mode}
-            onChange={setMode}
-            songsCount={counts.songs}
-            albumsCount={counts.albums}
+        <label className="glass-control relative flex w-full items-center gap-2.5 rounded-full px-[18px] py-[11px] focus-within:ring-2 focus-within:ring-[#FF5C00]/70 sm:w-[340px]">
+          <Search className="h-4 w-4 flex-shrink-0 text-white/50" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Buscar en el catálogo"
+            placeholder={
+              mode === "albums"
+                ? "Buscar por título de álbum, artista o UPC…"
+                : "Buscar por título, artista o ISRC…"
+            }
+            className="w-full border-none bg-transparent p-0 text-[12.5px] text-white placeholder:text-white/50 focus:outline-none focus:ring-0"
           />
+        </label>
 
-          <button
-            onClick={() => setFiltersOpen(true)}
-            className={`relative flex min-h-[44px] flex-shrink-0 items-center gap-2 rounded-full px-3.5 text-[12.5px] font-semibold transition-colors ${
-              activeFilters > 0
-                ? "bg-[#FFEADD] text-[#FF5C00]"
-                : "border border-[#E8E8EC] bg-white text-[#1C1D22] hover:bg-[#F4F5F7]"
-            }`}
-          >
-            <SlidersHorizontal
-              className={`h-3.5 w-3.5 ${activeFilters > 0 ? "text-[#FF5C00]" : "text-[#71757E]"}`}
-            />
-            Filtros
-            {activeFilters > 0 && (
-              <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#FF5C00] font-mono text-[10px] font-semibold text-white">
-                {activeFilters}
-              </span>
-            )}
-          </button>
-
-          <span className="ml-auto hidden text-[11.5px] text-[#A6AAB2] lg:block">
-            {mode === "albums"
-              ? "Despliega un álbum para ver sus pistas"
-              : "Cambia a álbumes para verlas agrupadas"}
-          </span>
-        </div>
-
-        {/* El panel que anuncia el conmutador: sin este id, su `aria-controls`
-            apuntaría al vacío y un lector de pantalla no sabría qué cambió. */}
-        <div id="music-panel" role="tabpanel" aria-labelledby={`music-tab-${mode}`}>
-          {mode === "songs" ? (
-            <SongsView
-              {...viewProps}
-              onCountChange={setSongsCount}
-              onSwitchToAlbums={() => setMode("albums")}
-            />
-          ) : (
-            <AlbumsView
-              {...viewProps}
-              onCountChange={setAlbumsCount}
-              onSwitchToSongs={() => setMode("songs")}
-            />
+        <button
+          onClick={() => setFiltersOpen(true)}
+          className="glass-control flex min-h-[44px] flex-shrink-0 items-center gap-2 rounded-full px-[15px] text-[12.5px] font-semibold text-white transition-colors hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
+        >
+          <SlidersHorizontal className="h-[15px] w-[15px] text-white/80" />
+          Filtros
+          {activeFilters > 0 && (
+            <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#FF5C00] text-[10.5px] font-bold text-white">
+              {activeFilters}
+            </span>
           )}
+        </button>
+
+        <span className="ml-auto hidden items-center gap-1.5 text-xs text-white/50 xl:flex">
+          <Info className="h-[13px] w-[13px]" />
+          {mode === "albums"
+            ? "Despliega un álbum para ver sus pistas"
+            : "Cambia a álbumes para verlas agrupadas"}
+        </span>
+
+        <div className="flex flex-shrink-0 items-center gap-0.5 rounded-full bg-black/[0.22] p-1 xl:ml-0 ml-auto">
+          <LayoutButton active={layout === "list"} onClick={() => setLayout("list")} title="Lista">
+            <Rows3 className="h-4 w-4" />
+          </LayoutButton>
+          <LayoutButton active={layout === "grid"} onClick={() => setLayout("grid")} title="Cuadrícula">
+            <LayoutGrid className="h-4 w-4" />
+          </LayoutButton>
         </div>
+      </div>
+
+      {/* El panel que anuncia el conmutador: sin este id, su `aria-controls`
+          apuntaría al vacío y un lector de pantalla no sabría qué cambió. */}
+      <div id="music-panel" role="tabpanel" aria-labelledby={`music-tab-${mode}`}>
+        {mode === "songs" ? (
+          <SongsView
+            {...viewProps}
+            onCountChange={setSongsCount}
+            onSwitchToAlbums={() => setMode("albums")}
+          />
+        ) : (
+          <AlbumsView
+            {...viewProps}
+            onCountChange={setAlbumsCount}
+            onSwitchToSongs={() => setMode("songs")}
+          />
+        )}
       </div>
     </div>
   );
@@ -220,8 +201,8 @@ function LayoutButton({
       onClick={onClick}
       title={title}
       aria-pressed={active}
-      className={`flex h-8 w-9 items-center justify-center rounded-full transition-colors ${
-        active ? "bg-[#FF5C00] text-white" : "text-[#A6AAB2] hover:text-[#71757E]"
+      className={`flex h-9 w-10 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
+        active ? "bg-[#F7EDE6]/[0.92] text-[#1C1D22]" : "text-white/70 hover:text-white"
       }`}
     >
       {children}

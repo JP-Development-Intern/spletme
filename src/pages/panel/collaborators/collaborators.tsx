@@ -1,32 +1,28 @@
 import { useMemo, useState } from "react";
-import { Search, UserPlus, TriangleAlert } from "lucide-react";
+import { Search, UserPlus, TriangleAlert, Users } from "lucide-react";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { useCollaboratorsLibrary } from "@/hooks/useCollaboratorsLibrary";
-import { CollaboratorsKpis } from "@/components/collaborators/CollaboratorsKpis";
-import { AttentionTray } from "@/components/collaborators/AttentionTray";
-import { CollaboratorsFilterBar } from "@/components/collaborators/CollaboratorsFilterBar";
-import { CollaboratorRow } from "@/components/collaborators/CollaboratorRow";
-import { BulkActionBar } from "@/components/collaborators/BulkActionBar";
-import {
-  FirstCollaboratorState,
-  NoResultsState,
-} from "@/components/collaborators/CollaboratorsEmptyState";
+import { useCollaboratorSongs } from "@/hooks/useCollaboratorSongs";
+import { CollaboratorsSummaryStrip } from "@/components/collaborators/CollaboratorsSummaryStrip";
+import { CollaboratorDial, type MoneyView } from "@/components/collaborators/CollaboratorDial";
+import { CollaboratorSongsPanel } from "@/components/collaborators/CollaboratorSongsPanel";
 import { CollaboratorDetailModal } from "@/components/collaborators/CollaboratorDetailModal";
 import {
   CollaboratorPaymentModal,
   type PaymentTarget,
 } from "@/components/modal/CollaboratorPaymentModal";
-import {
-  COLLABORATOR_COLUMNS,
-  COLLABORATORS_GRID,
-} from "@/components/collaborators/collaboratorsColumns";
 import { AddCollaboratorSidebar } from "./components/AddCollaboratorSidebar";
-import { collaboratorColor, resolveCollaboratorState } from "@/utils/collaborators.utils";
+import { collaboratorColor } from "@/utils/collaborators.utils";
 import { formatCurrency } from "@/utils/format.utils";
 import LocalStorageService from "@/services/localstorage";
 import type { Collaborator } from "@/types";
 
+/**
+ * Colaboradores: un resumen de lo que se reparte, un carrusel para recorrer a
+ * las personas una a una y, debajo, las canciones que compartes con la que está
+ * enfocada.
+ */
 export default function Collaborators() {
-  const library = useCollaboratorsLibrary();
   const {
     loading,
     error,
@@ -37,19 +33,14 @@ export default function Collaborators() {
     payable,
     blocked,
     totals,
-    catalogSize,
     search,
     setSearch,
-    hasFilters,
-    clearFilters,
-    selected,
-    selectedIds,
-    selectedTotal,
-    toggleSelect,
-    toggleSelectAll,
-    clearSelection,
-  } = library;
+    sortBy,
+    setSortBy,
+  } = useCollaboratorsLibrary();
 
+  const [focusedId, setFocusedId] = useState<string | null>(null);
+  const [view, setView] = useState<MoneyView>("out");
   const [profileOf, setProfileOf] = useState<Collaborator | null>(null);
   const [payTargets, setPayTargets] = useState<PaymentTarget[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -62,8 +53,18 @@ export default function Collaborators() {
   const colorOf = useMemo(() => {
     const map = new Map<string, string>();
     collaborators.forEach((c, index) => map.set(c.id, collaboratorColor(index)));
-    return map;
+    return (id: string) => map.get(id) ?? "#FF5C00";
   }, [collaborators]);
+
+  // Si la persona enfocada sale de la lista (por la búsqueda), el carrusel
+  // vuelve al principio.
+  const focusIndex = Math.max(
+    0,
+    visible.findIndex((c) => c.id === focusedId),
+  );
+  const focused = visible[focusIndex] ?? null;
+
+  const sharedSongs = useCollaboratorSongs(focused?.id ?? null);
 
   const toTarget = (c: Collaborator): PaymentTarget => ({
     id: c.id,
@@ -72,179 +73,124 @@ export default function Collaborators() {
     pending: c.amountPending,
   });
 
-  const visiblePayable = visible.filter((c) => resolveCollaboratorState(c) === "can_pay");
-  const allSelected =
-    visiblePayable.length > 0 && visiblePayable.every((c) => selectedIds.has(c.id));
-
   return (
-    <div className="min-h-full bg-[#F7F7F9]">
-      <div className="flex flex-col gap-5 px-4 py-6 lg:px-8">
-        {/* Encabezado */}
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="flex flex-col gap-0.5">
-            <h1 className="font-display text-2xl font-semibold text-[#1C1D22]">Colaboradores</h1>
-            <p className="flex flex-wrap items-center gap-2 text-[13px] text-[#71757E]">
+    <div className="flex flex-col gap-6 px-4 lg:pl-4 lg:pr-8">
+      <PageHeader>
+        <div className="flex flex-col gap-1">
+          <h1 className="truncate font-display text-[32px] font-light leading-[38px] tracking-[-0.015em] text-white sm:text-[40px] sm:leading-[46px]">
+            Colaboradores
+          </h1>
+          {!loading && collaborators.length > 0 && (
+            <p className="flex flex-wrap items-center gap-2 text-sm text-white/65">
               <span>
-                {collaborators.length}{" "}
-                {collaborators.length === 1 ? "persona" : "personas"}
+                {collaborators.length} {collaborators.length === 1 ? "persona" : "personas"}
               </span>
-              <span className="text-[#A6AAB2]">·</span>
+              <span className="text-white/50">·</span>
               <span>{totals.activeSplits} splits activos</span>
               {totals.totalPending > 0 && (
                 <>
-                  <span className="text-[#A6AAB2]">·</span>
-                  <button
-                    onClick={() => library.setStateFilter("can_pay")}
-                    className="font-semibold text-[#FF5C00] transition-colors hover:text-[#EA580C]"
-                  >
+                  <span className="text-white/50">·</span>
+                  <span className="font-semibold text-[#FF8A3D]">
                     {formatCurrency(totals.totalPending)} por pagar
-                  </button>
+                  </span>
                 </>
               )}
             </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative w-full sm:w-[280px]">
-              <Search
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A6AAB2]"
-                size={16}
-              />
-              <input
-                type="text"
-                placeholder="Buscar por nombre o correo…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-[22px] border border-[#E8E8EC] bg-white py-2.5 pl-11 pr-4 text-[12.5px] text-[#1C1D22] placeholder:text-[#A6AAB2] focus:border-[#FF5C00] focus:outline-none focus:ring-[3px] focus:ring-[#FF5C00]/15"
-              />
-            </div>
-            {canAddCollaborator && (
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="flex flex-shrink-0 items-center gap-2 rounded-[22px] bg-[#FF5C00] px-[18px] py-2.5 text-[12.5px] font-semibold text-white shadow-[0_6px_16px_-4px_rgba(255,92,0,0.4)] transition-colors hover:bg-[#EA580C]"
-              >
-                <UserPlus className="h-[15px] w-[15px]" />
-                Invitar a una canción
-              </button>
-            )}
-          </div>
+          )}
         </div>
+      </PageHeader>
 
-        {error && (
-          <div className="flex items-center gap-2.5 rounded-2xl border border-[#F5C2C4] bg-[#FDECEC] px-4 py-3">
-            <TriangleAlert className="h-4 w-4 flex-shrink-0 text-[#E5484D]" />
-            <span className="flex-1 text-[12.5px] text-[#E5484D]">{error}</span>
-            <button
-              onClick={reload}
-              className="rounded-full bg-white px-3.5 py-1.5 text-[11.5px] font-semibold text-[#E5484D]"
-            >
-              Reintentar
-            </button>
-          </div>
-        )}
-
-        {loading ? (
-          <TableSkeleton />
-        ) : collaborators.length === 0 ? (
-          <FirstCollaboratorState onInvite={() => setSidebarOpen(true)} />
-        ) : (
-          <>
-            <CollaboratorsKpis
-              totalCollaborators={totals.totalCollaborators}
-              people={totals.people}
-              labels={totals.labels}
-              activeSplits={totals.activeSplits}
-              songsWithSplits={totals.songsWithActiveSplits}
-              totalPaid={totals.totalPaid}
-              totalPending={totals.totalPending}
-              waitingCount={payable.length + blocked.length}
-              onShowPending={
-                totals.totalPending > 0 ? () => library.setStateFilter("can_pay") : undefined
-              }
-            />
-
-            <AttentionTray
-              payable={payable}
-              onPayAll={() => setPayTargets(payable.map(toTarget))}
-            />
-
-            <CollaboratorsFilterBar
-              stateFilter={library.stateFilter}
-              onStateFilterChange={library.setStateFilter}
-              roleFilter={library.roleFilter}
-              onRoleFilterChange={library.setRoleFilter}
-              roles={library.roles}
-              sortBy={library.sortBy}
-              onSortChange={library.setSortBy}
-              hasFilters={hasFilters}
-              onClearAll={clearFilters}
-            />
-
-            {visible.length === 0 ? (
-              <NoResultsState
-                search={search}
-                hasFilters={hasFilters}
-                onClearFilters={clearFilters}
-                onClearSearch={() => setSearch("")}
-                onInvite={() => setSidebarOpen(true)}
-              />
-            ) : (
-              <div className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
-                <div className={`${COLLABORATORS_GRID} px-5 py-3`}>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={allSelected}
-                      onChange={toggleSelectAll}
-                      disabled={visiblePayable.length === 0}
-                      aria-label="Seleccionar todos los que pueden cobrar"
-                      className="h-[15px] w-[15px] cursor-pointer rounded-[5px] border-[1.5px] border-[#A6AAB2] accent-[#FF5C00] focus:ring-[3px] focus:ring-[#FF5C00]/15 disabled:cursor-not-allowed disabled:opacity-40"
-                    />
-                  </div>
-                  <ColumnLabel>COLABORADOR</ColumnLabel>
-                  {COLLABORATOR_COLUMNS.map((column) => (
-                    <div key={column.key} className={column.visibility}>
-                      <ColumnLabel>{column.label}</ColumnLabel>
-                    </div>
-                  ))}
-                  <div />
-                </div>
-                <div className="h-px bg-[#E8E8EC]" />
-                <div className="flex flex-col divide-y divide-[#E8E8EC]">
-                  {visible.map((collaborator) => (
-                    <CollaboratorRow
-                      key={collaborator.id}
-                      collaborator={collaborator}
-                      color={colorOf.get(collaborator.id) ?? "#FF5C00"}
-                      catalogSize={catalogSize}
-                      selected={selectedIds.has(collaborator.id)}
-                      onToggleSelect={toggleSelect}
-                      onOpen={setProfileOf}
-                      onPay={(c) => setPayTargets([toTarget(c)])}
-                    />
-                  ))}
-                </div>
-                <div className="h-px bg-[#E8E8EC]" />
-                <div className="px-5 py-3.5">
-                  <span className="text-[12px] text-[#71757E]">
-                    {visible.length}
-                    {visible.length === collaborators.length ? "" : ` de ${collaborators.length}`}{" "}
-                    {visible.length === 1 ? "colaborador" : "colaboradores"} ·{" "}
-                    {totals.songsWithActiveSplits.toLocaleString()} canciones con split
-                  </span>
-                </div>
-              </div>
-            )}
-          </>
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="glass-control relative flex w-full items-center gap-2.5 rounded-full px-[18px] py-[11px] focus-within:ring-2 focus-within:ring-[#FF5C00]/70 sm:w-[280px]">
+          <Search className="h-4 w-4 flex-shrink-0 text-white/50" />
+          <input
+            type="text"
+            placeholder="Buscar por nombre o correo…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Buscar colaboradores"
+            className="w-full border-none bg-transparent p-0 text-[12.5px] text-white placeholder:text-white/50 focus:outline-none focus:ring-0"
+          />
+        </label>
+        {canAddCollaborator && (
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="flex flex-shrink-0 items-center gap-2 rounded-full bg-[#FF5C00] px-[18px] py-[11px] text-[12.5px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+          >
+            <UserPlus className="h-[15px] w-[15px]" />
+            Invitar a una canción
+          </button>
         )}
       </div>
 
-      <BulkActionBar
-        count={selected.length}
-        total={selectedTotal}
-        onClear={clearSelection}
-        onPay={() => setPayTargets(selected.map(toTarget))}
-      />
+      {error && (
+        <div className="glass flex items-center gap-2.5 rounded-2xl px-4 py-3">
+          <TriangleAlert className="h-4 w-4 flex-shrink-0 text-[#FF8F92]" />
+          <span className="flex-1 text-[12.5px] text-white/80">{error}</span>
+          <button
+            onClick={reload}
+            className="glass-control rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold text-white hover:bg-white/[0.12]"
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      {loading ? (
+        <PageSkeleton />
+      ) : collaborators.length === 0 ? (
+        !error && <FirstCollaborator onInvite={canAddCollaborator ? () => setSidebarOpen(true) : undefined} />
+      ) : (
+        <>
+          <CollaboratorsSummaryStrip
+            totalCollaborators={totals.totalCollaborators}
+            people={totals.people}
+            labels={totals.labels}
+            activeSplits={totals.activeSplits}
+            songsWithSplits={totals.songsWithActiveSplits}
+            totalPaid={totals.totalPaid}
+            totalPending={totals.totalPending}
+            payable={payable}
+            blocked={blocked}
+            onPayAll={() => setPayTargets(payable.map(toTarget))}
+          />
+
+          {focused ? (
+            <>
+              <CollaboratorDial
+                collaborators={visible}
+                focusIndex={focusIndex}
+                onFocusIndexChange={(index) => setFocusedId(visible[index]?.id ?? null)}
+                colorOf={colorOf}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+                view={view}
+                onViewChange={setView}
+                shared={
+                  sharedSongs.totals
+                    ? { streams: sharedSongs.totals.totalStreams, netIncome: sharedSongs.totals.totalNetIncome }
+                    : null
+                }
+                sharedLoading={sharedSongs.loading}
+                onOpenProfile={setProfileOf}
+                onPay={(c) => setPayTargets([toTarget(c)])}
+              />
+
+              <CollaboratorSongsPanel
+                collaborator={focused}
+                color={colorOf(focused.id)}
+                view={view}
+                songs={view === "out" ? sharedSongs.byPending : sharedSongs.byIncome}
+                loading={sharedSongs.loading}
+                failed={sharedSongs.failed}
+                onRetry={sharedSongs.retry}
+              />
+            </>
+          ) : (
+            <NoMatch search={search} onClear={() => setSearch("")} />
+          )}
+        </>
+      )}
 
       {profileOf && (
         <CollaboratorDetailModal
@@ -270,56 +216,61 @@ export default function Collaborators() {
   );
 }
 
-function ColumnLabel({ children }: { children: React.ReactNode }) {
+/** Primera vez: todavía no hay nadie con quien repartir. */
+function FirstCollaborator({ onInvite }: { onInvite?: () => void }) {
   return (
-    <span className="truncate font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
-      {children}
-    </span>
+    <section className="glass flex flex-col items-center gap-4 rounded-[32px] px-6 py-14 text-center">
+      <span className="flex h-[60px] w-[60px] items-center justify-center rounded-[22px] bg-[#FF5C00]/15">
+        <Users className="h-[26px] w-[26px] text-[#FF8A3D]" />
+      </span>
+      <div className="flex flex-col gap-1.5">
+        <h2 className="font-display text-[19px] font-medium text-white">
+          Todavía no compartes regalías con nadie
+        </h2>
+        <p className="max-w-[540px] text-[12.5px] leading-relaxed text-white/65">
+          Cuando invitas a alguien a una de tus canciones, aparece aquí con su parte del reparto y lo
+          que le vas debiendo.
+        </p>
+      </div>
+      {onInvite && (
+        <button
+          onClick={onInvite}
+          className="flex items-center gap-2 rounded-full bg-[#FF5C00] px-[18px] py-[11px] text-[12.5px] font-semibold text-white transition-colors hover:bg-[#EA580C]"
+        >
+          <UserPlus className="h-[15px] w-[15px]" />
+          Invitar a una canción
+        </button>
+      )}
+    </section>
   );
 }
 
-/** Tabla fantasma: conserva las columnas mientras llegan los datos. */
-function TableSkeleton() {
-  const widths = ["w-[148px]", "w-[112px]", "w-[168px]", "w-[130px]"];
+/** La búsqueda no encuentra a nadie: el carrusel no tiene a quién enseñar. */
+function NoMatch({ search, onClear }: { search: string; onClear: () => void }) {
   return (
-    <div className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white">
-      <div className={`${COLLABORATORS_GRID} px-5 py-3`}>
-        <div />
-        <ColumnLabel>COLABORADOR</ColumnLabel>
-        {COLLABORATOR_COLUMNS.map((column) => (
-          <div key={column.key} className={column.visibility}>
-            <ColumnLabel>{column.label}</ColumnLabel>
-          </div>
-        ))}
-        <div />
+    <section className="glass flex flex-col items-center gap-3 rounded-[32px] px-6 py-12 text-center">
+      <Search className="h-6 w-6 text-white/50" />
+      <p className="text-sm font-semibold text-white">Nadie coincide con «{search}»</p>
+      <button
+        onClick={onClear}
+        className="glass-control rounded-full px-4 py-2 text-[12.5px] font-semibold text-white hover:bg-white/[0.12]"
+      >
+        Limpiar búsqueda
+      </button>
+    </section>
+  );
+}
+
+/** Mientras llegan los datos: las tres superficies de la página, vacías. */
+function PageSkeleton() {
+  return (
+    <div className="flex flex-col gap-6" aria-busy="true" aria-label="Cargando colaboradores">
+      <div className="glass h-[220px] animate-pulse rounded-[28px] xl:h-[208px]" />
+      <div className="glass flex h-[480px] flex-col items-center justify-center gap-6 rounded-[32px]">
+        <span className="h-[168px] w-[168px] animate-pulse rounded-full bg-white/[0.08]" />
+        <span className="h-6 w-40 animate-pulse rounded-full bg-white/[0.08]" />
       </div>
-      <div className="h-px bg-[#E8E8EC]" />
-      <div className="flex flex-col divide-y divide-[#E8E8EC]">
-        {widths.map((width, index) => (
-          <div key={width} className={`${COLLABORATORS_GRID} px-5 py-3.5`}>
-            <div className="h-[15px] w-[15px] animate-pulse rounded-[5px] bg-[#F4F5F7]" />
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="h-10 w-10 flex-shrink-0 animate-pulse rounded-full bg-[#F4F5F7]" />
-              <div className="flex flex-1 flex-col gap-2">
-                <div className={`h-2.5 animate-pulse rounded-full bg-[#F4F5F7] ${width}`} />
-                <div
-                  className={`h-2 animate-pulse rounded-full bg-[#F4F5F7]/70 ${
-                    index % 2 ? "w-[130px]" : "w-[164px]"
-                  }`}
-                />
-              </div>
-            </div>
-            {COLLABORATOR_COLUMNS.map((column) => (
-              <div key={column.key} className={column.visibility}>
-                <div className="h-2.5 w-[70%] animate-pulse rounded-full bg-[#F4F5F7]" />
-              </div>
-            ))}
-            <div className="flex justify-end">
-              <div className="h-7 w-[52px] animate-pulse rounded-[15px] bg-[#F4F5F7]" />
-            </div>
-          </div>
-        ))}
-      </div>
+      <div className="glass h-[320px] animate-pulse rounded-[32px]" />
     </div>
   );
 }

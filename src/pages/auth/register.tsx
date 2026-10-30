@@ -15,7 +15,7 @@ import {
 import { AuthService } from "../../services/auth";
 import { readPendingInvite } from "@/utils/pendingInvite";
 import { WelcomeModal } from "../../components/modal/WelcomeModal";
-import logo from "../../assets/images/2 - BLANCO.png";
+import { SplitmeLogo } from "@/components/brand/SplitmeLogo";
 
 /** Recorrido completo del alta; aquí solo se cubre el primer punto. */
 const ROADMAP = [
@@ -88,7 +88,7 @@ export default function Register() {
       <div className="flex min-h-screen bg-white">
         {/* Formulario */}
         <div className="flex w-full flex-col justify-between gap-8 px-6 py-10 sm:px-12 lg:w-[560px] lg:flex-shrink-0 lg:px-16 lg:py-10">
-          <img src={logo} alt="SplitMe" className="h-[38px] w-auto self-start" />
+          <SplitmeLogo className="h-[38px] self-start text-[#1C1D22]" />
 
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">

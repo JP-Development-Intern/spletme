@@ -91,15 +91,17 @@ export function SongAlbumsBadge({ songId, count }: SongAlbumsBadgeProps) {
         aria-haspopup="dialog"
         title={`Esta canción salió en ${count} álbumes`}
         onClick={() => setOpen((value) => !value)}
-        className={`flex flex-shrink-0 items-center gap-1 rounded-xl px-[7px] py-[3px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00] ${
-          open ? "bg-[#FFEADD]" : "bg-[#F4F5F7] hover:bg-[#E8E8EC]"
+        className={`flex flex-shrink-0 items-center gap-1 rounded-full px-[7px] py-[3px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
+          open ? "bg-[#F7EDE6]/[0.92]" : "bg-white/[0.08] hover:bg-white/[0.14]"
         }`}
       >
-        <Disc3 className={`h-2.5 w-2.5 ${open ? "text-[#EA580C]" : "text-[#71757E]"}`} />
-        <span className="text-[10.5px] font-semibold text-[#1C1D22]">{count} álbumes</span>
+        <Disc3 className={`h-2.5 w-2.5 ${open ? "text-[#1C1D22]" : "text-white/70"}`} />
+        <span className={`text-[10.5px] font-semibold ${open ? "text-[#1C1D22]" : "text-white/70"}`}>
+          En {count} álbumes
+        </span>
         <ChevronDown
           className={`h-2.5 w-2.5 transition-transform ${
-            open ? "rotate-180 text-[#EA580C]" : "text-[#71757E]"
+            open ? "rotate-180 text-[#1C1D22]" : "text-white/70"
           }`}
         />
       </button>
@@ -117,16 +119,16 @@ export function SongAlbumsBadge({ songId, count }: SongAlbumsBadgeProps) {
               width: PANEL_WIDTH,
               visibility: position ? "visible" : "hidden",
             }}
-            className="z-[9998] overflow-hidden rounded-[20px] border border-[#E8E8EC] bg-white shadow-[0_12px_32px_-6px_rgba(28,29,34,0.14)]"
+            className="glass-menu z-[9998] overflow-hidden rounded-[20px]"
           >
             <div className="flex flex-col gap-[3px] px-4 py-3.5">
-              <p className="text-[13.5px] font-semibold text-[#1C1D22]">
+              <p className="text-[13.5px] font-semibold text-white">
                 Esta canción está en {count} álbumes
               </p>
-              <p className="text-[11px] text-[#71757E]">Ordenados por lo que aportan al total</p>
+              <p className="text-[11px] text-white/50">Ordenados por lo que aportan al total</p>
             </div>
-            <div className="h-px bg-[#E8E8EC]" />
-            <SongAlbumsBreakdown albums={albums} loading={loading} />
+            <div className="h-px bg-white/[0.09]" />
+            <SongAlbumsBreakdown albums={albums} loading={loading} onGlass />
           </div>,
           document.body,
         )}

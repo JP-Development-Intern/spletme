@@ -10,7 +10,7 @@ import CompletionStep from "./steps/CompletionStep";
 import { OnboardingService, OnboardingData } from "../../services/onboarding";
 import { setAuth } from "@/store/states/authSlice";
 import { AuthService } from "@/services/auth";
-import logo from "../../assets/images/2 - BLANCO.png";
+import { SplitmeLogo } from "@/components/brand/SplitmeLogo";
 
 const TOTAL_STEPS = 4;
 
@@ -195,7 +195,7 @@ const OnboardingContainer = () => {
       <div className="flex w-full flex-col justify-between gap-8 px-6 py-8 sm:px-12 lg:w-[560px] lg:flex-shrink-0 lg:px-16 lg:py-10">
         <div className="flex flex-col gap-5">
           <div className="flex items-center justify-between gap-4">
-            <img src={logo} alt="SplitMe" className="h-[34px] w-auto" />
+            <SplitmeLogo className="h-[34px] text-[#1C1D22]" />
             <button
               onClick={() => AuthService.logout()}
               className="flex items-center gap-1.5 rounded-2xl px-3 py-1.5 text-[12.5px] font-medium text-[#A6AAB2] transition-colors hover:bg-[#F4F5F7] hover:text-[#1C1D22] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5C00]"

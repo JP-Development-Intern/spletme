@@ -1,10 +1,8 @@
 import "./home.css";
 import { useNavigate } from "react-router-dom";
-import { Music, Play } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { IncomeArcCard } from "@/components/home/IncomeArcCard";
-import { BalanceCard } from "@/components/home/BalanceCard";
-import { KpiTile } from "@/components/home/KpiTile";
+import { DashboardStatsStrip } from "@/components/home/DashboardStatsStrip";
+import { PlatformsCard } from "@/components/home/PlatformsCard";
 import { PerformanceChart } from "@/components/home/PerformanceChart";
 import { WalletSection } from "@/components/home/WalletSection";
 import { TopSongsShowcase } from "@/components/home/TopSongsShowcase";
@@ -12,7 +10,6 @@ import { useHomeDashboard } from "@/hooks/useHomeDashboard";
 import { usePlatformBreakdown } from "@/hooks/usePlatformBreakdown";
 import { useWalletAccountsStatus } from "@/hooks/useWalletAccountsStatus";
 import LocalStorageService from "@/services/localstorage";
-import { formatStreams } from "@/utils/format.utils";
 
 /** Periodos del selector, con cómo se leen dentro de una frase. */
 const PERIODS = [
@@ -73,47 +70,30 @@ export default function Home() {
         })}
       </div>
 
+      <DashboardStatsStrip
+        totalNetIncome={summary.totalNetIncome}
+        totalStreams={summary.totalStreams}
+        songsCount={summary.songsWithMatches}
+        netBalance={netBalance}
+        totalAmount={totalAmount}
+      />
+
       <div className="flex flex-col gap-5 xl:flex-row">
-        <IncomeArcCard
-          totalNetIncome={summary.totalNetIncome}
-          periodLabel={periodPhrase}
-          platforms={platforms}
-          loading={platformsLoading}
-        />
+        <div className="flex min-w-0 flex-1 flex-col gap-5">
+          <PerformanceChart points={points} timeframe={selectedTimeframe} />
+          <TopSongsShowcase songs={topSongs} historicalIncome={historicalIncome} />
+        </div>
+
         <div className="flex w-full flex-col gap-5 xl:w-[360px] xl:flex-shrink-0">
-          <BalanceCard
-            netBalance={netBalance}
-            totalNetIncome={summary.totalNetIncome}
-            totalAmount={totalAmount}
-          />
           <WalletSection
             loading={walletAccountsLoading}
             sendActive={sendActive}
             receiveActive={receiveActive}
             onGoToBank={() => navigate("/panel/wallet")}
           />
+          <PlatformsCard platforms={platforms} totalIncome={historicalIncome} loading={platformsLoading} />
         </div>
       </div>
-
-      <div className="flex flex-col gap-5 xl:flex-row">
-        <PerformanceChart points={points} timeframe={selectedTimeframe} />
-        <div className="flex w-full flex-col gap-5 sm:flex-row xl:w-[360px] xl:flex-shrink-0 xl:flex-col">
-          <KpiTile
-            icon={Play}
-            label="Streams"
-            value={formatStreams(summary.totalStreams)}
-            link={{ to: "/panel/analytics", label: "Por plataforma" }}
-          />
-          <KpiTile
-            icon={Music}
-            label="Canciones con ingresos"
-            value={summary.songsWithMatches?.toLocaleString() ?? "0"}
-            link={{ to: "/panel/music", label: "Ver música" }}
-          />
-        </div>
-      </div>
-
-      <TopSongsShowcase songs={topSongs} historicalIncome={historicalIncome} />
     </div>
   );
 }

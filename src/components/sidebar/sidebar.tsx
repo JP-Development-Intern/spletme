@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
-  AudioWaveform,
   House,
   LibraryBig,
   Handshake,
@@ -13,6 +12,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { SplitmeLogo } from "@/components/brand/SplitmeLogo";
 
 interface NavItem {
   to: string;
@@ -86,13 +86,12 @@ export default function Sidebar() {
       >
         {/* Marca */}
         <div className="flex flex-shrink-0 items-center justify-between">
-          <NavLink to="/panel/home" onClick={close} className="flex items-center gap-2.5 px-1.5">
-            <span className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-[11px] bg-[#FF5C00]">
-              <AudioWaveform className="h-[18px] w-[18px] text-white" />
-            </span>
-            <span className="font-display text-[21px] font-semibold tracking-[-0.01em] text-white">
-              splitme
-            </span>
+          <NavLink
+            to="/panel/home"
+            onClick={close}
+            className="flex items-center rounded-lg px-1.5 py-1 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
+          >
+            <SplitmeLogo variant="wordmark" className="h-[22px]" />
           </NavLink>
 
           <button
