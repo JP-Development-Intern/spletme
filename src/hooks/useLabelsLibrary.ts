@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useLabels } from "./useLabels";
-import type { Label } from "@/services/labels";
+import type { Label, LabelCollaborator } from "@/services/labels";
 import type { LabelListItem, SplitCoverage } from "@/components/labels/types";
 import type { LabelSortBy } from "@/components/labels/labelsColumns";
 
@@ -41,6 +41,9 @@ export function useLabelsLibrary() {
         totalNetIncome: label.totalNetIncome ?? 0,
         ownerEarnings: label.ownerEarnings ?? 0,
         totalToPay: label.totalToPay ?? pendingToPay(label.totalNetIncome, label.ownerEarnings),
+        ownerPercentage: ownerShare(label.totalNetIncome, label.ownerEarnings),
+        collaborators: label.collaborators ?? [],
+        splitActive: (label.splitProgress?.withSplits ?? 0) > 0,
         coverage: toCoverage(
           label.splitProgress?.total ?? label.count ?? 0,
           label.splitProgress?.withSplits ?? 0,
@@ -59,9 +62,14 @@ export function useLabelsLibrary() {
         // el mismo dato, visto desde arriba.
         let total = 0;
         let withSplits = 0;
+        const collaborators = new Map<string, LabelCollaborator>();
         for (const name of custom.artisticLabels ?? []) {
           const artistic = artisticByName.get(name);
           if (!artistic) continue;
+          for (const person of artistic.collaborators ?? []) {
+            const key = person.id ?? person._id ?? person.email ?? person.name;
+            if (key) collaborators.set(key, person);
+          }
           total += artistic.splitProgress?.total ?? artistic.count ?? 0;
           withSplits += artistic.splitProgress?.withSplits ?? 0;
         }
@@ -78,6 +86,9 @@ export function useLabelsLibrary() {
           totalToPay:
             custom.stats?.totalToPay ??
             pendingToPay(custom.stats?.totalNetIncome, custom.stats?.ownerEarnings),
+          ownerPercentage: ownerShare(custom.stats?.totalNetIncome, custom.stats?.ownerEarnings),
+          collaborators: [...collaborators.values()],
+          splitActive: withSplits > 0,
           coverage: toCoverage(total, withSplits, true),
         };
       }),
@@ -199,6 +210,15 @@ export function pendingToPay(netIncome = 0, ownerEarnings = 0): number {
   return Math.max(0, (netIncome ?? 0) - (ownerEarnings ?? 0));
 }
 
+/**
+ * Porcentaje del neto que se queda el owner (0-100): el reparto efectivo de
+ * todos los splits del sello. `null` si aún no hay ingresos: sin base no hay %.
+ */
+export function ownerShare(netIncome = 0, ownerEarnings = 0): number | null {
+  if (!netIncome || netIncome <= 0) return null;
+  return Math.min(100, Math.max(0, (ownerEarnings / netIncome) * 100));
+}
+
 /** Normaliza un progreso de splits a la forma que usa toda la sección. */
 export function toCoverage(total: number, withSplits: number, derived: boolean): SplitCoverage {
   const safeTotal = Math.max(0, total);
@@ -232,6 +252,10 @@ function compareBy(sortBy: LabelSortBy) {
         return a.totalNetIncome - b.totalNetIncome;
       case "owner_desc":
         return b.ownerEarnings - a.ownerEarnings;
+      case "pct_desc":
+        return (b.ownerPercentage ?? -1) - (a.ownerPercentage ?? -1);
+      case "topay_desc":
+        return b.totalToPay - a.totalToPay;
       case "coverage_asc":
         // Entre dos sellos igual de cubiertos, primero el que tiene más
         // canciones pendientes: es donde queda más trabajo por hacer.

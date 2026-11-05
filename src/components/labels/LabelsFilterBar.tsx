@@ -1,6 +1,7 @@
 import { ArrowUpDown, CircleX, LayoutGrid, Layers, Tag } from "lucide-react";
 import { FilterFacet } from "@/components/ui/FilterFacet";
 import { SORT_LABELS, type LabelSortBy } from "./labelsColumns";
+import { viewerIsAccountOwner } from "@/utils/ownerVisibility";
 import type { CoverageFilter, LabelTypeFilter } from "@/hooks/useLabelsLibrary";
 
 interface LabelsFilterBarProps {
@@ -139,11 +140,16 @@ export function LabelsFilterBar({
             value={sortBy}
             onChange={(e) => onSortChange(e.target.value as LabelSortBy)}
           >
-            {Object.entries(SORT_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
+            {Object.entries(SORT_LABELS)
+              .filter(
+                ([value]) =>
+                  (value !== "topay_desc" && value !== "pct_desc") || viewerIsAccountOwner(),
+              )
+              .map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
           </select>
         </FilterFacet>
       </div>

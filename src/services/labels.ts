@@ -23,6 +23,15 @@ export interface Label {
     hasAllSplits: boolean;
   };
   isCustom?: boolean;
+  /** Colaboradores con split en las canciones del sello, sin repetir. */
+  collaborators?: LabelCollaborator[];
+}
+
+export interface LabelCollaborator {
+  _id?: string;
+  id?: string;
+  name?: string;
+  email?: string;
 }
 
 export interface CustomLabel {
