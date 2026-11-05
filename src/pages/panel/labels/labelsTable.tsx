@@ -10,12 +10,13 @@ import {
   ArrowDown,
 } from "lucide-react";
 import { useLabelsLibrary } from "@/hooks/useLabelsLibrary";
+import { viewerIsAccountOwner } from "@/utils/ownerVisibility";
 import { LabelsKpis } from "@/components/labels/LabelsKpis";
 import { LabelsFilterBar } from "@/components/labels/LabelsFilterBar";
 import { LabelRow } from "@/components/labels/LabelRow";
 import {
-  LABEL_COLUMNS,
-  LABELS_GRID,
+  labelColumns,
+  labelsGrid,
   NEXT_SORT,
   isDescending,
   type LabelSortBy,
@@ -53,6 +54,7 @@ export default function LabelsTable() {
   const [inviting, setInviting] = useState<LabelListItem | null>(null);
 
   const isEmpty = allItems.length === 0;
+  const showToPay = viewerIsAccountOwner();
   const pendingSongs = totals.coverage.total - totals.coverage.withSplits;
 
   return (
@@ -120,7 +122,7 @@ export default function LabelsTable() {
         )}
 
         {loading ? (
-          <TableSkeleton />
+          <TableSkeleton showToPay={showToPay} />
         ) : isEmpty ? (
           <FirstLabelState onCreate={() => setShowCreate(true)} />
         ) : (
@@ -132,6 +134,7 @@ export default function LabelsTable() {
               totalStreams={totals.streams}
               totalNetIncome={totals.netIncome}
               ownerEarnings={totals.ownerEarnings}
+              totalToPay={showToPay ? totals.totalToPay : undefined}
               coverage={totals.coverage}
               onShowIncomplete={pendingSongs > 0 ? showOnlyIncomplete : undefined}
             />
@@ -158,7 +161,7 @@ export default function LabelsTable() {
               />
             ) : (
               <div className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
-                <TableHeader sortBy={sortBy} onSortChange={setSortBy} />
+                <TableHeader sortBy={sortBy} onSortChange={setSortBy} showToPay={showToPay} />
                 <div className="h-px bg-[#E8E8EC]" />
                 <LabelSections
                   items={items}
@@ -336,12 +339,14 @@ function LabelSections({
 function TableHeader({
   sortBy,
   onSortChange,
+  showToPay,
 }: {
   sortBy: LabelSortBy;
   onSortChange: (value: LabelSortBy) => void;
+  showToPay: boolean;
 }) {
   return (
-    <div className={`${LABELS_GRID} px-5 py-3`}>
+    <div className={`${labelsGrid(showToPay)} px-5 py-3`}>
       <div className="flex min-w-0">
         <ColumnButton
           label="SELLO"
@@ -350,7 +355,7 @@ function TableHeader({
           onClick={() => onSortChange(NEXT_SORT.name(sortBy))}
         />
       </div>
-      {LABEL_COLUMNS.map((column) => {
+      {labelColumns(showToPay).map((column) => {
         const active = Boolean(column.sortKeys?.includes(sortBy));
         return (
           <div key={column.key} className={column.visibility}>
@@ -405,15 +410,15 @@ function ColumnLabel({ children }: { children: React.ReactNode }) {
 }
 
 /** Tabla fantasma: conserva las columnas mientras llegan los datos. */
-function TableSkeleton() {
+function TableSkeleton({ showToPay }: { showToPay: boolean }) {
   const widths = ["w-[148px]", "w-[112px]", "w-[168px]", "w-[130px]"];
   return (
     <div className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white">
-      <div className={`${LABELS_GRID} px-5 py-3`}>
+      <div className={`${labelsGrid(showToPay)} px-5 py-3`}>
         <div className="min-w-0">
           <ColumnLabel>SELLO</ColumnLabel>
         </div>
-        {LABEL_COLUMNS.map((column) => (
+        {labelColumns(showToPay).map((column) => (
           <div key={column.key} className={column.visibility}>
             <ColumnLabel>{column.label}</ColumnLabel>
           </div>
@@ -423,7 +428,7 @@ function TableSkeleton() {
       <div className="h-px bg-[#E8E8EC]" />
       <div className="flex flex-col divide-y divide-[#E8E8EC]">
         {widths.map((width, index) => (
-          <div key={width} className={`${LABELS_GRID} px-5 py-3.5`}>
+          <div key={width} className={`${labelsGrid(showToPay)} px-5 py-3.5`}>
             <div className="flex min-w-0 items-center gap-3">
               <div className="h-[42px] w-[42px] flex-shrink-0 animate-pulse rounded-[14px] bg-[#F4F5F7]" />
               <div className="flex flex-1 flex-col gap-2">
@@ -435,7 +440,7 @@ function TableSkeleton() {
                 />
               </div>
             </div>
-            {LABEL_COLUMNS.map((column) => (
+            {labelColumns(showToPay).map((column) => (
               <div key={column.key} className={column.visibility}>
                 <div className="h-2.5 w-[70%] animate-pulse rounded-full bg-[#F4F5F7]" />
               </div>

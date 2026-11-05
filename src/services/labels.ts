@@ -8,6 +8,8 @@ export interface Label {
   totalGrossIncome: number;
   totalNetIncome: number;
   ownerEarnings: number;
+  /** Pendiente de pago a colaboradores según los splits activos. */
+  totalToPay?: number;
   topSongs: Array<{
     _id: string;
     trackTitle: string;
@@ -21,6 +23,15 @@ export interface Label {
     hasAllSplits: boolean;
   };
   isCustom?: boolean;
+  /** Colaboradores con split en las canciones del sello, sin repetir. */
+  collaborators?: LabelCollaborator[];
+}
+
+export interface LabelCollaborator {
+  _id?: string;
+  id?: string;
+  name?: string;
+  email?: string;
 }
 
 export interface CustomLabel {
@@ -36,6 +47,7 @@ export interface CustomLabel {
     totalGrossIncome: number;
     totalNetIncome: number;
     ownerEarnings: number;
+    totalToPay?: number;
   };
 }
 
@@ -60,6 +72,9 @@ export interface LabelSong {
     selectedPlatforms?: string[];
   } | null;
   ownerEarnings: number;
+  /** Lo que queda por pagar a los colaboradores, cuando el backend lo calcula. */
+  collaboratorsPending?: number;
+  collaboratorsEarnings?: number;
   ownerId: { _id: string; name: string; email: string };
   /**
    * Colaboradores de la canción. `id` es el identificador generado del usuario,

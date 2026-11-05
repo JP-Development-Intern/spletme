@@ -9,11 +9,13 @@ import {
   Pencil,
   UserPlus,
   Trash2,
+  Users,
 } from "lucide-react";
 import { formatCurrency } from "@/utils/format.utils";
+import { viewerIsAccountOwner } from "@/utils/ownerVisibility";
 import { RowActionsMenu, type MenuAction } from "@/components/distributors/RowActionsMenu";
 import { SplitCoverageMeter } from "./SplitCoverageMeter";
-import { LABEL_COLUMNS, LABELS_GRID } from "./labelsColumns";
+import { LABEL_COLUMNS, labelsGrid } from "./labelsColumns";
 import type { LabelListItem } from "./types";
 
 interface LabelRowProps {
@@ -23,6 +25,9 @@ interface LabelRowProps {
   onInvite: (item: LabelListItem) => void;
   onDelete: (item: LabelListItem) => void;
 }
+
+/** Hasta un decimal, sin ceros sobrantes: 50 → «50», 33.333 → «33.3». */
+const formatPercentage = (value: number): string => String(Math.round(value * 10) / 10);
 
 const visibility = (key: string) => LABEL_COLUMNS.find((column) => column.key === key)!.visibility;
 
@@ -43,6 +48,7 @@ export function LabelRow({ item, onCreateSplits, onEdit, onInvite, onDelete }: L
   const navigate = useNavigate();
   const to = labelPath(item);
   const { coverage } = item;
+  const showToPay = viewerIsAccountOwner();
 
   const actions: MenuAction[] = [
     {
@@ -80,7 +86,7 @@ export function LabelRow({ item, onCreateSplits, onEdit, onInvite, onDelete }: L
   return (
     <div
       onClick={() => navigate(to)}
-      className={`${LABELS_GRID} group cursor-pointer px-5 py-3 transition-colors hover:bg-[#F4F5F7]`}
+      className={`${labelsGrid(showToPay)} group cursor-pointer px-5 py-3 transition-colors hover:bg-[#F4F5F7]`}
     >
       {/* Sello */}
       <div className="flex min-w-0 items-center gap-3">
@@ -128,6 +134,28 @@ export function LabelRow({ item, onCreateSplits, onEdit, onInvite, onDelete }: L
         <SplitCoverageMeter coverage={coverage} className="w-full" />
       </div>
 
+      {/* Colaboradores: visible para todos */}
+      <div className={visibility("collaborators")}>
+        <span
+          title={item.collaborators.map((person) => person.name ?? person.email).filter(Boolean).join(", ")}
+          className="flex items-center gap-1.5 font-mono text-[13px] font-semibold text-[#1C1D22]"
+        >
+          <Users className="h-3.5 w-3.5 text-[#A6AAB2]" />
+          {item.collaborators.length}
+        </span>
+      </div>
+
+      {/* Estado del split */}
+      <div className={visibility("splitStatus")}>
+        <span
+          className={`rounded-[10px] px-2 py-0.5 text-[11px] font-semibold ${
+            item.splitActive ? "bg-[#E4F5EC] text-[#2FB37E]" : "bg-[#F4F5F7] text-[#71757E]"
+          }`}
+        >
+          {item.splitActive ? "Activo" : "Inactivo"}
+        </span>
+      </div>
+
       {/* Ingresos */}
       <div className={visibility("income")}>
         <span className="font-mono text-[13px] font-semibold text-[#2FB37E]">
@@ -141,6 +169,24 @@ export function LabelRow({ item, onCreateSplits, onEdit, onInvite, onDelete }: L
           {formatCurrency(item.ownerEarnings)}
         </span>
       </div>
+
+      {/* Porcentaje del owner en el sello */}
+      {showToPay && (
+        <div className={visibility("ownerPct")}>
+          <span className="font-mono text-[13px] font-semibold text-[#1C1D22]">
+            {item.ownerPercentage === null ? "—" : `${formatPercentage(item.ownerPercentage)}%`}
+          </span>
+        </div>
+      )}
+
+      {/* A pagar: solo el owner */}
+      {showToPay && (
+        <div className={visibility("toPay")}>
+          <span className="font-mono text-[13px] font-semibold text-[#1C1D22]">
+            {formatCurrency(item.totalToPay)}
+          </span>
+        </div>
+      )}
 
       {/* Acciones */}
       <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>

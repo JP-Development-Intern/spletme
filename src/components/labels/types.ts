@@ -1,4 +1,4 @@
-import type { Label } from "@/services/labels";
+import type { Label, LabelCollaborator } from "@/services/labels";
 
 /**
  * Cobertura de splits de un sello: cuántas de sus canciones ya tienen repartido
@@ -34,6 +34,14 @@ export interface LabelListItem {
   totalStreams: number;
   totalNetIncome: number;
   ownerEarnings: number;
+  /** Total a pagar a colaboradores: lo que no es del owner. Dato solo del owner. */
+  totalToPay: number;
+  /** % del neto que se queda el owner según los splits. Dato solo del owner. */
+  ownerPercentage: number | null;
+  /** Colaboradores del sello. Visible para todos los usuarios. */
+  collaborators: LabelCollaborator[];
+  /** `true` si al menos una canción del sello tiene split. */
+  splitActive: boolean;
   coverage: SplitCoverage;
   /** Sello artístico original, cuando lo hay. */
   source?: Label;

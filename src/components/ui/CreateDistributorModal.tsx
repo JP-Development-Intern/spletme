@@ -23,6 +23,7 @@ interface Props {
  * evita recorrer un desplegable de casi cien entradas en el caso habitual.
  */
 const FEATURED_IDS = [
+  "believe",
   "distrokid",
   "tunecore",
   "cd-baby",
@@ -30,7 +31,6 @@ const FEATURED_IDS = [
   "routenote",
   "too-lost",
   "landr",
-  "record-union",
 ];
 
 const FEATURED = FEATURED_IDS.map((id) => SPOTIFY_DISTRIBUTORS.find((d) => d.id === id)).filter(
@@ -61,8 +61,11 @@ export default function CreateDistributorModal({ onClose, onConfirm, existingNam
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return SPOTIFY_DISTRIBUTORS;
-    return SPOTIFY_DISTRIBUTORS.filter((d) => d.name.toLowerCase().includes(q));
+    const all = [...SPOTIFY_DISTRIBUTORS].sort(
+      (a, b) => Number(b.id === "believe") - Number(a.id === "believe"),
+    );
+    if (!q) return all;
+    return all.filter((d) => d.name.toLowerCase().includes(q));
   }, [query]);
 
   const trimmed = name.trim();

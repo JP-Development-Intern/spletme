@@ -141,7 +141,8 @@ export function useDistributorsLibrary() {
       return true;
     });
 
-    return [...filtered].sort(comparators[sortBy]);
+    const compare = comparators[sortBy];
+    return [...filtered].sort((a, b) => Number(isBelieve(b)) - Number(isBelieve(a)) || compare(a, b));
   }, [allItems, search, currencyFilter, providerFilter, coverageFilter, sortBy]);
 
   /** Totales de la consola: siempre sobre el catálogo completo, no sobre el filtro. */
@@ -213,6 +214,10 @@ export function useDistributorsLibrary() {
 }
 
 type Comparator = (a: DistributorListItem, b: DistributorListItem) => number;
+
+/** Believe siempre se muestra primero en el listado, sin importar el orden elegido. */
+const isBelieve = ({ distributor }: DistributorListItem) =>
+  `${distributor.name} ${distributor.provider ?? ""}`.toLowerCase().includes("believe");
 
 const income = (item: DistributorListItem) => item.kpi?.totalNetIncome ?? 0;
 const lastUploadTime = (item: DistributorListItem) =>
