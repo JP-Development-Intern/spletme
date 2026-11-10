@@ -1,6 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Music, Eye, Tag, ChevronRight, Crown, Check } from "lucide-react";
-import { hasAnySplit, hasOwnerSplit } from "@/utils/music.utils";
+import {
+  hasAnySplit,
+  hasOwnerSplit,
+  getSongReleaseDate,
+  formatReleaseDate,
+} from "@/utils/music.utils";
 import { viewerOwnsSong, viewerSplitPercentage, viewerAmount } from "@/utils/ownerVisibility";
 import { formatStreams, formatCurrency } from "@/utils/format.utils";
 import { CopyButton } from "@/components/ui/CopyButton";
@@ -29,6 +34,8 @@ export function SongCard({
   const navigate = useNavigate();
   const cover = song?.spotifyData?.album?.images?.[0]?.url;
   const split = hasAnySplit(song);
+  const rawReleaseDate = getSongReleaseDate(song);
+  const releaseDate = rawReleaseDate ? formatReleaseDate(rawReleaseDate) : null;
   const to = `/panel/song/${song._id}`;
   const myPercentage = viewerSplitPercentage(song);
   const percentage = myPercentage !== null ? `${myPercentage}%` : "—";
@@ -90,6 +97,7 @@ export function SongCard({
         </Link>
         <span className="truncate text-[11.5px] text-white/50">
           {song?.artistName ?? "Artista desconocido"}
+          {releaseDate && ` · ${releaseDate}`}
         </span>
       </div>
 

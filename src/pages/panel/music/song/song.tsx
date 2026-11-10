@@ -18,7 +18,12 @@ import {
 import PaymentsService, { type PaymentReadiness } from "@/services/payments";
 import RoyaltiesService, { type RoyaltyRequest } from "@/services/royalties";
 import LocalStorageService from "@/services/localstorage";
-import { resolveIsOwner, describeSplitScope } from "@/utils/music.utils";
+import {
+  resolveIsOwner,
+  describeSplitScope,
+  getSongReleaseDate,
+  formatReleaseDate,
+} from "@/utils/music.utils";
 import useSong from "@/hooks/useSong";
 import useSongAlbums from "@/hooks/useSongAlbums";
 import { useSongMoney } from "@/hooks/useSongMoney";
@@ -52,6 +57,8 @@ export default function Song() {
   const { id = "" } = useParams();
   const { song, loading, getOwnerPercentage, getOwnerTotalOwed } = useSong({ id });
   const songAlbums = useSongAlbums(id);
+  const rawReleaseDate = getSongReleaseDate(song);
+  const releaseDate = rawReleaseDate ? formatReleaseDate(rawReleaseDate) : null;
   const { getCurrentUserPercentage, getCurrentUserAmount, currentCollaborator } =
     useCurrentCollaborator({ collaborators: song?.collaborators || [] });
 
@@ -218,6 +225,12 @@ export default function Song() {
                 loading={songAlbums.loading}
                 fallbackUpc={song?.upc}
               />
+              {releaseDate && (
+                <>
+                  <span className="text-[#A6AAB2]">·</span>
+                  <span title="Fecha de lanzamiento">Lanzada {releaseDate}</span>
+                </>
+              )}
             </>
           }
           highlightLabel={isOwnerUser ? "TOTAL A PAGAR" : "TU PARTE"}
