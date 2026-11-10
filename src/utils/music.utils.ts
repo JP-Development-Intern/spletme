@@ -35,8 +35,44 @@ export const formatDuration = (rawDuration: unknown): string => {
 /** Normaliza una fecha de release a string legible */
 export const formatReleaseDate = (rawDate: unknown): string => {
   if (!rawDate) return "N/A";
-  const parsedDate = new Date(String(rawDate));
-  return Number.isNaN(parsedDate.getTime()) ? String(rawDate) : parsedDate.toLocaleDateString();
+  const text = String(rawDate).trim();
+
+  // Spotify entrega "2019", "2019-05" o "2019-05-17": se respeta la precisión que
+  // trae y se evita `new Date("YYYY-MM-DD")`, que se interpreta en UTC y en
+  // zonas con offset negativo muestra el día anterior.
+  const partial = /^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?$/.exec(text);
+  if (partial) {
+    const [, year, month, day] = partial;
+    if (!month) return year;
+    const monthIndex = Number(month) - 1;
+    if (monthIndex < 0 || monthIndex > 11) return text;
+    if (!day) {
+      return new Date(Number(year), monthIndex, 1).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+      });
+    }
+    return new Date(Number(year), monthIndex, Number(day)).toLocaleDateString();
+  }
+
+  const parsedDate = new Date(text);
+  return Number.isNaN(parsedDate.getTime()) ? text : parsedDate.toLocaleDateString();
+};
+
+/**
+ * Fecha de lanzamiento de una canción. Prioriza `spotifyData.album.release_date`
+ * (la fecha real del lanzamiento) y cae a los campos antiguos si no hay metadata.
+ */
+export const getSongReleaseDate = (song: SongItem | null | undefined): string | undefined => {
+  const candidate =
+    song?.spotifyData?.album?.release_date ??
+    song?.releaseDate ??
+    song?.release_date ??
+    song?.releasedAt ??
+    song?.release ??
+    song?.releases?.[0]?.releaseDate ??
+    song?.releases?.[0]?.release_date;
+  return candidate ? String(candidate) : undefined;
 };
 
 /** Cuenta colaboradores con un split de porcentaje válido asignado */
