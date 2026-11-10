@@ -11,6 +11,7 @@ import {
 import {
   formatDuration,
   formatReleaseDate,
+  getSongReleaseDate,
   countReleases,
 } from "@/utils/music.utils";
 import { formatStreams, formatCurrency } from "@/utils/format.utils";
@@ -59,10 +60,7 @@ export function SongDetailsModal({
     songDetails?.spotifyData?.album?.images?.[0]?.url ?? song?.spotifyData?.album?.images?.[0]?.url;
 
   const releaseDate = formatReleaseDate(
-    getField("releaseDate", "release_date", "releasedAt", "release") ??
-      source?.releases?.[0]?.releaseDate ??
-      source?.releases?.[0]?.release_date ??
-      source?.spotifyData?.album?.release_date,
+    getSongReleaseDate(songDetails) ?? getSongReleaseDate(song),
   );
 
   const duration = formatDuration(

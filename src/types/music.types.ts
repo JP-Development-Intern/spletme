@@ -81,16 +81,11 @@ export interface SongItem {
   collaborators?: SongCollaborator[];
   split?: SplitData | null;
   ownerId?: { split?: SplitData | null } | null;
-  spotifyData?: {
-    album?: {
-      images?: Array<{ url: string; width?: number; height?: number }>;
-      release_date?: string;
-    };
-    duration_ms?: number;
-  };
+  spotifyData?: SpotifyData | null;
 }
 
 import type { Album, AlbumTrack } from "./album.types";
+import type { SpotifyData } from "./song.types";
 
 /** Álbum enriquecido con campos opcionales de split y datos de UI */
 export interface AlbumItem extends Album {
