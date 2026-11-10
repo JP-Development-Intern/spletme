@@ -1,12 +1,8 @@
 import img from "../../../../../assets/images/collaborator2.jpg";
 import { CopyButton } from "@/components/ui/CopyButton";
+import { formatReleaseDate, getSongReleaseDate } from "@/utils/music.utils";
 
 export default function EspecificData({ song }: { song: any }) {
-  const getDateLabel = (value: any) => {
-    if (!value) return "N/A";
-    const parsed = new Date(value);
-    return Number.isNaN(parsed.getTime()) ? String(value) : parsed.toLocaleDateString();
-  };
 
   const getDurationLabel = () => {
     const rawDuration = song?.duration || song?.durationMs || song?.spotifyData?.duration_ms;
@@ -23,8 +19,8 @@ export default function EspecificData({ song }: { song: any }) {
 
   const upc = song?.upc || song?.ean || song?.releases?.[0]?.upc || "N/A";
   const isrc = song?.isrc || "N/A";
-  const releaseDate = getDateLabel(
-    song?.releaseDate || song?.releases?.[0]?.releaseDate || song?.releases?.[0]?.salesMonth,
+  const releaseDate = formatReleaseDate(
+    getSongReleaseDate(song) || song?.releases?.[0]?.salesMonth,
   );
   const duration = getDurationLabel();
   const label = song?.artisticLabel || song?.label || "N/A";
@@ -100,7 +96,7 @@ export default function EspecificData({ song }: { song: any }) {
                   <span key={`distributor-date-${idx}`}>
                     {item
                       ? item?.period ||
-                        `${getDateLabel(item?.from || item?.startDate)} - ${getDateLabel(item?.to || item?.endDate)}`
+                        `${formatReleaseDate(item?.from || item?.startDate)} - ${formatReleaseDate(item?.to || item?.endDate)}`
                       : "N/A"}
                   </span>
                 ))}
