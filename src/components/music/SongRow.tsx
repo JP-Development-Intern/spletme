@@ -1,6 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Music, ChevronRight, Eye, Crown, Check, ShieldCheck } from "lucide-react";
-import { hasAnySplit, hasOwnerSplit, getSongLabels, songLabelCount } from "@/utils/music.utils";
+import {
+  hasAnySplit,
+  hasOwnerSplit,
+  getSongLabels,
+  songLabelCount,
+  getSongReleaseDate,
+  formatReleaseDate,
+} from "@/utils/music.utils";
 import { viewerOwnsSong, viewerSplitPercentage, viewerAmount } from "@/utils/ownerVisibility";
 import { formatStreams, formatCurrency } from "@/utils/format.utils";
 import { CopyButton } from "@/components/ui/CopyButton";
@@ -50,6 +57,8 @@ export function SongRow({
   const navigate = useNavigate();
   const cover = song?.spotifyData?.album?.images?.[0]?.url;
   const split = hasAnySplit(song);
+  const rawReleaseDate = getSongReleaseDate(song);
+  const releaseDate = rawReleaseDate ? formatReleaseDate(rawReleaseDate) : null;
   const to = `/panel/song/${song._id}`;
   const myPercentage = viewerSplitPercentage(song);
   // El split del owner solo lo fija su dueño; a un colaborador el botón le
@@ -90,6 +99,17 @@ export function SongRow({
           </Link>
           <span className="flex min-w-0 items-center gap-1.5">
             <span className="truncate text-[11.5px] text-white/50">{song?.artistName ?? "—"}</span>
+            {releaseDate && (
+              <>
+                <span className="text-[11px] text-white/40">·</span>
+                <span
+                  className="flex-shrink-0 whitespace-nowrap text-[11px] text-white/50"
+                  title="Fecha de lanzamiento"
+                >
+                  {releaseDate}
+                </span>
+              </>
+            )}
             {song?.isrc && (
               <>
                 <span className="text-[11px] text-white/40">·</span>
