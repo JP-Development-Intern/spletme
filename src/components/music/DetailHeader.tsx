@@ -37,7 +37,7 @@ export function DetailHeader({
   meta,
   highlightLabel,
   highlightValue,
-  highlightColor = "#1C1D22",
+  highlightColor = "#FFFFFF",
   actions,
   backTo = "/panel/music",
 }: DetailHeaderProps) {
@@ -61,12 +61,12 @@ export function DetailHeader({
         <button
           onClick={goBack}
           aria-label="Volver"
-          className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-full border border-[#E8E8EC] bg-white text-[#71757E] transition-colors hover:text-[#1C1D22]"
+          className="glass-control flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/[0.12] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
 
-        <span className="flex h-[72px] w-[72px] flex-shrink-0 items-center justify-center overflow-hidden rounded-[20px] bg-[#F4F5F7] sm:h-[88px] sm:w-[88px] sm:rounded-[22px]">
+        <span className="flex h-[72px] w-[72px] flex-shrink-0 items-center justify-center overflow-hidden rounded-[20px] bg-white/[0.08] shadow-[0_16px_32px_-12px_rgba(10,4,0,0.6)] ring-1 ring-white/[0.14] sm:h-[88px] sm:w-[88px] sm:rounded-[22px]">
           {cover ? (
             <img src={cover} alt="" className="h-full w-full object-cover" />
           ) : (
@@ -79,24 +79,28 @@ export function DetailHeader({
             {/* Sin recortes manuales: el título se trunca por CSS y queda entero en el title */}
             <h1
               title={title}
-              className="min-w-0 truncate font-display text-[22px] font-semibold text-[#1C1D22] sm:text-[26px]"
+              className="min-w-0 truncate font-display text-[26px] font-light leading-[1.15] tracking-[-0.015em] text-white sm:text-[34px]"
             >
               {title}
             </h1>
             {code && (
-              <span className="flex flex-shrink-0 items-center gap-1.5 rounded-[14px] bg-[#F4F5F7] px-2.5 py-[5px]">
+              <span className="flex flex-shrink-0 items-center gap-1.5 rounded-full bg-white/[0.08] px-2.5 py-[5px]">
                 {codeLabel && (
-                  <span className="font-mono text-[9.5px] font-medium tracking-[1px] text-[#A6AAB2]">
+                  <span className="font-mono text-[9.5px] font-medium tracking-[1px] text-white/50">
                     {codeLabel}
                   </span>
                 )}
-                <span className="font-mono text-[11px] font-semibold text-[#1C1D22]">{code}</span>
-                <CopyButton value={code} title={`Copiar ${codeLabel ?? "código"}`} />
+                <span className="font-mono text-[11px] font-semibold text-white">{code}</span>
+                <CopyButton
+                  value={code}
+                  title={`Copiar ${codeLabel ?? "código"}`}
+                  className="!text-white/45 hover:!bg-white/10 hover:!text-[#FFB067]"
+                />
               </span>
             )}
           </div>
           {meta && (
-            <div className="flex min-w-0 flex-wrap items-center gap-2 text-[13px] text-[#71757E]">
+            <div className="flex min-w-0 flex-wrap items-center gap-2 text-[13px] text-white/65">
               {meta}
             </div>
           )}
@@ -108,12 +112,12 @@ export function DetailHeader({
           {highlightValue && (
             <div className="flex flex-col items-end">
               {highlightLabel && (
-                <span className="font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+                <span className="font-mono text-[9.5px] font-medium tracking-[1.2px] text-white/50">
                   {highlightLabel}
                 </span>
               )}
               <span
-                className="font-mono text-[22px] font-semibold"
+                className="font-mono text-[26px] font-light leading-[1.1] tracking-[-0.015em]"
                 style={{ color: highlightColor }}
               >
                 {highlightValue}

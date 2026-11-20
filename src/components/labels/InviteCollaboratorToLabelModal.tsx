@@ -22,7 +22,66 @@ interface InviteCollaboratorToLabelModalProps {
   labelName: string;
   songCount: number;
   onSuccess?: () => void;
+  /**
+   * Vidrio cálido, desde la lista de Sellos ya migrada. Por defecto en claro:
+   * el detalle de sello todavía no se ha migrado.
+   */
+  onGlass?: boolean;
 }
+
+/** Los mismos papeles de color en claro y en vidrio. */
+const TONES = {
+  light: {
+    markCustom: "bg-[#FF5C00]",
+    markArtistic: "bg-[#FFEADD]",
+    markArtisticIcon: "text-[#FF5C00]",
+    successMark: "bg-[#E4F5EC]",
+    successIcon: "text-[#2FB37E]",
+    title: "font-semibold text-[#1C1D22]",
+    body: "text-[#71757E]",
+    summary: "divide-[#E8E8EC] bg-[#F4F5F7]",
+    summaryLabel: "text-[#A6AAB2]",
+    summaryValue: "text-[#1C1D22]",
+    nextStep: "bg-[#FFEADD]",
+    nextStepIcon: "text-[#FF5C00]",
+    nextStepText: "text-[#1C1D22]",
+    mailIcon: "text-[#FF5C00]",
+    mailIconError: "text-[#E5484D]",
+    input: "bg-white text-[#1C1D22] placeholder:text-[#A6AAB2]",
+    inputOk: "border-[#E8E8EC] focus:border-[#FF5C00] focus:ring-[#FF5C00]/15",
+    inputBad: "border-[#E5484D] focus:border-[#E5484D] focus:ring-[#E5484D]/15",
+    hint: "text-[#A6AAB2]",
+    note: "bg-[#F4F5F7]",
+    noteText: "text-[#71757E]",
+    error: "border-[#F5C2C4] bg-[#FDECEC]",
+    errorText: "text-[#E5484D]",
+  },
+  glass: {
+    markCustom: "bg-[#FF5C00]",
+    markArtistic: "bg-[#FF5C00]/[0.16]",
+    markArtisticIcon: "text-[#FF8A3D]",
+    successMark: "bg-[#45D39A]/[0.14]",
+    successIcon: "text-[#45D39A]",
+    title: "font-medium text-white",
+    body: "text-white/65",
+    summary: "divide-white/[0.09] bg-white/[0.06]",
+    summaryLabel: "text-white/50",
+    summaryValue: "text-white",
+    nextStep: "border border-[#FF8A3D]/30 bg-[#FF5C00]/[0.14]",
+    nextStepIcon: "text-[#FF8A3D]",
+    nextStepText: "text-white/80",
+    mailIcon: "text-[#FF8A3D]",
+    mailIconError: "text-[#FF8F92]",
+    input: "text-white placeholder:text-white/40 transition-colors",
+    inputOk: "border-white/[0.14] bg-white/[0.06] focus:border-[#FF8A3D] focus:ring-[#FF5C00]/25",
+    inputBad: "border-[1.5px] border-[#FF8F92] bg-[#E5484D]/[0.12] focus:border-[#FF8F92] focus:ring-[#E5484D]/25",
+    hint: "text-white/50",
+    note: "bg-white/[0.06]",
+    noteText: "text-white/65",
+    error: "border-[#E5484D]/30 bg-[#E5484D]/[0.12]",
+    errorText: "text-[#FF8F92]",
+  },
+};
 
 interface InvitationResult {
   /** Null cuando esa persona todavía no tiene cuenta en Splitme. */
@@ -49,7 +108,9 @@ export default function InviteCollaboratorToLabelModal({
   labelName,
   songCount,
   onSuccess,
+  onGlass = false,
 }: InviteCollaboratorToLabelModalProps) {
+  const t = onGlass ? TONES.glass : TONES.light;
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -116,13 +177,13 @@ export default function InviteCollaboratorToLabelModal({
   const mark = (
     <span
       className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[14px] ${
-        isCustom ? "bg-[#FF5C00]" : "bg-[#FFEADD]"
+        isCustom ? t.markCustom : t.markArtistic
       }`}
     >
       {isCustom ? (
         <Layers className="h-[18px] w-[18px] text-white" />
       ) : (
-        <Tag className="h-[18px] w-[18px] text-[#FF5C00]" />
+        <Tag className={`h-[18px] w-[18px] ${t.markArtisticIcon}`} />
       )}
     </span>
   );
@@ -132,6 +193,7 @@ export default function InviteCollaboratorToLabelModal({
       <ModalShell
         title="Invitación enviada"
         width="lg"
+        onGlass={onGlass}
         onClose={handleClose}
         footer={
           <>
@@ -141,26 +203,35 @@ export default function InviteCollaboratorToLabelModal({
         }
       >
         <div className="flex flex-col items-center gap-3 pb-1 pt-4 text-center">
-          <span className="flex h-[52px] w-[52px] items-center justify-center rounded-[18px] bg-[#E4F5EC]">
-            <Check className="h-[22px] w-[22px] text-[#2FB37E]" />
+          <span className={`flex h-[52px] w-[52px] items-center justify-center rounded-[18px] ${t.successMark}`}>
+            <Check className={`h-[22px] w-[22px] ${t.successIcon}`} />
           </span>
-          <h3 className="font-display text-[17px] font-semibold text-[#1C1D22]">
+          <h3 className={`font-display text-[17px] ${t.title}`}>
             {result.collaboratorName ?? result.collaboratorEmail} recibirá el acceso
           </h3>
-          <p className="max-w-[380px] text-[12.5px] leading-relaxed text-[#71757E]">
+          <p className={`max-w-[380px] text-[12.5px] leading-relaxed ${t.body}`}>
             {result.needsAccount
               ? "Le llega un correo con el enlace. Como aún no tiene cuenta, primero creará la suya y desde ahí volverá solo a aceptar. La invitación caduca en 7 días."
               : "Le llega un correo con el enlace para aceptar. La invitación caduca en 7 días."}
           </p>
         </div>
 
-        <dl className="flex flex-col divide-y divide-[#E8E8EC] overflow-hidden rounded-[18px] bg-[#F4F5F7]">
+        <dl className={`flex flex-col divide-y overflow-hidden rounded-[18px] ${t.summary}`}>
           <SummaryRow
             label="Colaborador"
             value={result.collaboratorName ?? "Sin cuenta todavía"}
+            labelClassName={t.summaryLabel}
+            valueClassName={t.summaryValue}
           />
-          <SummaryRow label="Correo" value={result.collaboratorEmail} />
           <SummaryRow
+            label="Correo"
+            value={result.collaboratorEmail}
+            labelClassName={t.summaryLabel}
+            valueClassName={t.summaryValue}
+          />
+          <SummaryRow
+            labelClassName={t.summaryLabel}
+            valueClassName={t.summaryValue}
             label="Sello"
             value={`${labelName} · ${result.totalSongs} ${
               result.totalSongs === 1 ? "canción" : "canciones"
@@ -168,9 +239,9 @@ export default function InviteCollaboratorToLabelModal({
           />
         </dl>
 
-        <div className="flex items-start gap-2.5 rounded-2xl bg-[#FFEADD] px-4 py-3">
-          <Info className="mt-px h-4 w-4 flex-shrink-0 text-[#FF5C00]" />
-          <span className="text-[11.5px] leading-relaxed text-[#1C1D22]">
+        <div className={`flex items-start gap-2.5 rounded-2xl px-4 py-3 ${t.nextStep}`}>
+          <Info className={`mt-px h-4 w-4 flex-shrink-0 ${t.nextStepIcon}`} />
+          <span className={`text-[11.5px] leading-relaxed ${t.nextStepText}`}>
             Cuando acepte, define su porcentaje desde el sello o canción por canción.
           </span>
         </div>
@@ -183,6 +254,7 @@ export default function InviteCollaboratorToLabelModal({
       title="Invitar colaborador"
       subtitle={`${labelName} · ${songCount} ${songCount === 1 ? "canción" : "canciones"}`}
       width="lg"
+      onGlass={onGlass}
       locked={submitting}
       onClose={handleClose}
       logo={mark}
@@ -215,7 +287,7 @@ export default function InviteCollaboratorToLabelModal({
         <div className="relative">
           <Mail
             className={`absolute left-4 top-1/2 -translate-y-1/2 ${
-              error ? "text-[#E5484D]" : "text-[#FF5C00]"
+              error ? t.mailIconError : t.mailIcon
             }`}
             size={15}
           />
@@ -230,21 +302,19 @@ export default function InviteCollaboratorToLabelModal({
             onKeyDown={(e) => e.key === "Enter" && !submitting && handleSubmit()}
             disabled={submitting}
             placeholder="colaborador@email.com"
-            className={`w-full rounded-2xl border bg-white py-3 pl-11 pr-4 text-[13.5px] font-medium text-[#1C1D22] placeholder:font-normal placeholder:text-[#A6AAB2] focus:outline-none focus:ring-[3px] disabled:opacity-50 ${
-              error
-                ? "border-[#E5484D] focus:border-[#E5484D] focus:ring-[#E5484D]/15"
-                : "border-[#E8E8EC] focus:border-[#FF5C00] focus:ring-[#FF5C00]/15"
+            className={`w-full rounded-2xl border py-3 pl-11 pr-4 text-[13.5px] font-medium placeholder:font-normal focus:outline-none focus:ring-[3px] disabled:opacity-50 ${t.input} ${
+              error ? t.inputBad : t.inputOk
             }`}
           />
         </div>
-        <span className="text-[11px] text-[#A6AAB2]">
+        <span className={`text-[11px] ${t.hint}`}>
           Debe ser el correo de una cuenta ya registrada en Splitme.
         </span>
       </label>
 
-      <div className="flex items-start gap-2.5 rounded-2xl bg-[#F4F5F7] px-4 py-3">
-        <UserPlus className="mt-px h-4 w-4 flex-shrink-0 text-[#71757E]" />
-        <span className="text-[11.5px] leading-relaxed text-[#71757E]">
+      <div className={`flex items-start gap-2.5 rounded-2xl px-4 py-3 ${t.note}`}>
+        <UserPlus className={`mt-px h-4 w-4 flex-shrink-0 ${t.noteText}`} />
+        <span className={`text-[11.5px] leading-relaxed ${t.noteText}`}>
           Al aceptar, entra en las {songCount} {songCount === 1 ? "canción" : "canciones"} del sello
           y puede ver sus métricas. Los splits de pago se configuran aparte, después.
         </span>
@@ -253,21 +323,31 @@ export default function InviteCollaboratorToLabelModal({
       {error && (
         <div
           role="alert"
-          className="flex items-start gap-2.5 rounded-2xl border border-[#F5C2C4] bg-[#FDECEC] px-4 py-3"
+          className={`flex items-start gap-2.5 rounded-2xl border px-4 py-3 ${t.error}`}
         >
-          <TriangleAlert className="mt-px h-4 w-4 flex-shrink-0 text-[#E5484D]" />
-          <span className="text-[12.5px] text-[#E5484D]">{error}</span>
+          <TriangleAlert className={`mt-px h-4 w-4 flex-shrink-0 ${t.errorText}`} />
+          <span className={`text-[12.5px] ${t.errorText}`}>{error}</span>
         </div>
       )}
     </ModalShell>
   );
 }
 
-function SummaryRow({ label, value }: { label: string; value: string }) {
+function SummaryRow({
+  label,
+  value,
+  labelClassName,
+  valueClassName,
+}: {
+  label: string;
+  value: string;
+  labelClassName: string;
+  valueClassName: string;
+}) {
   return (
     <div className="flex items-center gap-3 px-4 py-2.5">
-      <dt className="w-[92px] flex-shrink-0 text-[11.5px] text-[#A6AAB2]">{label}</dt>
-      <dd className="min-w-0 flex-1 truncate text-[12.5px] font-semibold text-[#1C1D22]">
+      <dt className={`w-[92px] flex-shrink-0 text-[11.5px] ${labelClassName}`}>{label}</dt>
+      <dd className={`min-w-0 flex-1 truncate text-[12.5px] font-semibold ${valueClassName}`}>
         {value}
       </dd>
     </div>

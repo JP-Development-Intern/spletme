@@ -2,6 +2,8 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Handshake, Users, Wallet, ArrowRight, Check, ChevronRight } from "lucide-react";
 import { setAuth } from "@/store/states/authSlice";
+import { AuthHeading } from "@/components/auth/AuthShell";
+import { AUTH_SUBMIT_CLASS } from "@/components/auth/authStyles";
 
 /** Siguientes pasos reales dentro del panel, en el orden en que conviene hacerlos. */
 const NEXT_STEPS = [
@@ -53,18 +55,14 @@ const CompletionStep = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3.5">
-        <span className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#E4F5EC]">
-          <Check className="h-8 w-8 text-[#2FB37E]" />
+      <div className="flex flex-col items-center gap-3.5">
+        <span className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#45D39A]/[0.16] ring-1 ring-[#45D39A]/30">
+          <Check className="h-8 w-8 text-[#45D39A]" />
         </span>
-        <div className="flex flex-col gap-1.5">
-          <h1 className="font-display text-[28px] font-semibold text-[#1C1D22]">
-            {firstName ? `¡Todo listo, ${firstName}!` : "¡Todo listo!"}
-          </h1>
-          <p className="text-[13.5px] leading-relaxed text-[#71757E]">
-            Tu cuenta quedó verificada y tu perfil configurado. Ya puedes gestionar tus regalías.
-          </p>
-        </div>
+        <AuthHeading
+          title={firstName ? `¡Todo listo, ${firstName}!` : "¡Todo listo!"}
+          subtitle="Tu cuenta quedó verificada y tu perfil configurado. Ya puedes gestionar tus regalías."
+        />
       </div>
 
       <div className="flex flex-col gap-2.5">
@@ -72,23 +70,23 @@ const CompletionStep = () => {
           <button
             key={title}
             onClick={() => completeAndGo(to)}
-            className="flex items-center gap-3.5 rounded-[18px] border border-[#E8E8EC] bg-white px-4 py-3.5 text-left transition-colors hover:bg-[#F4F5F7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5C00]"
+            className="group flex items-center gap-3.5 rounded-[18px] border border-white/[0.14] bg-white/[0.05] px-4 py-3.5 text-left transition-colors hover:border-white/[0.24] hover:bg-white/[0.09] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
           >
-            <span className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-[13px] bg-[#FFEADD]">
-              <Icon className="h-[17px] w-[17px] text-[#FF5C00]" />
+            <span className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-[13px] bg-[#FF5C00]/[0.16]">
+              <Icon className="h-[17px] w-[17px] text-[#FF8A3D]" />
             </span>
             <span className="flex min-w-0 flex-1 flex-col">
-              <span className="text-[13.5px] font-semibold text-[#1C1D22]">{title}</span>
-              <span className="text-[11.5px] text-[#A6AAB2]">{description}</span>
+              <span className="text-[13.5px] font-semibold text-white">{title}</span>
+              <span className="text-[11.5px] text-white/55">{description}</span>
             </span>
-            <ChevronRight className="h-4 w-4 flex-shrink-0 text-[#A6AAB2]" />
+            <ChevronRight className="h-4 w-4 flex-shrink-0 text-white/40 transition-colors group-hover:text-white/80" />
           </button>
         ))}
       </div>
 
       <button
         onClick={() => completeAndGo("/panel/home")}
-        className="flex h-[52px] w-full items-center justify-center gap-2 rounded-[26px] bg-[#FF5C00] text-[15px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.55)] transition-colors hover:bg-[#EA580C] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5C00]"
+        className={AUTH_SUBMIT_CLASS}
       >
         Entrar al panel
         <ArrowRight className="h-4 w-4" />

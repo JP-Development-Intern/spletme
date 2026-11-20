@@ -17,9 +17,9 @@ interface DistributorsKpisProps {
 }
 
 /**
- * Consola de métricas de la lista. El último canal va en naranja porque es el
- * único dato accionable: no repite un total, dice cuántos meses del año siguen
- * sin cargar y cuáles.
+ * Consola de métricas de la lista, en una sola superficie de vidrio. El último
+ * canal va teñido de brasa porque es el único dato accionable: no repite un
+ * total, dice cuántos meses del año siguen sin cargar y cuáles.
  */
 export function DistributorsKpis({
   distributorsCount,
@@ -35,65 +35,70 @@ export function DistributorsKpis({
   const retained = totalGrossIncome > 0 ? Math.round((totalNetIncome / totalGrossIncome) * 100) : 0;
 
   return (
-    <div className="flex flex-col divide-y divide-[#E8E8EC] overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)] lg:flex-row lg:divide-x lg:divide-y-0">
+    <section className="glass flex flex-col rounded-[28px] p-1.5 lg:flex-row lg:items-stretch">
+      <div className="flex min-w-0 flex-1 flex-col divide-y divide-white/[0.09] lg:flex-row lg:divide-x lg:divide-y-0">
+        <Channel
+          label="Distribuidores"
+          icon={<Handshake className="h-[15px] w-[15px] text-white" />}
+          value={distributorsCount.toLocaleString()}
+        />
+        <Channel
+          label="Canciones"
+          icon={<Music className="h-[15px] w-[15px] text-white" />}
+          value={songsCount.toLocaleString()}
+        />
+        <Channel
+          label="Ingresos netos"
+          icon={<DollarSign className="h-[15px] w-[15px] text-white" />}
+          value={formatCurrency(totalNetIncome)}
+          valueClassName="text-[#45D39A] text-[26px] sm:text-[30px]"
+          className="lg:w-[300px] lg:flex-shrink-0"
+        >
+          {totalGrossIncome > 0 && (
+            <span className="truncate text-xs text-white/50">
+              bruto {formatCurrency(totalGrossIncome)} · {retained}% retenido
+            </span>
+          )}
+        </Channel>
+        <Channel
+          label="Streams"
+          icon={<Play className="h-[15px] w-[15px] text-white" />}
+          value={formatStreams(totalStreams)}
+        />
+      </div>
       <Channel
-        label="DISTRIBUIDORES"
-        icon={<Handshake className="h-[13px] w-[13px] text-[#71757E]" />}
-        value={distributorsCount.toLocaleString()}
-      />
-      <Channel
-        label="CANCIONES"
-        icon={<Music className="h-[13px] w-[13px] text-[#71757E]" />}
-        value={songsCount.toLocaleString()}
-      />
-      <Channel
-        label="INGRESOS NETOS"
-        icon={<DollarSign className="h-[13px] w-[13px] text-[#2FB37E]" />}
-        value={formatCurrency(totalNetIncome)}
-        valueClassName="text-[#2FB37E] text-[26px] sm:text-[30px]"
-        className="lg:w-[300px] lg:flex-shrink-0"
-      >
-        {totalGrossIncome > 0 && (
-          <span className="text-[10.5px] text-[#A6AAB2]">
-            bruto {formatCurrency(totalGrossIncome)} · {retained}% retenido
-          </span>
-        )}
-      </Channel>
-      <Channel
-        label="STREAMS"
-        icon={<Play className="h-[13px] w-[13px] text-[#71757E]" />}
-        value={formatStreams(totalStreams)}
-      />
-      <Channel
-        label={`SIN CARGAR ${year}`}
-        labelClassName="text-[#FF5C00]"
-        icon={<CalendarOff className="h-[13px] w-[13px] text-[#FF5C00]" />}
+        label={`Sin cargar ${year}`}
+        labelClassName="text-[#FFB48A]"
+        iconClassName="bg-[#FF5C00]/[0.22]"
+        icon={<CalendarOff className="h-[15px] w-[15px] text-[#FF8A3D]" />}
         value={missingMonths > 0 ? String(missingMonths) : "Al día"}
-        valueClassName={`text-[#FF5C00] ${missingMonths > 0 ? "text-[26px]" : "text-[22px]"}`}
-        className="bg-[#FFEADD] lg:w-[260px] lg:flex-shrink-0"
+        valueClassName={`text-white ${missingMonths > 0 ? "text-[30px]" : "text-[24px]"}`}
+        className="rounded-[22px] border border-[#FF8A3D]/30 bg-[#FF5C00]/[0.14] lg:w-[260px] lg:flex-shrink-0"
       >
         {missingMonths > 0 ? (
           <button
             onClick={onShowGaps}
             disabled={!onShowGaps}
-            className="flex items-center gap-1.5 text-left text-[11.5px] font-semibold text-[#EA580C] transition-colors enabled:hover:text-[#FF5C00] disabled:cursor-default"
+            className="flex items-center gap-1.5 text-left text-xs font-semibold text-[#FF8A3D] transition-colors enabled:hover:text-[#FFB48A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 disabled:cursor-default"
           >
             {gapsLabel}
-            {onShowGaps && <ArrowRight className="h-3 w-3 flex-shrink-0" />}
+            {onShowGaps && <ArrowRight className="h-3.5 w-3.5 flex-shrink-0" />}
           </button>
         ) : (
-          <span className="text-[11.5px] font-semibold text-[#EA580C]">
+          <span className="text-xs font-semibold text-[#FF8A3D]">
             Todos los meses vencidos están cubiertos
           </span>
         )}
       </Channel>
-    </div>
+    </section>
   );
 }
 
 interface ChannelProps {
   label: string;
   labelClassName?: string;
+  /** Fondo del círculo del ícono. */
+  iconClassName?: string;
   icon: React.ReactNode;
   value: string;
   valueClassName?: string;
@@ -104,25 +109,32 @@ interface ChannelProps {
 /** Canal de la consola: etiqueta, cifra y, opcionalmente, una lectura de apoyo. */
 function Channel({
   label,
-  labelClassName = "text-[#71757E]",
+  labelClassName = "text-white/70",
+  iconClassName = "bg-white/[0.12]",
   icon,
   value,
-  valueClassName = "text-[#1C1D22] text-[26px]",
+  valueClassName = "text-white text-[30px]",
   className = "",
   children,
 }: ChannelProps) {
   return (
-    <div className={`flex min-w-0 flex-1 flex-col justify-center gap-2 px-6 py-[22px] ${className}`}>
-      <div className="flex items-center gap-1.5">
-        {icon}
-        <span className={`font-mono text-[9.5px] font-medium tracking-[1.3px] ${labelClassName}`}>
+    <div className={`flex min-w-0 flex-1 flex-col justify-center gap-3 px-[22px] py-[18px] ${className}`}>
+      <div className="flex items-center gap-2.5">
+        <span
+          className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${iconClassName}`}
+        >
+          {icon}
+        </span>
+        <span className={`truncate text-[12.5px] font-medium ${labelClassName}`}>
           {label}
         </span>
       </div>
-      <p className={`font-mono font-semibold leading-none tracking-tight ${valueClassName}`}>
-        {value}
-      </p>
-      {children}
+      <div className="flex flex-col gap-1">
+        <p className={`truncate font-mono font-light leading-[1.1] tracking-[-0.015em] ${valueClassName}`}>
+          {value}
+        </p>
+        {children}
+      </div>
     </div>
   );
 }

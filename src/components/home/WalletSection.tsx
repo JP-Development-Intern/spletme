@@ -1,4 +1,6 @@
 import { Send, Banknote, ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { useReveal } from "./dashboardIntro";
 import { WalletAccountStatusRow } from "./WalletAccountStatusRow";
 
 interface WalletSectionProps {
@@ -6,6 +8,8 @@ interface WalletSectionProps {
   sendActive: boolean;
   receiveActive: boolean;
   onGoToBank: () => void;
+  /** Segundos desde el montaje en los que entra el panel. */
+  at?: number;
 }
 
 /**
@@ -18,11 +22,14 @@ export function WalletSection({
   sendActive,
   receiveActive,
   onGoToBank,
+  at = 0,
 }: WalletSectionProps) {
   const bothActive = sendActive && receiveActive;
+  const reveal = useReveal(at);
 
   return (
-    <div
+    <motion.div
+      {...reveal}
       className="glass flex flex-col gap-3.5 rounded-[28px] px-6 py-5"
       data-tour="balance-section"
     >
@@ -58,6 +65,6 @@ export function WalletSection({
           )}
         </>
       )}
-    </div>
+    </motion.div>
   );
 }

@@ -24,9 +24,11 @@ const RANGE_OPTIONS: { value: Range; label: string; months: number }[] = [
   { value: "all", label: "Todo", months: 0 },
 ];
 
-const INK = "#1C1D22";
+/** Los streams van en crema, como en el gráfico del inicio; el dinero en brasa. */
+const CREAM = "#F7EDE6";
 const ORANGE = "#FF5C00";
-const ORANGE_MID = "#FF9257";
+/** Sobre la noche un naranja más claro destacaría más que el sólido: se apaga en opacidad. */
+const ORANGE_DIM = "rgba(255, 92, 0, 0.45)";
 
 /** Redondea hacia arriba a 1, 1.5, 2, 3, 5, 7.5 o 10 por su magnitud. */
 const niceCeil = (value: number): number => {
@@ -104,17 +106,17 @@ const Performance = ({ songId, data: external, subtitle }: PerformanceProps) => 
   const active = hovered !== null ? data[hovered] : null;
 
   return (
-    <section className="col-span-12 flex flex-col gap-[18px] rounded-[26px] border border-[#E8E8EC] bg-white p-[26px] shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
+    <section className="glass col-span-12 flex flex-col gap-[18px] rounded-[32px] px-7 py-6">
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <div className="flex flex-col gap-0.5">
-          <h2 className="font-display text-lg font-semibold text-[#1C1D22]">Rendimiento</h2>
-          <p className="text-[12.5px] text-[#71757E]">{subtitle ?? "Streams e ingresos mes a mes"}</p>
+          <h2 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">Rendimiento</h2>
+          <p className="text-[12.5px] text-white/65">{subtitle ?? "Streams e ingresos mes a mes"}</p>
         </div>
 
         <div
           role="tablist"
           aria-label="Periodo"
-          className="flex items-center gap-0.5 rounded-[20px] bg-[#F4F5F7] p-[3px]"
+          className="flex items-center gap-0.5 rounded-full bg-black/[0.22] p-1"
         >
           {RANGE_OPTIONS.map((option) => (
             <button
@@ -122,10 +124,10 @@ const Performance = ({ songId, data: external, subtitle }: PerformanceProps) => 
               role="tab"
               aria-selected={range === option.value}
               onClick={() => setRange(option.value)}
-              className={`rounded-[16px] px-[13px] py-1.5 font-mono text-[11px] font-semibold transition-colors ${
+              className={`rounded-full px-[13px] py-1.5 font-mono text-[11.5px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
                 range === option.value
-                  ? "bg-[#FF5C00] text-white"
-                  : "text-[#71757E] hover:text-[#1C1D22]"
+                  ? "bg-[#F7EDE6]/[0.92] font-semibold text-[#1C1D22]"
+                  : "font-medium text-white/80 hover:text-white"
               }`}
             >
               {option.label}
@@ -136,12 +138,12 @@ const Performance = ({ songId, data: external, subtitle }: PerformanceProps) => 
 
       {loading && count === 0 ? (
         <div className="flex h-[248px] items-center justify-center">
-          <p className="text-[12.5px] text-[#A6AAB2]">Cargando el histórico…</p>
+          <p className="text-[12.5px] text-white/50">Cargando el histórico…</p>
         </div>
       ) : count === 0 ? (
         <div className="flex h-[248px] flex-col items-center justify-center gap-1 text-center">
-          <p className="text-[12.5px] font-medium text-[#1C1D22]">Todavía no hay meses cerrados</p>
-          <p className="text-[11px] text-[#A6AAB2]">
+          <p className="text-[12.5px] font-medium text-white">Todavía no hay meses cerrados</p>
+          <p className="text-[11px] text-white/50">
             El histórico se dibuja en cuanto llegue el primer reporte del distribuidor.
           </p>
         </div>
@@ -149,7 +151,7 @@ const Performance = ({ songId, data: external, subtitle }: PerformanceProps) => 
         <>
           <div className="flex flex-wrap items-center gap-[18px]">
             {hasStreams && (
-              <LegendItem shape="line" color={INK} label="Streams" total={formatStreams(totals.streams)} />
+              <LegendItem shape="line" color={CREAM} label="Streams" total={formatStreams(totals.streams)} />
             )}
             <LegendItem shape="bar" color={ORANGE} label="Ingresos" total={formatCurrency(totals.income)} />
           </div>
@@ -162,7 +164,7 @@ const Performance = ({ songId, data: external, subtitle }: PerformanceProps) => 
                   {fractions.map((fraction, index) => (
                     <span
                       key={fraction}
-                      className="absolute right-0 -translate-y-1/2 font-mono text-[9.5px] text-[#71757E]"
+                      className="absolute right-0 -translate-y-1/2 font-mono text-[9.5px] text-white/50"
                       style={{ top: `${index * 25}%` }}
                     >
                       {fraction === 0 ? "0" : formatStreams(streamsMax * fraction)}
@@ -179,7 +181,7 @@ const Performance = ({ songId, data: external, subtitle }: PerformanceProps) => 
                   <span
                     key={index}
                     aria-hidden="true"
-                    className="absolute left-0 right-0 h-px bg-[#F4F5F7]"
+                    className="absolute left-0 right-0 h-px bg-white/[0.07]"
                     style={{ top: `${index * 25}%` }}
                   />
                 ))}
@@ -201,7 +203,7 @@ const Performance = ({ songId, data: external, subtitle }: PerformanceProps) => 
                           className="w-full max-w-[36px] rounded-t-lg transition-colors"
                           style={{
                             height: Math.max(income > 0 ? 3 : 0, (income / incomeMax) * 200),
-                            backgroundColor: isActive || isLast ? ORANGE : ORANGE_MID,
+                            backgroundColor: isActive || isLast ? ORANGE : ORANGE_DIM,
                           }}
                         />
                       </span>
@@ -221,7 +223,7 @@ const Performance = ({ songId, data: external, subtitle }: PerformanceProps) => 
                       <polyline
                         points={data.map((entry, index) => `${center(index)},${streamY(entry)}`).join(" ")}
                         fill="none"
-                        stroke={INK}
+                        stroke={CREAM}
                         strokeWidth={1.5}
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -233,11 +235,11 @@ const Performance = ({ songId, data: external, subtitle }: PerformanceProps) => 
                         <span
                           key={`dot-${index}`}
                           aria-hidden="true"
-                          className="pointer-events-none absolute h-[9px] w-[9px] -translate-x-1/2 -translate-y-1/2 rounded-full border-[1.5px] border-white"
+                          className="pointer-events-none absolute h-[9px] w-[9px] -translate-x-1/2 -translate-y-1/2 rounded-full border-[1.5px] border-[#2B1E17]"
                           style={{
                             left: `${center(index)}%`,
                             top: `${streamY(entry)}%`,
-                            backgroundColor: INK,
+                            backgroundColor: CREAM,
                           }}
                         />
                       ))}
@@ -247,17 +249,17 @@ const Performance = ({ songId, data: external, subtitle }: PerformanceProps) => 
                 {/* Detalle del mes señalado */}
                 {active && (
                   <div
-                    className="pointer-events-none absolute top-1 z-10 flex -translate-x-1/2 flex-col gap-1 rounded-[14px] bg-[#1C1D22] px-3 py-2 shadow-[0_8px_20px_-6px_rgba(16,17,20,0.4)]"
+                    className="glass-menu pointer-events-none absolute top-1 z-10 flex -translate-x-1/2 flex-col gap-1 rounded-xl px-3 py-2"
                     style={{ left: `${Math.min(85, Math.max(15, center(hovered!)))}%` }}
                   >
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.6px] text-[#A6AAB2]">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.6px] text-white/65">
                       {monthLabel(active.name)}
                     </span>
-                    <span className="font-mono text-[12px] font-semibold text-white">
+                    <span className="font-mono text-[13px] font-medium text-white">
                       {formatCurrency(active.totalNetIncome ?? 0)}
                     </span>
                     {hasStreams && (
-                      <span className="font-mono text-[11px] text-[#A6AAB2]">
+                      <span className="font-mono text-[11px] text-white/65">
                         {formatStreams(active.totalStreams ?? 0)} streams
                       </span>
                     )}
@@ -270,7 +272,7 @@ const Performance = ({ songId, data: external, subtitle }: PerformanceProps) => 
                 {fractions.map((fraction, index) => (
                   <span
                     key={fraction}
-                    className="absolute left-0 -translate-y-1/2 font-mono text-[9.5px] text-[#EA580C]"
+                    className="absolute left-0 -translate-y-1/2 font-mono text-[9.5px] text-[#FF8A3D]"
                     style={{ top: `${index * 25}%` }}
                   >
                     {fraction === 0 ? "0" : formatCompactCurrency(incomeMax * fraction)}
@@ -286,7 +288,7 @@ const Performance = ({ songId, data: external, subtitle }: PerformanceProps) => 
                   <span
                     key={`${entry.name}-label-${index}`}
                     className={`flex-1 text-center font-mono text-[10px] transition-colors ${
-                      hovered === index ? "text-[#1C1D22]" : "text-[#A6AAB2]"
+                      hovered === index ? "text-white" : "text-white/50"
                     }`}
                   >
                     {(count - 1 - index) % labelEvery === 0 ? monthLabel(entry.name) : ""}
@@ -320,7 +322,7 @@ function LegendItem({
         className={shape === "line" ? "h-[3px] w-[14px] rounded-full" : "h-[9px] w-[9px] rounded-[3px]"}
         style={{ backgroundColor: color }}
       />
-      <span className="text-[11.5px] text-[#71757E]">{label}</span>
+      <span className="text-[11.5px] text-white/65">{label}</span>
       <span className="font-mono text-[11.5px] font-semibold" style={{ color }}>
         {total}
       </span>

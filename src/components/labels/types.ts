@@ -23,13 +23,18 @@ export interface SplitCoverage {
 
 /** Un sello ya normalizado, sea artístico o personalizado. */
 export interface LabelListItem {
-  /** Nombre del sello; es también su identificador en la URL. */
+  /** Nombre del sello, para mostrarlo. */
   name: string;
   isCustom: boolean;
-  /** Solo los personalizados tienen id propio: es lo que permite editarlos. */
-  id?: string;
-  /** Sellos artísticos que agrupa. Vacío en los artísticos. */
+  /**
+   * Id del sello: el de `artistic_labels` en los artísticos y el propio en los
+   * personalizados. Es lo que lo identifica en URLs y peticiones.
+   */
+  id: string;
+  /** Nombres de los sellos artísticos que agrupa, para mostrarlos. Vacío en los artísticos. */
   artisticLabels: string[];
+  /** Ids de esos mismos sellos: lo que se edita y lo que decide sus canciones. */
+  artisticLabelIds: string[];
   songCount: number;
   totalStreams: number;
   totalNetIncome: number;

@@ -34,13 +34,13 @@ export function YearCoverageCard({
   onShowGaps,
 }: YearCoverageCardProps) {
   return (
-    <div className="flex flex-col gap-4 rounded-[26px] border border-[#E8E8EC] bg-white p-6 shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)] lg:w-[400px] lg:flex-shrink-0">
+    <div className="glass flex flex-col gap-4 rounded-[28px] px-6 py-5 lg:w-[400px] lg:flex-shrink-0">
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-0.5">
-          <h2 className="font-display text-[15px] font-semibold text-[#1C1D22]">
+          <h2 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">
             Cobertura {year}
           </h2>
-          <p className="text-[11.5px] text-[#71757E]">
+          <p className="text-[12.5px] text-white/65">
             Meses con reporte cargado por algún distribuidor
           </p>
         </div>
@@ -49,15 +49,15 @@ export function YearCoverageCard({
             aria-label="Año de cobertura"
             value={year}
             onChange={(e) => onYearChange(Number(e.target.value))}
-            className="appearance-none rounded-2xl bg-[#F4F5F7] py-1.5 pl-3 pr-7 font-mono text-[11.5px] font-semibold text-[#1C1D22] focus:outline-none focus:ring-[3px] focus:ring-[#FF5C00]/15"
+            className="glass-control appearance-none rounded-full py-1.5 pl-3 pr-7 font-mono text-[11.5px] font-semibold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
           >
             {years.map((y) => (
-              <option key={y} value={y}>
+              <option key={y} value={y} className="bg-[#2B1E17] text-white">
                 {y}
               </option>
             ))}
           </select>
-          <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-[#71757E]" />
+          <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-white/60" />
         </div>
       </div>
 
@@ -78,21 +78,21 @@ export function YearCoverageCard({
                   full
                     ? "bg-[#FF5C00]"
                     : partial
-                      ? "bg-[#FFEADD]"
+                      ? "bg-[#FF5C00]/[0.22]"
                       : pending
-                        ? "border border-dashed border-[#E8E8EC] bg-white"
-                        : "border border-[#E8E8EC] bg-[#F4F5F7]",
+                        ? "border border-dashed border-white/[0.18]"
+                        : "border border-white/[0.12] bg-white/[0.06]",
                 ].join(" ")}
               >
                 <span
                   className={`font-mono text-[11px] font-semibold ${
-                    full ? "text-white" : partial ? "text-[#FF5C00]" : "text-[#A6AAB2]"
+                    full ? "text-white" : partial ? "text-[#FFB48A]" : "text-white/50"
                   }`}
                 >
                   {count > 0 ? count : "—"}
                 </span>
               </span>
-              <span className="font-mono text-[9.5px] font-medium text-[#A6AAB2]">
+              <span className="font-mono text-[9.5px] font-medium text-white/50">
                 {short.charAt(0)}
               </span>
             </div>
@@ -104,17 +104,17 @@ export function YearCoverageCard({
         <button
           onClick={onShowGaps}
           disabled={!onShowGaps}
-          className="flex items-center gap-2.5 rounded-2xl bg-[#FFEADD] px-3.5 py-3 text-left transition-colors enabled:hover:bg-[#FFDCC7] disabled:cursor-default"
+          className="flex items-center gap-2.5 rounded-2xl border border-[#FF8A3D]/30 bg-[#FF5C00]/[0.14] px-3.5 py-3 text-left transition-colors enabled:hover:bg-[#FF5C00]/[0.22] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 disabled:cursor-default"
         >
-          <TriangleAlert className="h-3.5 w-3.5 flex-shrink-0 text-[#FF5C00]" />
-          <span className="flex-1 text-[11.5px] font-semibold text-[#EA580C]">
+          <TriangleAlert className="h-3.5 w-3.5 flex-shrink-0 text-[#FF8A3D]" />
+          <span className="flex-1 text-[11.5px] font-semibold text-[#FFB48A]">
             {formatGaps(gaps)} sin cargar en ningún distribuidor
           </span>
         </button>
       ) : (
-        <div className="flex items-center gap-2.5 rounded-2xl bg-[#E4F5EC] px-3.5 py-3">
-          <CircleCheck className="h-3.5 w-3.5 flex-shrink-0 text-[#2FB37E]" />
-          <span className="flex-1 text-[11.5px] font-semibold text-[#1F7D58]">
+        <div className="flex items-center gap-2.5 rounded-2xl bg-[#45D39A]/[0.12] px-3.5 py-3">
+          <CircleCheck className="h-3.5 w-3.5 flex-shrink-0 text-[#45D39A]" />
+          <span className="flex-1 text-[11.5px] font-semibold text-[#45D39A]">
             Todos los meses vencidos de {year} tienen reporte
           </span>
         </div>

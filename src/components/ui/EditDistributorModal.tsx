@@ -52,6 +52,7 @@ export default function EditDistributorModal({ distributor, onClose, onConfirm }
       <ModalShell
         title="Editar distribuidor"
         subtitle={distributor.provider ?? "Sin proveedor asociado"}
+        onGlass
         locked={saving}
         onClose={onClose}
         logo={<DistributorMark name={distributor.name} logo={distributor.photoUrl} />}
@@ -76,13 +77,13 @@ export default function EditDistributorModal({ distributor, onClose, onConfirm }
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className={`rounded-2xl border px-4 py-3 text-[13px] font-medium text-[#1C1D22] transition-colors focus:outline-none focus:ring-[3px] focus:ring-[#FF5C00]/15 ${
+            className={`rounded-2xl border px-4 py-3 text-[13px] font-medium text-white transition-colors focus:outline-none focus:ring-[3px] focus:ring-[#FF5C00]/25 ${
               error && !trimmed
-                ? "border-[1.5px] border-[#E5484D] bg-[#FDECEC]"
-                : "border-[#E8E8EC] focus:border-[#FF5C00]"
+                ? "border-[1.5px] border-[#FF8F92] bg-[#E5484D]/[0.12]"
+                : "border-white/[0.14] bg-white/[0.06] focus:border-[#FF8A3D]"
             }`}
           />
-          <span className="text-[11px] leading-relaxed text-[#A6AAB2]">
+          <span className="text-[11px] leading-relaxed text-white/50">
             Así lo verás en tus listas. Útil si tienes varias cuentas del mismo distribuidor.
           </span>
         </div>
@@ -93,21 +94,21 @@ export default function EditDistributorModal({ distributor, onClose, onConfirm }
         </div>
 
         {currencyChanged && (
-          <p className="flex items-start gap-2.5 rounded-[14px] bg-[#FFEADD] px-3.5 py-3 text-[11px] leading-relaxed text-[#EA580C]">
-            <CircleAlert className="mt-px h-3.5 w-3.5 flex-shrink-0 text-[#FF5C00]" />
+          <p className="flex items-start gap-2.5 rounded-[14px] border border-[#FF8A3D]/30 bg-[#FF5C00]/[0.14] px-3.5 py-3 text-[11px] leading-relaxed text-[#FFB48A]">
+            <CircleAlert className="mt-px h-3.5 w-3.5 flex-shrink-0 text-[#FF8A3D]" />
             Solo cambia la moneda que se preselecciona al subir el próximo reporte. Los importes
             ya cargados están en dólares y no se tocan.
           </p>
         )}
 
         {!currencyChanged && (
-          <p className="flex items-start gap-2.5 rounded-[14px] bg-[#F4F5F7] px-3.5 py-3 text-[11px] leading-relaxed text-[#71757E]">
+          <p className="flex items-start gap-2.5 rounded-[14px] bg-white/[0.06] px-3.5 py-3 text-[11px] leading-relaxed text-white/65">
             <Info className="mt-px h-3.5 w-3.5 flex-shrink-0" />
             El proveedor y los reportes ya cargados no se modifican.
           </p>
         )}
 
-        {error && <p className="text-[12px] font-medium text-[#E5484D]">{error}</p>}
+        {error && <p className="text-[12px] font-medium text-[#FF8F92]">{error}</p>}
       </ModalShell>
     </form>
   );

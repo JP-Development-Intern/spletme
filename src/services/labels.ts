@@ -2,6 +2,9 @@ import { apiClient } from "@/infrastructure/http/axiosClient";
 import axios from "axios";
 
 export interface Label {
+  /** Id del sello en `artistic_labels`: es lo que lo identifica en URLs y peticiones. */
+  _id: string;
+  /** Nombre del sello, para mostrarlo. `null` en el de las canciones sin sello. */
   label: string;
   count: number;
   totalStreams: number;
@@ -34,10 +37,19 @@ export interface LabelCollaborator {
   email?: string;
 }
 
+/** Un sello artístico referenciado desde otro (un personalizado): id y nombre. */
+export interface ArtisticLabelRef {
+  _id: string;
+  name: string;
+}
+
 export interface CustomLabel {
   _id: string;
   name: string;
-  artisticLabels: string[];
+  /** Ids de los sellos artísticos que agrupa: lo que decide sus canciones. */
+  artisticLabelIds: string[];
+  /** Los mismos sellos, con su nombre para mostrarlos. */
+  artisticLabels: ArtisticLabelRef[];
   ownerId: string;
   createdAt: string;
   updatedAt: string;
@@ -49,6 +61,16 @@ export interface CustomLabel {
     ownerEarnings: number;
     totalToPay?: number;
   };
+}
+
+/** Un sello artístico tal como lo guarda `artistic_labels`: id, nombre y totales. */
+export interface ArtisticLabelSummary {
+  _id: string;
+  name: string;
+  totalTracks: number;
+  totalStreams: number;
+  totalGrossIncome: number;
+  totalNetIncome: number;
 }
 
 export interface LabelSong {
@@ -80,7 +102,7 @@ export interface LabelSong {
    * Colaboradores de la canción. `id` es el identificador generado del usuario,
    * que es el que espera el endpoint de splits para identificar al participante.
    */
-  collaborators: { _id?: string; id?: string; name?: string; email?: string }[];
+  collaborators: { _id?: string; id?: string; name?: string; username?: string; email?: string }[];
   releases: unknown[];
   spotifyData?: {
     album?: {
@@ -132,23 +154,33 @@ class LabelsService {
   /** Obtiene las canciones de un label específico */
   async getSongsByLabel(
     label: string,
-  ): Promise<{ error: boolean; data?: LabelSong[]; message?: string }> {
+  ): Promise<{
+    error: boolean;
+    data?: LabelSong[];
+    label?: ArtisticLabelSummary;
+    message?: string;
+    /** El sello no está en `artistic_labels` (o se quedó sin canciones). */
+    notFound?: boolean;
+  }> {
     try {
+      // `label` es el id del sello; un nombre (enlaces antiguos) también se acepta.
       const response = await apiClient.get(`${this.BASE}/${encodeURIComponent(label)}`);
       return response.data;
-    } catch {
-      return { error: true, message: "Error getting songs by label" };
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      return { error: true, notFound: status === 404, message: "Error getting songs by label" };
     }
   }
 
   /** Crea un nuevo label personalizado */
-  async createLabel(data: { name: string; artisticLabels: string[] }): Promise<{
+  async createLabel(data: { name: string; artisticLabelIds: string[] }): Promise<{
     error: boolean;
     data?: {
       label: {
         _id: string;
         name: string;
-        artisticLabels: string[];
+        artisticLabelIds: string[];
+        artisticLabels: ArtisticLabelRef[];
         ownerId: string;
         createdAt: string;
         updatedAt: string;
@@ -192,7 +224,8 @@ class LabelsService {
       customLabel: {
         _id: string;
         name: string;
-        artisticLabels: string[];
+        artisticLabelIds: string[];
+        artisticLabels: ArtisticLabelRef[];
         createdAt: string;
       };
       songs: LabelSong[];
@@ -207,9 +240,9 @@ class LabelsService {
     }
   }
 
-  /** Crea/actualiza el owner split de todas las canciones de un label (artisticLabel) */
+  /** Crea/actualiza el owner split de todas las canciones de un sello artístico, por su id */
   async createSplitByLabel(
-    data: LabelSplitPayload & { label: string },
+    data: LabelSplitPayload & { labelId: string },
   ): Promise<{ error: boolean; data?: unknown; message?: string }> {
     try {
       const response = await apiClient.post(`${this.BASE}/create-split-by-label`, data);
@@ -240,14 +273,15 @@ class LabelsService {
   /** Actualiza un label personalizado */
   async updateLabel(
     labelId: string,
-    data: { name?: string; artisticLabels?: string[] },
+    data: { name?: string; artisticLabelIds?: string[] },
   ): Promise<{
     error: boolean;
     data?: {
       label: {
         _id: string;
         name: string;
-        artisticLabels: string[];
+        artisticLabelIds: string[];
+        artisticLabels: ArtisticLabelRef[];
         ownerId: string;
         createdAt: string;
         updatedAt: string;
@@ -283,6 +317,7 @@ class LabelsService {
   /** Invita a un colaborador a un label */
   async inviteCollaboratorToLabel(data: {
     labelType: "artistic" | "custom";
+    /** Id del sello: el de `artistic_labels` o el del personalizado. */
     labelIdentifier: string;
     collaboratorEmail: string;
   }): Promise<{

@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { ChevronRight, DollarSign, Music, Play, Scale, type LucideIcon } from "lucide-react";
+import { motion } from "framer-motion";
 import { formatCurrency, formatStreams } from "@/utils/format.utils";
+import { CountUp, useReveal } from "./dashboardIntro";
 
 interface DashboardStatsStripProps {
   totalNetIncome: number;
@@ -8,7 +10,13 @@ interface DashboardStatsStripProps {
   songsCount: number;
   netBalance: number;
   totalAmount: number;
+  /** Segundos desde el montaje en los que entra la franja. */
+  at?: number;
 }
+
+/** Las cifras empiezan a contar cuando el panel ya está casi asentado. */
+const COUNT_LAG = 0.15;
+const formatCount = (value: number) => value.toLocaleString();
 
 /**
  * Franja de métricas del Inicio: ingresos, streams y canciones del periodo en
@@ -21,9 +29,14 @@ export function DashboardStatsStrip({
   songsCount,
   netBalance,
   totalAmount,
+  at = 0,
 }: DashboardStatsStripProps) {
+  const reveal = useReveal(at);
+  const countAt = at + COUNT_LAG;
+
   return (
-    <section
+    <motion.section
+      {...reveal}
       className="glass flex flex-col rounded-[28px] p-1.5 xl:flex-row xl:items-stretch"
       data-tour="stats-cards"
     >
@@ -31,11 +44,19 @@ export function DashboardStatsStrip({
         <Channel
           icon={DollarSign}
           label="Ingresos netos"
-          value={formatCurrency(totalNetIncome)}
+          value={<CountUp value={totalNetIncome} format={formatCurrency} at={countAt} />}
           valueClassName="text-[#45D39A]"
         />
-        <Channel icon={Play} label="Streams" value={formatStreams(totalStreams)} />
-        <Channel icon={Music} label="Canciones con ingresos" value={songsCount?.toLocaleString() ?? "0"} />
+        <Channel
+          icon={Play}
+          label="Streams"
+          value={<CountUp value={totalStreams} format={formatStreams} integer at={countAt} />}
+        />
+        <Channel
+          icon={Music}
+          label="Canciones con ingresos"
+          value={<CountUp value={songsCount ?? 0} format={formatCount} integer at={countAt} />}
+        />
       </div>
 
       <div className="glass-cream flex flex-col justify-center gap-2 rounded-[22px] px-[22px] py-[18px] xl:w-[354px] xl:flex-shrink-0">
@@ -53,21 +74,21 @@ export function DashboardStatsStrip({
           </Link>
         </div>
         <p className="font-mono text-[34px] font-light leading-[38px] tracking-[-0.015em] text-[#1C1D22]">
-          {formatCurrency(netBalance)}
+          <CountUp value={netBalance} format={formatCurrency} at={countAt} />
         </p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <Flow color="#16865A" amount={`+${formatCurrency(totalNetIncome)}`} label="ingresos" />
           <Flow color="#C9353B" amount={`−${formatCurrency(totalAmount)}`} label="pagos" />
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }
 
 interface ChannelProps {
   icon: LucideIcon;
   label: string;
-  value: string;
+  value: React.ReactNode;
   valueClassName?: string;
 }
 

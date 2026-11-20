@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Mic, SlidersHorizontal, Music, User, Check, ArrowRight, LucideIcon } from "lucide-react";
 import { OnboardingData } from "../../../services/onboarding";
+import { AuthHeading } from "@/components/auth/AuthShell";
+import { AUTH_SUBMIT_CLASS, AUTH_SUBMIT_IDLE_CLASS, authChoiceClass } from "@/components/auth/authStyles";
 
 interface ProfessionStepProps {
   nextStep: (data?: Partial<OnboardingData>) => void;
@@ -94,12 +96,7 @@ const ProfessionStep = ({ nextStep, initialData }: ProfessionStepProps) => {
 
   return (
     <div className="flex flex-col gap-[22px]">
-      <div className="flex flex-col gap-1.5">
-        <h1 className="font-display text-[28px] font-semibold text-[#1C1D22]">
-          ¿Cuál es tu profesión?
-        </h1>
-        <p className="text-[13.5px] text-[#71757E]">Elige todas las que apliquen.</p>
-      </div>
+      <AuthHeading title="¿Cuál es tu profesión?" subtitle="Elige todas las que apliquen." />
 
       <div className="grid grid-cols-2 gap-3">
         {PROFESSIONS.map(({ id, name, description, Icon }) => {
@@ -110,14 +107,10 @@ const ProfessionStep = ({ nextStep, initialData }: ProfessionStepProps) => {
               type="button"
               aria-pressed={isSelected}
               onClick={() => toggle(id)}
-              className={`flex flex-col gap-2.5 rounded-[18px] border p-4 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5C00] ${
-                isSelected
-                  ? "border-[1.5px] border-[#FF5C00] bg-[#FFEADD]"
-                  : "border-[#E8E8EC] bg-white hover:border-[#A6AAB2]"
-              }`}
+              className={`flex flex-col gap-2.5 rounded-[18px] p-4 text-left ${authChoiceClass(isSelected)}`}
             >
               <span className="flex items-start justify-between">
-                <Icon className={`h-6 w-6 ${isSelected ? "text-[#FF5C00]" : "text-[#A6AAB2]"}`} />
+                <Icon className={`h-6 w-6 ${isSelected ? "text-[#FF8A3D]" : "text-white/50"}`} />
                 {isSelected && (
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#FF5C00]">
                     <Check className="h-3 w-3 text-white" />
@@ -125,10 +118,8 @@ const ProfessionStep = ({ nextStep, initialData }: ProfessionStepProps) => {
                 )}
               </span>
               <span className="flex flex-col gap-0.5">
-                <span className="text-[14.5px] font-semibold text-[#1C1D22]">{name}</span>
-                <span
-                  className={`text-[11.5px] leading-snug ${isSelected ? "text-[#EA580C]" : "text-[#A6AAB2]"}`}
-                >
+                <span className="text-[14.5px] font-semibold text-white">{name}</span>
+                <span className={`text-[11.5px] leading-snug ${isSelected ? "text-[#FFB48A]" : "text-white/55"}`}>
                   {description}
                 </span>
               </span>
@@ -139,7 +130,7 @@ const ProfessionStep = ({ nextStep, initialData }: ProfessionStepProps) => {
 
       {selected.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[12px] text-[#A6AAB2]">Elegidas:</span>
+          <span className="text-[12px] text-white/50">Elegidas:</span>
           {selected.map((id) => {
             const p = PROFESSIONS.find((pr) => pr.id === id);
             return (
@@ -148,7 +139,7 @@ const ProfessionStep = ({ nextStep, initialData }: ProfessionStepProps) => {
                 type="button"
                 onClick={() => toggle(id)}
                 aria-label={`Quitar ${p?.name}`}
-                className="flex items-center gap-1.5 rounded-[14px] bg-[#FFEADD] px-2.5 py-1.5 text-[11.5px] font-semibold text-[#FF5C00] transition-opacity hover:opacity-80"
+                className="flex items-center gap-1.5 rounded-full bg-[#FF5C00]/[0.18] px-2.5 py-1.5 text-[11.5px] font-semibold text-[#FFB48A] transition-colors hover:bg-[#FF5C00]/[0.28] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
               >
                 {p?.name}
                 <span aria-hidden="true">✕</span>
@@ -160,9 +151,7 @@ const ProfessionStep = ({ nextStep, initialData }: ProfessionStepProps) => {
 
       {showOther && (
         <div className="flex flex-col gap-2.5">
-          <p className="text-[12.5px] font-medium text-[#71757E]">
-            ¿Cuál en concreto? Elige las que apliquen.
-          </p>
+          <p className="text-[12.5px] font-medium text-white/70">¿Cuál en concreto? Elige las que apliquen.</p>
           <div className="grid max-h-56 grid-cols-2 gap-2.5 overflow-y-auto pr-1">
             {OTHER_PROFESSIONS.map((prof) => {
               const isSelected = selectedOther.includes(prof);
@@ -172,11 +161,9 @@ const ProfessionStep = ({ nextStep, initialData }: ProfessionStepProps) => {
                   type="button"
                   aria-pressed={isSelected}
                   onClick={() => toggleOther(prof)}
-                  className={`flex items-center justify-between gap-2 rounded-[14px] border px-3 py-2.5 text-left text-[12.5px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5C00] ${
-                    isSelected
-                      ? "border-[1.5px] border-[#FF5C00] bg-[#FFEADD] font-semibold text-[#FF5C00]"
-                      : "border-[#E8E8EC] bg-white text-[#1C1D22] hover:border-[#A6AAB2]"
-                  }`}
+                  className={`flex items-center justify-between gap-2 rounded-[14px] px-3 py-2.5 text-left text-[12.5px] ${authChoiceClass(
+                    isSelected,
+                  )} ${isSelected ? "font-semibold text-[#FFB48A]" : "text-white/85"}`}
                 >
                   <span>{prof}</span>
                   {isSelected && <Check className="h-3.5 w-3.5 flex-shrink-0" />}
@@ -190,11 +177,7 @@ const ProfessionStep = ({ nextStep, initialData }: ProfessionStepProps) => {
       <button
         onClick={handleSubmit}
         disabled={!canContinue}
-        className={`flex h-[50px] w-full items-center justify-center gap-2 rounded-[25px] text-[15px] font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5C00] ${
-          canContinue
-            ? "bg-[#FF5C00] text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.55)] hover:bg-[#EA580C]"
-            : "cursor-not-allowed bg-[#F4F5F7] text-[#A6AAB2]"
-        }`}
+        className={canContinue ? AUTH_SUBMIT_CLASS : AUTH_SUBMIT_IDLE_CLASS}
       >
         Continuar
         <ArrowRight className="h-4 w-4" />

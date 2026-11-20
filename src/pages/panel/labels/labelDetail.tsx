@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -23,6 +23,8 @@ import { toCoverage, pendingToPay } from "@/hooks/useLabelsLibrary";
 import { formatCurrency, formatStreams } from "@/utils/format.utils";
 import { SplitCoverageMeter } from "@/components/labels/SplitCoverageMeter";
 import { CopyButton } from "@/components/ui/CopyButton";
+import { SongCollaboratorsCell } from "@/components/labels/SongCollaboratorsCell";
+import { personName } from "@/utils/collaborators.utils";
 import type { LabelSong } from "@/services/labels";
 import CreateSplitsByLabelModal from "@/components/modal/CreateSplitsByLabelModal";
 import InviteCollaboratorToLabelModal from "@/components/labels/InviteCollaboratorToLabelModal";
@@ -42,14 +44,20 @@ const SORT_LABELS: Record<SongSortBy, string> = {
 /**
  * Rejilla de la tabla de canciones del sello. La canción absorbe el ancho
  * sobrante; el resto de columnas van apareciendo conforme cabe la pantalla.
+ *
+ * Colaboradores entra en cuanto hay sitio (md), justo después de la canción:
+ * quién cobra de ella pesa más que su ISRC, que pasa a verse solo en xl. En
+ * móvil el número de colaboradores viaja bajo el título.
  */
 const SONGS_GRID =
   "grid items-center gap-3 grid-cols-[minmax(0,1fr)_124px_40px] " +
-  "md:grid-cols-[minmax(0,1fr)_104px_124px_40px] " +
-  "lg:grid-cols-[minmax(0,1fr)_150px_104px_124px_124px_100px_40px]";
+  "md:grid-cols-[minmax(0,1fr)_170px_104px_124px_40px] " +
+  "lg:grid-cols-[minmax(0,1fr)_170px_104px_124px_124px_100px_40px] " +
+  "xl:grid-cols-[minmax(0,1fr)_190px_150px_104px_124px_124px_100px_40px]";
 
 const COLUMNS = [
-  { key: "isrc", label: "ISRC", visibility: "hidden lg:flex", sort: null },
+  { key: "collaborators", label: "COLABORADORES", visibility: "hidden md:flex", sort: null },
+  { key: "isrc", label: "ISRC", visibility: "hidden xl:flex", sort: null },
   { key: "streams", label: "STREAMS", visibility: "hidden md:flex", sort: "streams_desc" },
   { key: "income", label: "INGRESOS", visibility: "flex", sort: "income_desc" },
   { key: "owner", label: "TU GANANCIA", visibility: "hidden lg:flex", sort: "owner_desc" },
@@ -61,8 +69,22 @@ const visibility = (key: string) => COLUMNS.find((column) => column.key === key)
 export default function LabelDetail() {
   const { label } = useParams<{ label: string }>();
   const navigate = useNavigate();
+  // El parámetro es el id del sello. Los enlaces antiguos llevaban su nombre: el
+  // servidor acepta los dos y aquí se pasa a la URL con id en cuanto se conoce.
   const decodedLabel = decodeURIComponent(label ?? "");
-  const { songs, loading, error, loadSongs } = useLabelSongs(label ?? "");
+  const urlIsId = /^[a-f0-9]{24}$/i.test(decodedLabel);
+  const { songs, artisticLabel, loading, error, loadSongs } = useLabelSongs(label ?? "");
+  // Id, nombre y número de canciones del sello, de `artistic_labels`. Mientras
+  // no llega, el nombre de la URL si era un enlace antiguo; si era un id, nada.
+  const labelId = artisticLabel?._id ?? decodedLabel;
+  const labelName = artisticLabel?.name ?? (urlIsId ? "" : decodedLabel);
+  const songCount = artisticLabel?.totalTracks ?? songs.length;
+
+  useEffect(() => {
+    if (artisticLabel && artisticLabel._id !== decodedLabel) {
+      navigate(`/panel/labels/${artisticLabel._id}`, { replace: true });
+    }
+  }, [artisticLabel, decodedLabel, navigate]);
 
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SongSortBy>("income_desc");
@@ -89,13 +111,15 @@ export default function LabelDetail() {
     }
 
     return {
-      streams,
-      netIncome,
+      // Streams e ingresos del sello salen de su documento en `artistic_labels`;
+      // la ganancia, lo pendiente y la cobertura dependen de cada canción.
+      streams: artisticLabel?.totalStreams ?? streams,
+      netIncome: artisticLabel?.totalNetIncome ?? netIncome,
       ownerEarnings,
       totalToPay,
       coverage: toCoverage(songs.length, withSplits, false),
     };
-  }, [songs]);
+  }, [songs, artisticLabel]);
 
   const showToPay = useMemo(() => viewerOwnsAllSongs(songs), [songs]);
 
@@ -118,7 +142,9 @@ export default function LabelDetail() {
           (song) =>
             song.trackTitle?.toLowerCase().includes(query) ||
             song.artistName?.toLowerCase().includes(query) ||
-            song.isrc?.toLowerCase().includes(query),
+            song.isrc?.toLowerCase().includes(query) ||
+            // Buscar a una persona deja a la vista las canciones en las que está.
+            (song.collaborators ?? []).some((c) => personName(c).toLowerCase().includes(query)),
         )
       : [...songs];
 
@@ -147,52 +173,52 @@ export default function LabelDetail() {
   };
 
   return (
-    <div className="min-h-full bg-[#F7F7F9]">
-      <div className="flex flex-col gap-5 px-4 py-6 lg:px-8">
+    <>
+      <div className="flex flex-col gap-5 px-4 lg:pl-4 lg:pr-8">
         {/* Migas */}
         <nav aria-label="Ruta" className="flex items-center gap-2.5">
           <button
             onClick={() => navigate("/panel/labels")}
             aria-label="Volver a Sellos"
-            className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full border border-[#E8E8EC] bg-white text-[#71757E] transition-colors hover:text-[#1C1D22]"
+            className="glass-control flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/[0.12] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
           >
             <ArrowLeft className="h-[15px] w-[15px]" />
           </button>
           <Link
             to="/panel/labels"
-            className="text-[12.5px] font-medium text-[#A6AAB2] transition-colors hover:text-[#71757E]"
+            className="text-[12.5px] font-medium text-white/50 transition-colors hover:text-white/80"
           >
             Sellos
           </Link>
-          <ChevronRight className="h-[13px] w-[13px] text-[#A6AAB2]" />
-          <span className="truncate text-[12.5px] font-semibold text-[#1C1D22]">
-            {decodedLabel || "Sin sello"}
+          <ChevronRight className="h-[13px] w-[13px] text-white/40" />
+          <span className="truncate text-[12.5px] font-semibold text-white">
+            {labelName || (loading ? "" : "Sin sello")}
           </span>
         </nav>
 
         {/* Identidad */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
           <div className="flex min-w-0 items-center gap-4">
-            <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-[18px] bg-[#FFEADD]">
-              <Tag className="h-6 w-6 text-[#FF5C00]" />
+            <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-[18px] bg-[#FF5C00]/[0.16] ring-1 ring-[#FF8A3D]/30">
+              <Tag className="h-6 w-6 text-[#FF8A3D]" />
             </span>
-            <div className="flex min-w-0 flex-col gap-1">
-              <h1 className="truncate font-display text-2xl font-semibold text-[#1C1D22]">
-                {decodedLabel || "Sin sello"}
+            <div className="flex min-w-0 flex-col gap-1.5">
+              <h1 className="truncate font-display text-[26px] font-light leading-[1.15] tracking-[-0.015em] text-white sm:text-[34px]">
+                {labelName || (loading ? "" : "Sin sello")}
               </h1>
-              <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-[#71757E]">
-                <span className="flex items-center gap-1.5 rounded-[10px] bg-[#F4F5F7] px-2 py-0.5 text-[11px] font-medium">
+              <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-white/65">
+                <span className="flex items-center gap-1.5 rounded-full bg-white/[0.08] px-2.5 py-1 text-[11px] font-medium text-white/70">
                   <Tag className="h-[11px] w-[11px]" />
                   Sello artístico
                 </span>
                 {songs[0]?.artistName && (
                   <>
                     <span>{songs[0].artistName}</span>
-                    <span className="text-[#A6AAB2]">·</span>
+                    <span className="text-white/40">·</span>
                   </>
                 )}
                 <span>
-                  {songs.length} {songs.length === 1 ? "canción" : "canciones"}
+                  {songCount} {songCount === 1 ? "canción" : "canciones"}
                 </span>
               </p>
             </div>
@@ -205,23 +231,23 @@ export default function LabelDetail() {
             <button
               onClick={() => setCollabSplitOpen(true)}
               disabled={songs.length === 0}
-              className="flex items-center gap-2 rounded-[22px] border border-[#E8E8EC] bg-white px-[18px] py-3 text-[12.5px] font-semibold text-[#1C1D22] transition-colors enabled:hover:bg-[#F4F5F7] disabled:cursor-not-allowed disabled:text-[#A6AAB2]"
+              className="glass-control flex min-h-[44px] items-center gap-2 rounded-full px-[18px] py-[11px] text-[12.5px] font-semibold text-white transition-colors enabled:hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 disabled:cursor-not-allowed disabled:text-white/40"
             >
-              <Users className="h-[15px] w-[15px] text-[#71757E]" />
+              <Users className="h-[15px] w-[15px] text-white/70" />
               Split de colaborador
             </button>
             <button
               onClick={() => setInviteOpen(true)}
               disabled={songs.length === 0}
-              className="flex items-center gap-2 rounded-[22px] border border-[#E8E8EC] bg-white px-[18px] py-3 text-[12.5px] font-semibold text-[#1C1D22] transition-colors enabled:hover:bg-[#F4F5F7] disabled:cursor-not-allowed disabled:text-[#A6AAB2]"
+              className="glass-control flex min-h-[44px] items-center gap-2 rounded-full px-[18px] py-[11px] text-[12.5px] font-semibold text-white transition-colors enabled:hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 disabled:cursor-not-allowed disabled:text-white/40"
             >
-              <UserPlus className="h-[15px] w-[15px] text-[#71757E]" />
+              <UserPlus className="h-[15px] w-[15px] text-white/70" />
               Invitar al sello
             </button>
             <button
               onClick={() => setOwnerSplitOpen(true)}
               disabled={songs.length === 0}
-              className="flex items-center gap-2 rounded-[22px] bg-[#FF5C00] px-[18px] py-3 text-[12.5px] font-semibold text-white shadow-[0_6px_16px_-4px_rgba(255,92,0,0.4)] transition-colors enabled:hover:bg-[#EA580C] disabled:cursor-not-allowed disabled:bg-[#F4F5F7] disabled:text-[#A6AAB2] disabled:shadow-none"
+              className="flex min-h-[44px] items-center gap-2 px-[18px] py-[11px] rounded-full bg-[#FF5C00] text-[12.5px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 enabled:hover:bg-[#EA580C] disabled:cursor-not-allowed disabled:bg-white/[0.08] disabled:text-white/40 disabled:shadow-none"
             >
               <Crown className="h-[15px] w-[15px]" />
               Tu split del sello
@@ -230,12 +256,12 @@ export default function LabelDetail() {
         </div>
 
         {error && (
-          <div className="flex items-center gap-2.5 rounded-2xl border border-[#F5C2C4] bg-[#FDECEC] px-4 py-3">
-            <TriangleAlert className="h-4 w-4 flex-shrink-0 text-[#E5484D]" />
-            <span className="flex-1 text-[12.5px] text-[#E5484D]">{error}</span>
+          <div className="glass flex items-center gap-2.5 rounded-2xl px-4 py-3">
+            <TriangleAlert className="h-4 w-4 flex-shrink-0 text-[#FF8F92]" />
+            <span className="flex-1 text-[12.5px] text-white/80">{error}</span>
             <button
               onClick={loadSongs}
-              className="rounded-full bg-white px-3.5 py-1.5 text-[11.5px] font-semibold text-[#E5484D]"
+              className="glass-control rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold text-white hover:bg-white/[0.12]"
             >
               Reintentar
             </button>
@@ -243,24 +269,26 @@ export default function LabelDetail() {
         )}
 
         {/* Consola de métricas */}
-        <div className="flex flex-col divide-y divide-[#E8E8EC] overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)] lg:flex-row lg:divide-x lg:divide-y-0">
+        <div className="glass flex flex-col gap-1.5 rounded-[28px] p-1.5 lg:flex-row lg:items-stretch lg:gap-0">
           <Channel
-            label="CANCIONES"
-            icon={<Music className="h-[13px] w-[13px] text-[#71757E]" />}
-            value={loading ? "—" : songs.length.toLocaleString()}
+            label="Canciones"
+            icon={<Music className="h-[15px] w-[15px] text-white" />}
+            value={loading ? "—" : songCount.toLocaleString()}
           >
-            <span className="text-[10.5px] text-[#A6AAB2]">
+            <span className="text-xs text-white/50">
               {totals.coverage.withSplits} con split
             </span>
           </Channel>
+          {/* Lo único accionable de la consola: va teñido de brasa */}
           <Channel
-            label="COBERTURA DE SPLITS"
-            labelClassName="text-[#FF5C00]"
-            icon={<ChartPie className="h-[13px] w-[13px] text-[#FF5C00]" />}
+            label="Cobertura de splits"
+            labelClassName="text-[#FFB48A]"
+            iconClassName="bg-[#FF5C00]/[0.22]"
+            icon={<ChartPie className="h-[15px] w-[15px] text-[#FF8A3D]" />}
             value={loading || songs.length === 0 ? "—" : `${totals.coverage.percentage}%`}
-            className="bg-[#FFEADD] lg:w-[250px] lg:flex-shrink-0"
+            className="rounded-[22px] border border-[#FF8A3D]/30 bg-[#FF5C00]/[0.14] lg:w-[250px] lg:flex-shrink-0"
           >
-            <span className="flex h-1.5 w-full overflow-hidden rounded-full bg-white/70">
+            <span className="mt-1 flex h-1.5 w-full overflow-hidden rounded-full bg-white/[0.12]">
               <span
                 className="block h-full rounded-full bg-[#FF5C00]"
                 style={{ width: `${totals.coverage.percentage}%` }}
@@ -268,63 +296,68 @@ export default function LabelDetail() {
             </span>
           </Channel>
           <Channel
-            label="INGRESOS"
-            icon={<DollarSign className="h-[13px] w-[13px] text-[#2FB37E]" />}
+            label="Ingresos"
+            icon={<DollarSign className="h-[15px] w-[15px] text-white" />}
             value={loading ? "—" : formatCurrency(totals.netIncome)}
-            valueClassName="text-[#2FB37E] text-[24px]"
+            valueClassName="text-[#45D39A] text-[26px]"
             className="lg:w-[248px] lg:flex-shrink-0"
           >
-            <span className="text-[10.5px] text-[#A6AAB2]">neto acumulado</span>
+            <span className="text-xs text-white/50">neto acumulado</span>
           </Channel>
           <Channel
-            label="STREAMS"
-            icon={<Play className="h-[13px] w-[13px] text-[#71757E]" />}
+            label="Streams"
+            icon={<Play className="h-[15px] w-[15px] text-white" />}
             value={loading ? "—" : formatStreams(totals.streams)}
+            divided
           />
           {showToPay && (
             <Channel
-              label="TOTAL A PAGAR"
-              icon={<Wallet className="h-[13px] w-[13px] text-[#FF5C00]" />}
+              label="Total a pagar"
+              icon={<Wallet className="h-[15px] w-[15px] text-white" />}
               value={loading ? "—" : formatCurrency(totals.totalToPay)}
+              valueClassName="text-white text-[26px]"
               className="lg:w-[236px] lg:flex-shrink-0"
+              divided
             >
-              <span className="text-[10.5px] text-[#A6AAB2]">a colaboradores</span>
+              <span className="text-xs text-white/50">a colaboradores</span>
             </Channel>
           )}
 
           <Channel
-            label="TU GANANCIA"
-            icon={<Crown className="h-[13px] w-[13px] text-[#FF5C00]" />}
+            label="Tu ganancia"
+            icon={<Crown className="h-[15px] w-[15px] text-white" />}
             value={loading ? "—" : formatCurrency(totals.ownerEarnings)}
-            valueClassName="text-[#FF5C00] text-[24px]"
+            valueClassName="text-[#FF8A3D] text-[26px]"
             className="lg:w-[236px] lg:flex-shrink-0"
+            divided
           >
-            <span className="text-[10.5px] text-[#A6AAB2]">según tus splits</span>
+            <span className="text-xs text-white/50">según tus splits</span>
           </Channel>
         </div>
 
         {/* Buscador y orden */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative w-full sm:w-[320px]">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A6AAB2]" size={16} />
+          <label className="glass-control relative flex w-full items-center gap-2.5 rounded-full px-[18px] py-[11px] focus-within:ring-2 focus-within:ring-[#FF5C00]/70 sm:w-[320px]">
+            <Search className="h-4 w-4 flex-shrink-0 text-white/50" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por título, artista o ISRC…"
-              className="w-full rounded-[22px] border border-[#E8E8EC] bg-white py-2.5 pl-11 pr-4 text-[12.5px] text-[#1C1D22] placeholder:text-[#A6AAB2] focus:border-[#FF5C00] focus:outline-none focus:ring-[3px] focus:ring-[#FF5C00]/15"
+              placeholder="Buscar por título, artista, ISRC o colaborador…"
+              aria-label="Buscar por título, artista, ISRC o colaborador"
+              className="w-full border-none bg-transparent p-0 text-[12.5px] text-white placeholder:text-white/50 focus:outline-none focus:ring-0"
             />
-          </div>
-          <div className="ml-auto flex items-center gap-2 rounded-full border border-[#E8E8EC] bg-white px-3.5 py-2">
-            <span className="text-[12px] text-[#A6AAB2]">Orden</span>
+          </label>
+          <div className="glass-control ml-auto flex min-h-[44px] items-center gap-2 rounded-full px-[15px] focus-within:ring-2 focus-within:ring-[#FF5C00]/70">
+            <span className="text-[12px] text-white/50">Orden</span>
             <select
               aria-label="Ordenar canciones"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SongSortBy)}
-              className="cursor-pointer bg-transparent text-[12.5px] font-semibold text-[#1C1D22] focus:outline-none"
+              className="cursor-pointer border-none bg-transparent py-0 pl-0 text-[12.5px] font-semibold text-white focus:outline-none focus:ring-0"
             >
               {Object.entries(SORT_LABELS).map(([value, optionLabel]) => (
-                <option key={value} value={value}>
+                <option key={value} value={value} className="bg-[#2B1E17] text-white">
                   {optionLabel}
                 </option>
               ))}
@@ -347,14 +380,14 @@ export default function LabelDetail() {
             action={
               <button
                 onClick={() => setSearch("")}
-                className="rounded-2xl border border-[#E8E8EC] bg-white px-4 py-2.5 text-[12.5px] font-semibold text-[#1C1D22] transition-colors hover:bg-[#F4F5F7]"
+                className="glass-control rounded-full px-4 py-2.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
               >
                 Borrar búsqueda
               </button>
             }
           />
         ) : (
-          <div className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
+          <div className="glass overflow-hidden rounded-[28px]">
             <div className={`${SONGS_GRID} px-5 py-3`}>
               <div className="flex min-w-0">
                 <ColumnButton
@@ -383,21 +416,21 @@ export default function LabelDetail() {
               ))}
               <div />
             </div>
-            <div className="h-px bg-[#E8E8EC]" />
-            <div className="flex flex-col divide-y divide-[#E8E8EC]">
+            <div className="h-px bg-white/[0.09]" />
+            <div className="flex flex-col divide-y divide-white/[0.09]">
               {visibleSongs.map((song) => (
                 <SongRow key={song._id} song={song} />
               ))}
             </div>
-            <div className="h-px bg-[#E8E8EC]" />
+            <div className="h-px bg-white/[0.09]" />
             <div className="flex flex-wrap items-center gap-3 px-5 py-3.5">
-              <span className="text-[12px] text-[#71757E]">
+              <span className="text-[12px] text-white/65">
                 {visibleSongs.length}
                 {visibleSongs.length === songs.length ? "" : ` de ${songs.length}`}{" "}
                 {visibleSongs.length === 1 ? "canción" : "canciones"}
               </span>
               <div className="ml-auto hidden sm:block">
-                <SplitCoverageMeter coverage={totals.coverage} variant="inline" />
+                <SplitCoverageMeter coverage={totals.coverage} variant="inline" onGlass />
               </div>
             </div>
           </div>
@@ -406,12 +439,14 @@ export default function LabelDetail() {
 
       {ownerSplitOpen && (
         <CreateSplitsByLabelModal
+          onGlass
           isOpen={ownerSplitOpen}
           onClose={() => {
             setOwnerSplitOpen(false);
             loadSongs();
           }}
-          label={decodedLabel}
+          labelId={labelId}
+          label={labelName}
           songCount={songs.length}
           alreadyWithSplit={totals.coverage.withSplits}
         />
@@ -419,11 +454,12 @@ export default function LabelDetail() {
 
       {inviteOpen && (
         <InviteCollaboratorToLabelModal
+          onGlass
           isOpen={inviteOpen}
           onClose={() => setInviteOpen(false)}
           labelType="artistic"
-          labelIdentifier={decodedLabel}
-          labelName={decodedLabel}
+          labelIdentifier={labelId}
+          labelName={labelName}
           songCount={songs.length}
           onSuccess={loadSongs}
         />
@@ -431,14 +467,15 @@ export default function LabelDetail() {
 
       {collabSplitOpen && (
         <BulkCollaboratorSplitModal
+          onGlass
           isOpen={collabSplitOpen}
           showOwnerContext={splitTracks.some((track) => viewerOwnsSong(track))}
           onClose={() => setCollabSplitOpen(false)}
-          name={decodedLabel}
+          name={labelName}
           context="Sello artístico"
           logo={
-            <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[14px] bg-[#FFEADD]">
-              <Tag className="h-[19px] w-[19px] text-[#FF5C00]" />
+            <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[14px] bg-[#FF5C00]/[0.16]">
+              <Tag className="h-[19px] w-[19px] text-[#FF8A3D]" />
             </span>
           }
           tracks={splitTracks}
@@ -455,7 +492,7 @@ export default function LabelDetail() {
           }}
         />
       )}
-    </div>
+    </>
   );
 }
 
@@ -464,73 +501,90 @@ function SongRow({ song }: { song: LabelSong }) {
   const navigate = useNavigate();
   const cover = song.spotifyData?.album?.images?.[0]?.url;
   const percentage = song.ownerSplit?.percentage ?? null;
+  const collaborators = song.collaborators ?? [];
 
   return (
     <div
       onClick={() => navigate(`/panel/song/${song._id}`)}
-      className={`${SONGS_GRID} group cursor-pointer px-5 py-3 transition-colors hover:bg-[#F4F5F7]`}
+      className={`${SONGS_GRID} group cursor-pointer px-5 py-3 transition-colors hover:bg-white/[0.04]`}
     >
       <div className="flex min-w-0 items-center gap-3">
-        <span className="flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center overflow-hidden rounded-[13px] bg-[#F4F5F7]">
+        <span className="flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center overflow-hidden rounded-[13px] bg-white/[0.08]">
           {cover ? (
             <img src={cover} alt="" className="h-full w-full object-cover" />
           ) : (
-            <Music className="h-4 w-4 text-[#A6AAB2]" />
+            <Music className="h-4 w-4 text-white/50" />
           )}
         </span>
         <div className="flex min-w-0 flex-col gap-0.5">
           <span
             title={song.trackTitle}
-            className="truncate text-[13.5px] font-semibold text-[#1C1D22] transition-colors group-hover:text-[#FF5C00]"
+            className="truncate text-[13.5px] font-semibold text-white transition-colors group-hover:text-[#FFB067]"
           >
             {song.trackTitle}
           </span>
-          <span className="truncate text-[11.5px] text-[#A6AAB2]">{song.artistName}</span>
+          <span className="truncate text-[11.5px] text-white/50">
+            {song.artistName}
+            {collaborators.length > 0 && (
+              <span className="md:hidden">
+                {" · "}
+                {collaborators.length} {collaborators.length === 1 ? "colaborador" : "colaboradores"}
+              </span>
+            )}
+          </span>
         </div>
       </div>
 
+      <div className={`${visibility("collaborators")} min-w-0 items-center`}>
+        <SongCollaboratorsCell collaborators={collaborators} songTitle={song.trackTitle} />
+      </div>
+
       <div className={`${visibility("isrc")} min-w-0 items-center gap-1.5`}>
-        <span className="truncate font-mono text-[10.5px] text-[#71757E]">{song.isrc || "—"}</span>
+        <span className="truncate font-mono text-[10.5px] text-white/65">{song.isrc || "—"}</span>
         {song.isrc && (
           <span onClick={(e) => e.stopPropagation()}>
-            <CopyButton value={song.isrc} title="Copiar ISRC" />
+            <CopyButton
+              value={song.isrc}
+              title="Copiar ISRC"
+              className="!text-white/45 hover:!bg-white/10 hover:!text-[#FFB067]"
+            />
           </span>
         )}
       </div>
 
       <div className={`${visibility("streams")} items-center gap-1.5`}>
-        <Play className="h-[11px] w-[11px] text-[#A6AAB2]" />
-        <span className="font-mono text-[11.5px] text-[#71757E]">
+        <Play className="h-[11px] w-[11px] text-white/50" />
+        <span className="font-mono text-[11.5px] text-white/70">
           {formatStreams(song.totalStreams ?? 0)}
         </span>
       </div>
 
       <div className={visibility("income")}>
-        <span className="font-mono text-[13px] font-semibold text-[#2FB37E]">
+        <span className="font-mono text-[14px] text-[#45D39A]">
           {formatCurrency(song.totalNetIncome ?? 0)}
         </span>
       </div>
 
       <div className={visibility("owner")}>
-        <span className="font-mono text-[13px] font-semibold text-[#FF5C00]">
+        <span className="font-mono text-[14px] text-[#FF8A3D]">
           {formatCurrency(song.ownerEarnings ?? 0)}
         </span>
       </div>
 
       <div className={visibility("split")}>
         {percentage !== null ? (
-          <span className="rounded-[14px] bg-[#FFEADD] px-2.5 py-1 font-mono text-[11.5px] font-semibold text-[#FF5C00]">
+          <span className="rounded-full bg-[#FF5C00]/[0.16] px-2.5 py-1 font-mono text-[11.5px] font-semibold text-[#FF9A5C]">
             {percentage}%
           </span>
         ) : (
-          <span className="rounded-[14px] bg-[#F4F5F7] px-2.5 py-1 text-[11.5px] font-semibold text-[#A6AAB2]">
+          <span className="rounded-full bg-white/[0.08] px-2.5 py-1 text-[11.5px] font-semibold text-white/50">
             Sin split
           </span>
         )}
       </div>
 
       <div className="flex justify-end">
-        <ChevronRight className="h-4 w-4 text-[#A6AAB2]" />
+        <ChevronRight className="h-4 w-4 text-white/40" />
       </div>
     </div>
   );
@@ -539,36 +593,47 @@ function SongRow({ song }: { song: LabelSong }) {
 interface ChannelProps {
   label: string;
   labelClassName?: string;
+  /** Fondo del círculo del ícono. */
+  iconClassName?: string;
   icon: React.ReactNode;
   value: string;
   valueClassName?: string;
   className?: string;
+  /** Lleva el hairline que lo separa del canal anterior. */
+  divided?: boolean;
   children?: React.ReactNode;
 }
 
+/** Canal de la consola, con la misma anatomía que la de Música y Distribuidores. */
 function Channel({
   label,
-  labelClassName = "text-[#71757E]",
+  labelClassName = "text-white/70",
+  iconClassName = "bg-white/[0.12]",
   icon,
   value,
-  valueClassName = "text-[#1C1D22] text-[26px]",
+  valueClassName = "text-white text-[30px]",
   className = "",
+  divided = false,
   children,
 }: ChannelProps) {
   return (
     <div
-      className={`flex min-w-0 flex-1 flex-col justify-center gap-2 px-6 py-[22px] ${className}`}
+      className={`flex min-w-0 flex-1 flex-col justify-center gap-3 px-[22px] py-[18px] ${
+        divided ? "border-t border-white/[0.09] lg:border-l lg:border-t-0" : ""
+      } ${className}`}
     >
-      <div className="flex items-center gap-1.5">
-        {icon}
-        <span className={`font-mono text-[9.5px] font-medium tracking-[1.3px] ${labelClassName}`}>
-          {label}
+      <div className="flex items-center gap-2.5">
+        <span className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${iconClassName}`}>
+          {icon}
         </span>
+        <span className={`truncate text-[12.5px] font-medium ${labelClassName}`}>{label}</span>
       </div>
-      <p className={`font-mono font-semibold leading-none tracking-tight ${valueClassName}`}>
-        {value}
-      </p>
-      {children}
+      <div className="flex flex-col gap-1">
+        <p className={`truncate font-mono font-light leading-[1.1] tracking-[-0.015em] ${valueClassName}`}>
+          {value}
+        </p>
+        {children}
+      </div>
     </div>
   );
 }
@@ -588,7 +653,7 @@ function ColumnButton({
     <button
       onClick={onClick}
       className={`flex items-center gap-1 transition-colors ${
-        active ? "text-[#FF5C00]" : "text-[#A6AAB2] hover:text-[#71757E]"
+        active ? "text-[#FF8A3D]" : "text-white/50 hover:text-white/80"
       }`}
     >
       <span className="font-mono text-[9.5px] font-medium tracking-[1.2px]">{label}</span>
@@ -599,7 +664,7 @@ function ColumnButton({
 
 function ColumnLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+    <span className="font-mono text-[9.5px] font-medium tracking-[1.2px] text-white/50">
       {children}
     </span>
   );
@@ -608,7 +673,7 @@ function ColumnLabel({ children }: { children: React.ReactNode }) {
 function SongsSkeleton() {
   const widths = ["w-[168px]", "w-[128px]", "w-[184px]", "w-[146px]", "w-[112px]"];
   return (
-    <div className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white">
+    <div className="glass overflow-hidden rounded-[28px]" aria-busy="true" aria-label="Cargando canciones">
       <div className={`${SONGS_GRID} px-5 py-3`}>
         <div className="min-w-0">
           <ColumnLabel>CANCIÓN</ColumnLabel>
@@ -620,20 +685,20 @@ function SongsSkeleton() {
         ))}
         <div />
       </div>
-      <div className="h-px bg-[#E8E8EC]" />
-      <div className="flex flex-col divide-y divide-[#E8E8EC]">
+      <div className="h-px bg-white/[0.09]" />
+      <div className="flex flex-col divide-y divide-white/[0.09]">
         {widths.map((width) => (
           <div key={width} className={`${SONGS_GRID} px-5 py-3.5`}>
             <div className="flex min-w-0 items-center gap-3">
-              <div className="h-[42px] w-[42px] flex-shrink-0 animate-pulse rounded-[13px] bg-[#F4F5F7]" />
+              <div className="h-[42px] w-[42px] flex-shrink-0 animate-pulse rounded-[13px] bg-white/[0.08]" />
               <div className="flex flex-1 flex-col gap-2">
-                <div className={`h-2.5 animate-pulse rounded-full bg-[#F4F5F7] ${width}`} />
-                <div className="h-2 w-[92px] animate-pulse rounded-full bg-[#F4F5F7]/70" />
+                <div className={`h-2.5 animate-pulse rounded-full bg-white/[0.08] ${width}`} />
+                <div className="h-2 w-[92px] animate-pulse rounded-full bg-white/[0.05]" />
               </div>
             </div>
             {COLUMNS.map((column) => (
               <div key={column.key} className={column.visibility}>
-                <div className="h-2.5 w-[70%] animate-pulse rounded-full bg-[#F4F5F7]" />
+                <div className="h-2.5 w-[70%] animate-pulse rounded-full bg-white/[0.08]" />
               </div>
             ))}
             <div />
@@ -654,13 +719,13 @@ function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-[26px] border border-[#E8E8EC] bg-white px-6 py-[50px]">
-      <div className="flex h-[52px] w-[52px] items-center justify-center rounded-[18px] bg-[#F4F5F7]">
-        <SearchX className="h-[22px] w-[22px] text-[#71757E]" />
+    <section className="glass flex flex-col items-center gap-3 rounded-[32px] px-6 py-[50px]">
+      <div className="flex h-[52px] w-[52px] items-center justify-center rounded-[18px] bg-white/[0.08]">
+        <SearchX className="h-[22px] w-[22px] text-white/65" />
       </div>
-      <h3 className="text-center font-display text-base font-semibold text-[#1C1D22]">{title}</h3>
-      <p className="max-w-[420px] text-center text-[12.5px] text-[#71757E]">{text}</p>
+      <h3 className="text-center font-display text-base font-medium text-white">{title}</h3>
+      <p className="max-w-[420px] text-center text-[12.5px] text-white/65">{text}</p>
       {action && <div className="pt-1.5">{action}</div>}
-    </div>
+    </section>
   );
 }

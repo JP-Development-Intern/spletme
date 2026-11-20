@@ -47,7 +47,7 @@ export function DistributorsFilterBar({
     <div className="flex flex-wrap items-center gap-2.5">
       {/* Filtra por la moneda en la que el distribuidor emite sus reportes: los
           importes que muestra la tabla están todos en dólares. */}
-      <FilterFacet label="Reporta en" value={currencyFilter === "all" ? "Todas" : currencyFilter}>
+      <FilterFacet onGlass label="Reporta en" value={currencyFilter === "all" ? "Todas" : currencyFilter}>
         <select
           aria-label="Filtrar por la moneda en la que reporta el distribuidor"
           value={currencyFilter}
@@ -59,7 +59,7 @@ export function DistributorsFilterBar({
         </select>
       </FilterFacet>
 
-      <FilterFacet label="Proveedor" value={providerFilter === "all" ? "Todos" : providerFilter}>
+      <FilterFacet onGlass label="Proveedor" value={providerFilter === "all" ? "Todos" : providerFilter}>
         <select
           aria-label="Filtrar por proveedor"
           value={providerFilter}
@@ -75,6 +75,7 @@ export function DistributorsFilterBar({
       </FilterFacet>
 
       <FilterFacet
+        onGlass
         label="Cobertura"
         value={COVERAGE_LABELS[coverageFilter]}
         highlighted={coverageFilter !== "all"}
@@ -93,7 +94,7 @@ export function DistributorsFilterBar({
       {hasFilters && (
         <button
           onClick={onClearAll}
-          className="flex items-center gap-1.5 rounded-full px-2 py-1 text-[11.5px] font-semibold text-[#FF5C00] transition-colors hover:text-[#EA580C]"
+          className="flex items-center gap-1.5 rounded-full px-2 py-1 text-[11.5px] font-semibold text-[#FF8A3D] transition-colors hover:text-[#FFB48A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
         >
           <CircleX className="h-3.5 w-3.5" />
           Limpiar filtros
@@ -101,7 +102,7 @@ export function DistributorsFilterBar({
       )}
 
       <div className="ml-auto">
-        <FilterFacet label="" value={SORT_LABELS[sortBy]} icon={<ArrowUpDown className="h-3.5 w-3.5" />}>
+        <FilterFacet onGlass label="" value={SORT_LABELS[sortBy]} icon={<ArrowUpDown className="h-3.5 w-3.5" />}>
           <select
             aria-label="Ordenar distribuidores"
             value={sortBy}

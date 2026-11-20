@@ -9,6 +9,8 @@ interface CreateSplitsByCustomLabelModalProps {
   songCount: number;
   /** Canciones que ya tienen split, para avisar de que se sobrescriben. */
   alreadyWithSplit?: number;
+  /** Panel de vidrio, cuando se abre desde una página ya migrada. */
+  onGlass?: boolean;
 }
 
 /**
@@ -23,12 +25,14 @@ export default function CreateSplitsByCustomLabelModal({
   labelName,
   songCount,
   alreadyWithSplit,
+  onGlass = false,
 }: CreateSplitsByCustomLabelModalProps) {
   return (
     <LabelSplitModal
       isOpen={isOpen}
       onClose={onClose}
-      target={{ type: "custom", name: labelName, songCount, alreadyWithSplit }}
+      onGlass={onGlass}
+      target={{ type: "custom", ref: labelName, name: labelName, songCount, alreadyWithSplit }}
     />
   );
 }

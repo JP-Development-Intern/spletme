@@ -1,4 +1,5 @@
 import { MONTH_NAMES, MONTH_SHORT_NAMES } from "@/utils/period.utils";
+import { luminance } from "@/const/platformBrand";
 
 type StripSize = "mini" | "md";
 
@@ -53,21 +54,21 @@ export function CoverageStrip({
             title={`${MONTH_NAMES[index]} ${year}: ${
               isCovered ? "cargado" : pending ? "aún no vencido" : "sin cargar"
             }`}
-            style={fill ? { backgroundColor: fill } : undefined}
+            style={fill ? { backgroundColor: fill, ...darkRing(fill) } : undefined}
             className={[
               "flex flex-shrink-0 items-center justify-center",
               mini ? "h-[18px] w-[9px] rounded-[3px]" : "h-[42px] flex-1 rounded-[9px]",
               isCovered
                 ? ""
                 : pending
-                  ? "border border-dashed border-[#E8E8EC] bg-white"
-                  : "border border-[#E8E8EC] bg-[#F4F5F7]",
+                  ? "border border-dashed border-white/[0.18]"
+                  : "border border-white/[0.12] bg-white/[0.06]",
             ].join(" ")}
           >
             {showInitials && !mini && (
               <span
                 className={`font-mono text-[11px] font-semibold ${
-                  isCovered ? "text-white" : "text-[#A6AAB2]"
+                  isCovered ? "text-white" : "text-white/50"
                 }`}
               >
                 {short.charAt(0)}
@@ -84,12 +85,9 @@ export function CoverageStrip({
 export function CoverageLegend({ color = "#FF5C00" }: { color?: string }) {
   return (
     <div className="flex flex-wrap items-center gap-3.5">
-      <LegendItem label="Cargado" swatchClassName="" style={{ backgroundColor: color }} />
-      <LegendItem label="Sin cargar" swatchClassName="border border-[#E8E8EC] bg-[#F4F5F7]" />
-      <LegendItem
-        label="Aún no vencido"
-        swatchClassName="border border-dashed border-[#E8E8EC] bg-white"
-      />
+      <LegendItem label="Cargado" swatchClassName="" style={{ backgroundColor: color, ...darkRing(color) }} />
+      <LegendItem label="Sin cargar" swatchClassName="border border-white/[0.12] bg-white/[0.06]" />
+      <LegendItem label="Aún no vencido" swatchClassName="border border-dashed border-white/[0.18]" />
     </div>
   );
 }
@@ -106,12 +104,22 @@ function LegendItem({
   return (
     <span className="flex items-center gap-1.5">
       <span className={`h-[9px] w-[9px] rounded-[3px] ${swatchClassName}`} style={style} />
-      <span className="text-[10.5px] text-[#71757E]">{label}</span>
+      <span className="text-[10.5px] text-white/65">{label}</span>
     </span>
   );
 }
 
 const QUARTER_FILLS = ["#1C1D22", "#2FB37E", "#FF5C00", "#7C5CFF"];
+
+/**
+ * Sobre la noche, un mes cargado en tinta (o un distribuidor de color negro) se
+ * confundiría con un hueco: conserva su color con un aro claro que lo recorta.
+ */
+function darkRing(fill: string): React.CSSProperties | undefined {
+  return /^#[0-9a-f]{6}$/i.test(fill) && luminance(fill) < 0.05
+    ? { boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.3)" }
+    : undefined;
+}
 
 function quarterFill(month: number): string {
   return QUARTER_FILLS[Math.floor((month - 1) / 3) % QUARTER_FILLS.length];

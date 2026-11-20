@@ -31,7 +31,7 @@ const COVER_FALLBACKS = [
 ];
 
 /**
- * Canciones que compartes con la persona enfocada en el carrusel. Cambia con
+ * Canciones que compartes con la persona enfocada (en el carrusel o elegida en la lista). Cambia con
  * ella, y sus columnas siguen al interruptor Ingresos / Pagos.
  */
 export function CollaboratorSongsPanel({

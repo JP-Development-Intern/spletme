@@ -42,7 +42,7 @@ import { DeleteDistributorDialog } from "@/components/distributors/DeleteDistrib
 import { DistributorMark } from "@/components/ui/ModalShell";
 import UploadSongsModal from "@/components/ui/UploadSongsModal";
 import EditDistributorModal from "@/components/ui/EditDistributorModal";
-import Loading from "@/components/loading/loading";
+import { DetailSkeleton } from "@/components/music/DetailSkeleton";
 
 export default function DistributorDetail() {
   const { id } = useParams<{ id: string }>();
@@ -91,35 +91,35 @@ export default function DistributorDetail() {
   const years = useMemo(() => availableYears(uploads), [uploads]);
   const missingMonths = countMissingMonths(gaps);
 
-  if (loading) return <Loading />;
+  if (loading) return <DetailSkeleton label="Cargando el distribuidor" />;
 
   if (!dashboard) {
     return (
-      <div className="flex min-h-full flex-col items-center justify-center gap-3 bg-[#F7F7F9] px-4">
-        <span className="flex h-[52px] w-[52px] items-center justify-center rounded-[18px] bg-[#FDECEC]">
-          <TriangleAlert className="h-[22px] w-[22px] text-[#E5484D]" />
+      <section className="glass mx-4 flex flex-col items-center gap-3 rounded-[32px] px-6 py-14 text-center lg:ml-4 lg:mr-8">
+        <span className="flex h-[60px] w-[60px] items-center justify-center rounded-[22px] bg-[#E5484D]/[0.14]">
+          <TriangleAlert className="h-[24px] w-[24px] text-[#FF8F92]" />
         </span>
-        <h2 className="font-display text-base font-semibold text-[#1C1D22]">
+        <h2 className="font-display text-[19px] font-medium text-white">
           No se pudo cargar el distribuidor
         </h2>
-        <p className="text-[12.5px] text-[#71757E]">
+        <p className="text-[12.5px] text-white/65">
           Puede que ya no exista o que la conexión haya fallado.
         </p>
         <div className="flex items-center gap-2.5 pt-1.5">
           <button
             onClick={load}
-            className="rounded-2xl bg-[#FF5C00] px-4 py-2.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-[#EA580C]"
+            className="px-[18px] py-[11px] rounded-full bg-[#FF5C00] text-[12.5px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
           >
             Reintentar
           </button>
           <button
             onClick={() => navigate("/panel/dealers")}
-            className="rounded-2xl border border-[#E8E8EC] bg-white px-4 py-2.5 text-[12.5px] font-semibold text-[#1C1D22] transition-colors hover:bg-[#F4F5F7]"
+            className="glass-control rounded-full px-[18px] py-[11px] text-[12.5px] font-semibold text-white transition-colors hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
           >
             Volver a distribuidores
           </button>
         </div>
-      </div>
+      </section>
     );
   }
 
@@ -138,21 +138,21 @@ export default function DistributorDetail() {
   };
 
   return (
-    <div className="min-h-full bg-[#F7F7F9]">
-      <div className="flex flex-col gap-5 px-4 py-6 lg:px-8">
+    <>
+      <div className="flex flex-col gap-5 px-4 lg:pl-4 lg:pr-8">
         {/* Encabezado */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-3.5">
             <button
               onClick={() => navigate("/panel/dealers")}
               aria-label="Volver a distribuidores"
-              className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-full border border-[#E8E8EC] bg-white text-[#71757E] transition-colors hover:text-[#1C1D22]"
+              className="glass-control flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/[0.12] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
             <DistributorMark name={distributor.name} logo={distributor.photoUrl} size={54} />
             <div className="flex min-w-0 flex-col gap-1.5">
-              <h1 className="truncate font-display text-2xl font-semibold text-[#1C1D22]">
+              <h1 className="truncate font-display text-[26px] font-light leading-[1.15] tracking-[-0.015em] text-white sm:text-[34px]">
                 {distributor.name}
               </h1>
               <div className="flex flex-wrap items-center gap-1.5">
@@ -161,7 +161,7 @@ export default function DistributorDetail() {
                 )}
                 <Chip
                   icon={<CircleDollarSign className="h-3 w-3" />}
-                  tone={{ bg: "#E4F5EC", fg: "#2FB37E" }}
+                  tone={{ bg: "rgba(69, 211, 154, 0.12)", fg: "#45D39A" }}
                   title={
                     distributor.currency === "USD"
                       ? "Sus reportes llegan en dólares"
@@ -183,12 +183,13 @@ export default function DistributorDetail() {
           <div className="flex flex-shrink-0 items-center gap-2.5">
             <button
               onClick={() => openUpload()}
-              className="flex items-center gap-2 rounded-[22px] bg-[#FF5C00] px-[18px] py-2.5 text-[12.5px] font-semibold text-white shadow-[0_6px_16px_-4px_rgba(255,92,0,0.4)] transition-colors hover:bg-[#EA580C]"
+              className="flex min-h-[44px] items-center gap-2 px-[18px] py-[11px] rounded-full bg-[#FF5C00] text-[12.5px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             >
               <Upload className="h-[15px] w-[15px]" />
               Subir reporte
             </button>
             <RowActionsMenu
+              onGlass
               label={`Acciones de ${distributor.name}`}
               actions={[
                 {
@@ -217,44 +218,49 @@ export default function DistributorDetail() {
         </div>
 
         {/* Consola de métricas */}
-        <div className="flex flex-col divide-y divide-[#E8E8EC] overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)] lg:flex-row lg:divide-x lg:divide-y-0">
+        <div className="glass flex flex-col gap-1.5 rounded-[28px] p-1.5 lg:flex-row lg:items-stretch lg:gap-0">
           <Channel
-            label="INGRESOS NETOS"
-            icon={<DollarSign className="h-[13px] w-[13px] text-[#2FB37E]" />}
+            label="Ingresos netos"
+            icon={<DollarSign className="h-[15px] w-[15px] text-white" />}
             value={formatCurrency(totals.totalNetIncome)}
-            valueClassName="text-[#2FB37E] text-[26px] sm:text-[30px]"
+            valueClassName="text-[#45D39A] text-[26px] sm:text-[30px]"
             className="lg:w-[300px] lg:flex-shrink-0"
           >
             {totals.totalGrossIncome > 0 && (
-              <span className="text-[10.5px] text-[#A6AAB2]">
+              <span className="text-xs text-white/50">
                 bruto {formatCurrency(totals.totalGrossIncome)} · {retained}% retenido
               </span>
             )}
           </Channel>
           <Channel
-            label="STREAMS"
-            icon={<Play className="h-[13px] w-[13px] text-[#71757E]" />}
+            label="Streams"
+            icon={<Play className="h-[15px] w-[15px] text-white" />}
             value={formatStreams(totals.totalStreams)}
+            divided
           />
           <Channel
-            label="CANCIONES"
-            icon={<Music className="h-[13px] w-[13px] text-[#71757E]" />}
+            label="Canciones"
+            icon={<Music className="h-[15px] w-[15px] text-white" />}
             value={totals.songsCount.toLocaleString()}
+            divided
           />
           <Channel
-            label="CARGAS"
-            icon={<FileStack className="h-[13px] w-[13px] text-[#71757E]" />}
+            label="Cargas"
+            icon={<FileStack className="h-[15px] w-[15px] text-white" />}
             value={String(totals.uploadCount)}
+            divided
           />
+          {/* Lo único accionable de la consola: va teñido de brasa */}
           <Channel
-            label={`SIN CARGAR ${year}`}
-            labelClassName="text-[#FF5C00]"
-            icon={<CalendarOff className="h-[13px] w-[13px] text-[#FF5C00]" />}
+            label={`Sin cargar ${year}`}
+            labelClassName="text-[#FFB48A]"
+            iconClassName="bg-[#FF5C00]/[0.22]"
+            icon={<CalendarOff className="h-[15px] w-[15px] text-[#FF8A3D]" />}
             value={missingMonths > 0 ? gaps.map(formatMonthRange).join(" · ") : "Al día"}
-            valueClassName="text-[#FF5C00] text-[22px]"
-            className="bg-[#FFEADD] lg:w-[240px] lg:flex-shrink-0"
+            valueClassName="text-white text-[22px]"
+            className="rounded-[22px] border border-[#FF8A3D]/30 bg-[#FF5C00]/[0.14] lg:w-[240px] lg:flex-shrink-0"
           >
-            <span className="text-[10.5px] font-semibold text-[#EA580C]">
+            <span className="text-xs font-semibold text-[#FF8A3D]">
               {missingMonths > 0
                 ? `${missingMonths} ${missingMonths === 1 ? "mes" : "meses"} de ${year}`
                 : `Todo ${year} cubierto`}
@@ -360,14 +366,14 @@ export default function DistributorDetail() {
           }}
         />
       )}
-    </div>
+    </>
   );
 }
 
 function Chip({
   icon,
   children,
-  tone = { bg: "#F4F5F7", fg: "#71757E" },
+  tone = { bg: "rgba(255, 255, 255, 0.08)", fg: "rgba(255, 255, 255, 0.7)" },
   title,
 }: {
   icon: React.ReactNode;
@@ -379,7 +385,7 @@ function Chip({
   return (
     <span
       title={title}
-      className="flex items-center gap-1.5 rounded-[14px] px-2.5 py-1"
+      className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
       style={{ backgroundColor: tone.bg, color: tone.fg }}
     >
       {icon}
@@ -391,34 +397,47 @@ function Chip({
 interface ChannelProps {
   label: string;
   labelClassName?: string;
+  /** Fondo del círculo del ícono. */
+  iconClassName?: string;
   icon: React.ReactNode;
   value: string;
   valueClassName?: string;
   className?: string;
+  /** Lleva el hairline que lo separa del canal anterior. */
+  divided?: boolean;
   children?: React.ReactNode;
 }
 
+/** Canal de la consola, con la misma anatomía que la de Música y el detalle de canción. */
 function Channel({
   label,
-  labelClassName = "text-[#71757E]",
+  labelClassName = "text-white/70",
+  iconClassName = "bg-white/[0.12]",
   icon,
   value,
-  valueClassName = "text-[#1C1D22] text-[26px]",
+  valueClassName = "text-white text-[30px]",
   className = "",
+  divided = false,
   children,
 }: ChannelProps) {
   return (
-    <div className={`flex min-w-0 flex-1 flex-col justify-center gap-2 px-6 py-[22px] ${className}`}>
-      <div className="flex items-center gap-1.5">
-        {icon}
-        <span className={`font-mono text-[9.5px] font-medium tracking-[1.3px] ${labelClassName}`}>
-          {label}
+    <div
+      className={`flex min-w-0 flex-1 flex-col justify-center gap-3 px-[22px] py-[18px] ${
+        divided ? "border-t border-white/[0.09] lg:border-l lg:border-t-0" : ""
+      } ${className}`}
+    >
+      <div className="flex items-center gap-2.5">
+        <span className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${iconClassName}`}>
+          {icon}
         </span>
+        <span className={`truncate text-[12.5px] font-medium ${labelClassName}`}>{label}</span>
       </div>
-      <p className={`font-mono font-semibold leading-none tracking-tight ${valueClassName}`}>
-        {value}
-      </p>
-      {children}
+      <div className="flex flex-col gap-1">
+        <p className={`font-mono font-light leading-[1.1] tracking-[-0.015em] ${valueClassName}`}>
+          {value}
+        </p>
+        {children}
+      </div>
     </div>
   );
 }

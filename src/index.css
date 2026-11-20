@@ -62,6 +62,46 @@
   }
 }
 
+/* Formas del fondo de acceso: flotan arriba y abajo, cada una a su ritmo.
+   Solo mueven `transform`, así que no repintan. Quietas con «reducir
+   movimiento». */
+@keyframes float-shape {
+  0%,
+  100% {
+    transform: translate(-50%, -50%);
+  }
+  50% {
+    transform: translate(-50%, calc(-50% - var(--float-drift, 10px)));
+  }
+}
+.float-shape {
+  transform: translate(-50%, -50%);
+  animation: float-shape var(--float-duration, 16s) ease-in-out var(--float-delay, 0s) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .float-shape {
+    animation: none;
+  }
+}
+
+/* Campos del acceso: el autocompletado del navegador pinta su propio fondo
+   claro, que sobre el vidrio dejaría letras blancas sobre amarillo. Se
+   mantiene el texto blanco y se retrasa el fondo hasta que no se vea. */
+.auth-input:-webkit-autofill,
+.auth-input:-webkit-autofill:hover,
+.auth-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff;
+  caret-color: #ffffff;
+  transition: background-color 600000s 0s;
+}
+
+/* Calendario de tramos del split: se desplaza en horizontal sobre el vidrio
+   del modal, con una barra fina y tenue en vez de la gris del sistema. */
+.periods-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+
 /* Tooltip del gráfico de Rendimiento: ApexCharts pinta su propia caja; se
    vacía para que solo se vea el contenido personalizado en vidrio. */
 .chart-glass .apexcharts-tooltip {

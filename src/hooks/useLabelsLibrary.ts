@@ -23,19 +23,21 @@ export function useLabelsLibrary() {
   const [coverageFilter, setCoverageFilter] = useState<CoverageFilter>("all");
   const [sortBy, setSortBy] = useState<LabelSortBy>("songs_desc");
 
-  /** Índice por nombre para deducir la cobertura de los personalizados. */
-  const artisticByName = useMemo(() => {
+  /** Índice por id para deducir la cobertura de los personalizados. */
+  const artisticById = useMemo(() => {
     const map = new Map<string, Label>();
-    for (const label of labels) if (label.label) map.set(label.label, label);
+    for (const label of labels) if (label._id) map.set(label._id, label);
     return map;
   }, [labels]);
 
   const artisticItems = useMemo<LabelListItem[]>(
     () =>
       labels.map((label) => ({
+        id: label._id,
         name: label.label,
         isCustom: false,
         artisticLabels: [],
+        artisticLabelIds: [],
         songCount: label.count ?? 0,
         totalStreams: label.totalStreams ?? 0,
         totalNetIncome: label.totalNetIncome ?? 0,
@@ -63,8 +65,8 @@ export function useLabelsLibrary() {
         let total = 0;
         let withSplits = 0;
         const collaborators = new Map<string, LabelCollaborator>();
-        for (const name of custom.artisticLabels ?? []) {
-          const artistic = artisticByName.get(name);
+        for (const id of custom.artisticLabelIds ?? []) {
+          const artistic = artisticById.get(id);
           if (!artistic) continue;
           for (const person of artistic.collaborators ?? []) {
             const key = person.id ?? person._id ?? person.email ?? person.name;
@@ -78,7 +80,8 @@ export function useLabelsLibrary() {
           name: custom.name,
           isCustom: true,
           id: custom._id,
-          artisticLabels: custom.artisticLabels ?? [],
+          artisticLabels: (custom.artisticLabels ?? []).map((sello) => sello.name),
+          artisticLabelIds: custom.artisticLabelIds ?? [],
           songCount: custom.stats?.totalSongs ?? 0,
           totalStreams: custom.stats?.totalStreams ?? 0,
           totalNetIncome: custom.stats?.totalNetIncome ?? 0,
@@ -92,7 +95,7 @@ export function useLabelsLibrary() {
           coverage: toCoverage(total, withSplits, true),
         };
       }),
-    [customLabels, artisticByName],
+    [customLabels, artisticById],
   );
 
   /** Los personalizados van primero: son los que tú creaste. */

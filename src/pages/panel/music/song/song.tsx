@@ -35,7 +35,7 @@ import { MoneyWaterfall } from "@/components/music/MoneyWaterfall";
 import { MyShareCard } from "@/components/music/MyShareCard";
 import { SongAlbumsChip } from "@/components/music/SongAlbumsChip";
 import { MetricConsole, type MetricChannel } from "@/components/ui/MetricConsole";
-import Loading from "@/components/loading/loading";
+import { DetailSkeleton } from "@/components/music/DetailSkeleton";
 import Table from "./components/table";
 import Platforms from "./components/platforms";
 import Performance from "./components/performance";
@@ -45,7 +45,6 @@ import DocumentManager from "./components/documentManager";
 import SongPaymentsHistory from "@/components/PaymentHistory/SongPaymentsHistory";
 import StripeConnectLoginModal from "@/components/modal/StripeConnectLoginModal";
 import StripePaymentModal from "@/components/modal/StripePaymentModal";
-import AddCollaborator from "../../collaborators/components/addCollaborator";
 import ValidationToastQueue, {
   type ValidationToastItem,
   type ValidationToastType,
@@ -98,7 +97,7 @@ export default function Song() {
   const currentUser = LocalStorageService.getItem("user");
   const isOwnerUser = useMemo(() => resolveIsOwner(song, currentUser), [song, currentUser]);
 
-  if (loading || !song) return <Loading />;
+  if (loading || !song) return <DetailSkeleton label="Cargando la canción" />;
 
   const ownerAmount = getOwnerTotalOwed();
   const totalToPay =
@@ -152,18 +151,18 @@ export default function Song() {
   const channels: MetricChannel[] = [
     {
       key: "streams",
-      label: "STREAMS",
-      icon: <Play className="h-[13px] w-[13px] text-[#71757E]" />,
+      label: "Streams",
+      icon: <Play className="h-[15px] w-[15px] text-white" />,
       value: formatStreams(song?.totalStreams ?? 0),
     },
     ...(isOwnerUser
       ? [
           {
             key: "net",
-            label: "INGRESO NETO",
-            icon: <DollarSign className="h-[13px] w-[13px] text-[#2FB37E]" />,
+            label: "Ingreso neto",
+            icon: <DollarSign className="h-[15px] w-[15px] text-white" />,
             value: formatCurrency(money.netIncome),
-            valueColor: "#2FB37E",
+            valueColor: "#45D39A",
             width: 300,
             caption:
               money.grossIncome > 0 ? `bruto ${formatCurrency(money.grossIncome)}` : undefined,
@@ -172,25 +171,25 @@ export default function Song() {
       : []),
     {
       key: "share",
-      label: isOwnerUser ? "TU PARTE" : "TU SPLIT",
-      icon: <Crown className="h-[13px] w-[13px] text-[#71757E]" />,
+      label: isOwnerUser ? "Tu parte" : "Tu split",
+      icon: <Crown className="h-[15px] w-[15px] text-white" />,
       value: `${myPercentage || 0}%`,
       caption: formatCurrency(myAmount),
     },
     {
       key: "collabs",
-      label: "COLABORADORES",
-      icon: <Users className="h-[13px] w-[13px] text-[#71757E]" />,
+      label: "Colaboradores",
+      icon: <Users className="h-[15px] w-[15px] text-white" />,
       value: String(collaboratorCount),
     },
     ...(isOwnerUser
       ? [
           {
             key: "earnings",
-            label: "TU GANANCIA",
-            icon: <Crown className="h-[13px] w-[13px] text-[#FF5C00]" />,
+            label: "Tu ganancia",
+            icon: <Crown className="h-[15px] w-[15px] text-white" />,
             value: formatCurrency(ownerAmount),
-            valueColor: "#FF5C00",
+            valueColor: "#FF8A3D",
             caption: "según tus splits",
           } as MetricChannel,
         ]
@@ -198,8 +197,8 @@ export default function Song() {
     isOwnerUser
       ? {
           key: "topay",
-          label: "POR PAGAR",
-          icon: <HandCoins className="h-[13px] w-[13px] text-[#FF5C00]" />,
+          label: "Por pagar",
+          icon: <HandCoins className="h-[15px] w-[15px] text-[#FF8A3D]" />,
           value: formatCurrency(totalToPay),
           highlight: true,
           width: 260,
@@ -210,8 +209,8 @@ export default function Song() {
         }
       : {
           key: "mine",
-          label: "TU SALDO",
-          icon: <HandCoins className="h-[13px] w-[13px] text-[#FF5C00]" />,
+          label: "Tu saldo",
+          icon: <HandCoins className="h-[15px] w-[15px] text-[#FF8A3D]" />,
           value: formatCurrency(myAmount),
           highlight: true,
           width: 260,
@@ -220,18 +219,18 @@ export default function Song() {
   ];
 
   return (
-    <div className="min-h-full bg-[#F7F7F9]">
-      <div className="flex flex-col gap-5 px-4 py-6 lg:px-8">
+    <>
+      <div className="flex flex-col gap-5 px-4 lg:pl-4 lg:pr-8">
         <DetailHeader
           cover={song?.spotifyData?.album?.images?.[0]?.url}
-          fallbackIcon={<Music className="h-9 w-9 text-[#A6AAB2]" />}
+          fallbackIcon={<Music className="h-9 w-9 text-white/50" />}
           title={song?.trackTitle ?? "—"}
           codeLabel="ISRC"
           code={song?.isrc}
           meta={
             <>
               <span>{song?.artistName ?? "—"}</span>
-              <span className="text-[#A6AAB2]">·</span>
+              <span className="text-white/40">·</span>
               <SongAlbumsChip
                 albums={songAlbums.albums}
                 loading={songAlbums.loading}
@@ -239,7 +238,7 @@ export default function Song() {
               />
               {releaseDate && (
                 <>
-                  <span className="text-[#A6AAB2]">·</span>
+                  <span className="text-white/40">·</span>
                   <span title="Fecha de lanzamiento">Lanzada {releaseDate}</span>
                 </>
               )}
@@ -247,13 +246,13 @@ export default function Song() {
           }
           highlightLabel={isOwnerUser ? "TOTAL A PAGAR" : "TU PARTE"}
           highlightValue={formatCurrency(isOwnerUser ? totalToPay : myAmount)}
-          highlightColor={isOwnerUser ? "#1C1D22" : "#2FB37E"}
+          highlightColor={isOwnerUser ? "#FFFFFF" : "#45D39A"}
           actions={
             isOwnerUser ? (
               <button
                 onClick={() => setShowPaymentModal(true)}
                 disabled={blocked || totalToPay <= 0}
-                className="flex items-center gap-2 rounded-[22px] bg-[#FF5C00] px-[18px] py-3 text-[12.5px] font-semibold text-white shadow-[0_6px_16px_-4px_rgba(255,92,0,0.4)] transition-colors enabled:hover:bg-[#EA580C] disabled:cursor-not-allowed disabled:bg-[#F4F5F7] disabled:text-[#A6AAB2] disabled:shadow-none"
+                className={PRIMARY_BUTTON}
               >
                 <HandCoins className="h-[15px] w-[15px]" />
                 Pagar a todos
@@ -311,7 +310,6 @@ export default function Song() {
             songId={id}
             song={song}
             isOwner={isOwnerUser}
-            headerAction={isOwnerUser ? <AddCollaborator compact isOwner={isOwnerUser} /> : null}
           />
         )}
 
@@ -373,15 +371,19 @@ export default function Song() {
           addToast("success", "Pago procesado. Los colaboradores recibirán su parte.");
         }}
       />
-    </div>
+    </>
   );
 }
+
+/** Acción principal de la cabecera, en brasa sólida; deshabilitada se apaga en el vidrio. */
+const PRIMARY_BUTTON =
+  "flex min-h-[44px] items-center gap-2 rounded-full bg-[#FF5C00] px-[18px] py-[11px] text-[12.5px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors enabled:hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:bg-white/[0.08] disabled:text-white/40 disabled:shadow-none";
 
 /** Los motivos que impiden pagar, con la acción que resuelve cada uno. */
 function BlockedNotice({ issues }: { issues: { code: string; message: string }[] }) {
   return (
-    <div className="flex flex-col gap-2.5 rounded-[22px] bg-[#FDECEC] p-4">
-      <p className="flex items-center gap-2.5 text-[13px] font-semibold text-[#E5484D]">
+    <div className="flex flex-col gap-2.5 rounded-[22px] border border-[#E5484D]/30 bg-[#E5484D]/[0.14] p-4">
+      <p className="flex items-center gap-2.5 text-[13px] font-semibold text-[#FF8F92]">
         <CircleAlert className="h-4 w-4 flex-shrink-0" />
         Falta esto para poder pagar
       </p>
@@ -389,10 +391,10 @@ function BlockedNotice({ issues }: { issues: { code: string; message: string }[]
         {issues.map((issue) => (
           <li
             key={issue.code}
-            className="flex items-center gap-2.5 rounded-[13px] bg-white px-3 py-2.5"
+            className="flex items-center gap-2.5 rounded-[13px] bg-black/[0.18] px-3 py-2.5"
           >
-            <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#E5484D]" />
-            <span className="text-[11.5px] leading-snug text-[#E5484D]">{issue.message}</span>
+            <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#FF8F92]" />
+            <span className="text-[11.5px] leading-snug text-white/80">{issue.message}</span>
           </li>
         ))}
       </ul>
@@ -402,19 +404,19 @@ function BlockedNotice({ issues }: { issues: { code: string; message: string }[]
 
 function PendingRequestNotice() {
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-[22px] bg-[#F4F5F7] p-4">
-      <span className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-xl bg-white">
-        <Clock3 className="h-4 w-4 text-[#71757E]" />
+    <div className="glass flex flex-wrap items-center gap-3 rounded-[22px] p-4">
+      <span className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-white/[0.12]">
+        <Clock3 className="h-4 w-4 text-white" />
       </span>
       <span className="flex min-w-[200px] flex-1 flex-col gap-0.5">
-        <span className="text-[12.5px] font-semibold text-[#1C1D22]">
+        <span className="text-[12.5px] font-semibold text-white">
           Solicitud enviada, pendiente de aprobación
         </span>
-        <span className="text-[11.5px] text-[#71757E]">
+        <span className="text-[11.5px] text-white/65">
           El owner recibirá un correo para aceptarla o rechazarla. Te avisamos en cuanto responda.
         </span>
       </span>
-      <span className="rounded-[14px] bg-[#FFEADD] px-3 py-1.5 text-[11px] font-semibold text-[#FF5C00]">
+      <span className="rounded-full bg-[#FF5C00]/[0.16] px-3 py-1.5 text-[11px] font-semibold text-[#FF9A5C]">
         Pendiente
       </span>
     </div>
@@ -433,7 +435,7 @@ function RoyaltyAction({
 }) {
   if (request?.status === "pending") {
     return (
-      <span className="rounded-[22px] bg-white px-[18px] py-3 text-[12.5px] font-semibold text-[#71757E]">
+      <span className="glass-control rounded-full px-[18px] py-[11px] text-[12.5px] font-semibold text-white/65">
         Solicitud pendiente
       </span>
     );
@@ -441,7 +443,7 @@ function RoyaltyAction({
 
   if (request?.status === "accepted") {
     return (
-      <span className="flex items-center gap-2 rounded-[22px] bg-[#E4F5EC] px-[18px] py-3 text-[12.5px] font-semibold text-[#2FB37E]">
+      <span className="flex items-center gap-2 rounded-full bg-[#45D39A]/[0.12] px-[18px] py-[11px] text-[12.5px] font-semibold text-[#45D39A]">
         <Crown className="h-[15px] w-[15px]" />
         Aceptada
       </span>
@@ -452,7 +454,7 @@ function RoyaltyAction({
     <button
       onClick={onRequest}
       disabled={loading || request?.status === "rejected"}
-      className="flex items-center gap-2 rounded-[22px] bg-[#FF5C00] px-[18px] py-3 text-[12.5px] font-semibold text-white shadow-[0_6px_16px_-4px_rgba(255,92,0,0.4)] transition-colors enabled:hover:bg-[#EA580C] disabled:cursor-not-allowed disabled:bg-[#F4F5F7] disabled:text-[#A6AAB2] disabled:shadow-none"
+      className={PRIMARY_BUTTON}
     >
       <HandCoins className="h-[15px] w-[15px]" />
       {loading

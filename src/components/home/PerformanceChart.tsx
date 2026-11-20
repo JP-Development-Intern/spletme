@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import ReactApexChart from "react-apexcharts";
 import type { ApexOptions } from "apexcharts";
 import es from "apexcharts/dist/locales/es.json";
 import { formatStreams, formatCurrency } from "@/utils/format.utils";
 import type { DataPoint } from "@/hooks/useHomeDashboard";
+import { EASE_OUT, remainingDelay, useDashboardIntro, useReveal } from "./dashboardIntro";
 
 type Metric = "income" | "streams";
 
@@ -11,6 +13,10 @@ interface PerformanceChartProps {
   points: DataPoint[];
   /** Periodo elegido en la página: 7d y 30d llegan por día, el resto por mes. */
   timeframe: string;
+  /** La serie del periodo todavía no ha llegado. */
+  loading?: boolean;
+  /** Segundos desde el montaje en los que entra el panel. */
+  at?: number;
 }
 
 const METRICS: { value: Metric; label: string }[] = [
@@ -25,8 +31,10 @@ const AXIS_LABEL = { colors: "rgba(255,255,255,0.5)", fontSize: "11px" };
  * con las dos juntas había dos ejes con escalas distintas y la lectura dependía
  * de adivinar cuál era cuál.
  */
-export function PerformanceChart({ points, timeframe }: PerformanceChartProps) {
+export function PerformanceChart({ points, timeframe, loading = false, at = 0 }: PerformanceChartProps) {
   const [metric, setMetric] = useState<Metric>("income");
+  const reveal = useReveal(at);
+  const intro = useDashboardIntro();
   const isIncome = metric === "income";
   const daily = timeframe === "7d" || timeframe === "30d";
 
@@ -57,6 +65,16 @@ export function PerformanceChart({ points, timeframe }: PerformanceChartProps) {
         fontFamily: '"Bricolage Grotesque", Poppins, sans-serif',
         locales: [es],
         defaultLocale: "es",
+        // En la entrada, la subida del área de ApexCharts acompaña al barrido de
+        // abajo. Después, sus transiciones son las que cuentan qué cambió al
+        // pasar a otro periodo o a otra serie.
+        animations: {
+          enabled: !intro.reduced,
+          easing: "easeout",
+          speed: 700,
+          animateGradually: { enabled: false },
+          dynamicAnimation: { enabled: true, speed: 450 },
+        },
       },
       colors: [isIncome ? "#FF5C00" : "#F7EDE6"],
       stroke: { width: 2.5, curve: "smooth" },
@@ -107,10 +125,32 @@ export function PerformanceChart({ points, timeframe }: PerformanceChartProps) {
       },
       legend: { show: false },
     };
-  }, [points, isIncome, daily]);
+  }, [points, isIncome, daily, intro.reduced]);
+
+  /**
+   * El área se descubre de izquierda a derecha, en el sentido del tiempo: se lee
+   * como la serie dibujándose. Al terminar se quita el recorte, que si no
+   * cortaría el tooltip en los bordes.
+   */
+  const sweep =
+    intro.reduced
+      ? {}
+      : {
+          initial: { clipPath: "inset(0 100% 0 0)" },
+          animate: { clipPath: "inset(0 0% 0 0)", transitionEnd: { clipPath: "none" } },
+          transition: {
+            duration: intro.full ? 1.1 : 0.5,
+            delay: intro.full ? remainingDelay(intro.startedAt, at + 0.2) : 0,
+            ease: EASE_OUT,
+          },
+        };
 
   return (
-    <section className="glass flex min-w-0 flex-1 flex-col gap-[18px] rounded-[32px] px-7 py-6" data-tour="analytics-chart">
+    <motion.section
+      {...reveal}
+      className="glass flex min-w-0 flex-1 flex-col gap-[18px] rounded-[32px] px-7 py-6"
+      data-tour="analytics-chart"
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5">
           <h2 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">Rendimiento</h2>
@@ -137,14 +177,29 @@ export function PerformanceChart({ points, timeframe }: PerformanceChartProps) {
       </div>
 
       <div className="chart-glass h-[240px]">
-        {points.length === 0 ? (
+        {points.length === 0 && loading ? (
+          <ChartSkeleton />
+        ) : points.length === 0 ? (
           <div className="flex h-full items-center justify-center text-[13px] text-white/50">
             Sin datos en este periodo
           </div>
         ) : (
-          <ReactApexChart options={options} series={series} type="area" height="100%" width="100%" />
+          <motion.div {...sweep} className="h-full">
+            <ReactApexChart options={options} series={series} type="area" height="100%" width="100%" />
+          </motion.div>
         )}
       </div>
-    </section>
+    </motion.section>
+  );
+}
+
+/** Las líneas guía del gráfico, latiendo, mientras llega la serie. */
+function ChartSkeleton() {
+  return (
+    <div className="flex h-full flex-col justify-between py-2" aria-busy="true" aria-label="Cargando el rendimiento">
+      {[0, 1, 2, 3].map((i) => (
+        <span key={i} className="h-px w-full animate-pulse bg-white/[0.12]" />
+      ))}
+    </div>
   );
 }

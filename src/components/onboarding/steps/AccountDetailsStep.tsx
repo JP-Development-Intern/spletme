@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Loader2, ArrowLeft, ArrowRight, CircleAlert } from "lucide-react";
 import Select, { StylesConfig } from "react-select";
 import { OnboardingData } from "../../../services/onboarding";
+import { AuthHeading } from "@/components/auth/AuthShell";
+import { AUTH_SECONDARY_CLASS, AUTH_SUBMIT_CLASS } from "@/components/auth/authStyles";
 
 interface SelectOption {
   value: string;
@@ -430,12 +432,7 @@ const AccountDetailsStep = ({ nextStep, prevStep, initialData }: AccountDetailsS
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-1.5">
-        <h1 className="font-display text-[28px] font-semibold text-[#1C1D22]">Tus datos</h1>
-        <p className="text-[13.5px] text-[#71757E]">
-          Los pedimos una sola vez; después los editas en Ajustes.
-        </p>
-      </div>
+      <AuthHeading title="Tus datos" subtitle="Los pedimos una sola vez; después los editas en Ajustes." />
 
       <div className="flex flex-col gap-5">
         <Group label="UBICACIÓN">
@@ -512,21 +509,24 @@ const AccountDetailsStep = ({ nextStep, prevStep, initialData }: AccountDetailsS
 
         <Group label="CONTACTO E IDENTIFICACIÓN">
           <Field label="Número de teléfono" error={errors.phone}>
-            <div className="flex gap-2">
-              <div className="w-[140px] flex-shrink-0">
-                <Select<SelectOption>
-                  options={PHONE_CODE_OPTIONS}
-                  value={PHONE_CODE_OPTIONS.find((o) => o.value === formData.phoneCode) ?? null}
-                  onChange={(opt) => set("phoneCode", opt?.value ?? "")}
-                  aria-label="Código de país"
-                  placeholder="Código"
-                  noOptionsMessage={() => "Sin resultados"}
-                  styles={rsStyles(false)}
-                  menuPortalTarget={document.body}
-                />
-              </div>
+            {/* El prefijo arriba y el número debajo, cada uno a todo el ancho: en
+                una sola fila el número quedaba en un hueco donde no se leía entero. */}
+            <div className="flex flex-col gap-2">
+              <Select<SelectOption>
+                options={PHONE_CODE_OPTIONS}
+                value={PHONE_CODE_OPTIONS.find((o) => o.value === formData.phoneCode) ?? null}
+                onChange={(opt) => set("phoneCode", opt?.value ?? "")}
+                aria-label="Código de país"
+                placeholder="Código"
+                noOptionsMessage={() => "Sin resultados"}
+                styles={rsStyles(false)}
+                menuPortalTarget={document.body}
+              />
               <input
                 type="tel"
+                inputMode="tel"
+                autoComplete="tel-national"
+                aria-label="Número de teléfono"
                 value={formData.phone}
                 onChange={(e) => set("phone", e.target.value)}
                 placeholder="300 123 4567"
@@ -552,17 +552,11 @@ const AccountDetailsStep = ({ nextStep, prevStep, initialData }: AccountDetailsS
       </div>
 
       <div className="flex gap-3">
-        <button
-          onClick={prevStep}
-          className="flex h-[50px] w-[150px] flex-shrink-0 items-center justify-center gap-2 rounded-[25px] border border-[#E8E8EC] bg-white text-[14.5px] font-semibold text-[#1C1D22] transition-colors hover:bg-[#F4F5F7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5C00]"
-        >
+        <button onClick={prevStep} className={AUTH_SECONDARY_CLASS}>
           <ArrowLeft className="h-[15px] w-[15px]" />
           Atrás
         </button>
-        <button
-          onClick={handleSubmit}
-          className="flex h-[50px] flex-1 items-center justify-center gap-2 rounded-[25px] bg-[#FF5C00] text-[15px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.55)] transition-colors hover:bg-[#EA580C] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5C00]"
-        >
+        <button onClick={handleSubmit} className={AUTH_SUBMIT_CLASS}>
           Continuar
           <ArrowRight className="h-4 w-4" />
         </button>
@@ -571,61 +565,73 @@ const AccountDetailsStep = ({ nextStep, prevStep, initialData }: AccountDetailsS
   );
 };
 
-/** Clases del control; se resalta en rojo cuando el campo tiene error. */
+/** Clases del control sobre el vidrio; se resalta en rojo cuando el campo tiene error. */
 const controlClass = (hasError: boolean) =>
-  `h-[44px] w-full rounded-[14px] border px-3.5 text-[13px] text-[#1C1D22] placeholder:text-[#A6AAB2] transition-colors focus:outline-none focus:ring-[3px] disabled:opacity-60 ${
+  `auth-input h-[46px] w-full rounded-[14px] border bg-black/[0.22] px-3.5 text-[13px] text-white placeholder:text-white/40 transition-colors focus:outline-none focus:ring-[3px] disabled:opacity-50 ${
     hasError
-      ? "border-[1.5px] border-[#E5484D] bg-white focus:ring-[#E5484D]/15"
-      : "border-[#E8E8EC] bg-[#F4F5F7] focus:border-[#FF5C00] focus:bg-white focus:ring-[#FF5C00]/15"
+      ? "border-[#FF8F92]/80 focus:ring-[#E5484D]/20"
+      : "border-white/[0.16] focus:border-[#FF8A3D] focus:ring-[#FF5C00]/25"
   }`;
 
-/** Estilos de react-select equivalentes a controlClass, para los campos con búsqueda. */
+/**
+ * Estilos de react-select equivalentes a `controlClass`. El menú se abre opaco
+ * en el tono de la noche, como en el resto del vidrio: translúcido, el texto de
+ * las opciones se mezclaría con los campos de debajo.
+ */
 const rsStyles = (hasError: boolean): StylesConfig<SelectOption, false> => ({
   control: (base, state) => ({
     ...base,
-    minHeight: 44,
-    height: 44,
+    minHeight: 46,
+    height: 46,
     borderRadius: 14,
-    borderWidth: hasError ? 1.5 : 1,
-    borderColor: hasError ? "#E5484D" : state.isFocused ? "#FF5C00" : "#E8E8EC",
-    backgroundColor: hasError || state.isFocused ? "#FFFFFF" : "#F4F5F7",
+    borderWidth: 1,
+    borderColor: hasError ? "rgba(255, 143, 146, 0.8)" : state.isFocused ? "#FF8A3D" : "rgba(255, 255, 255, 0.16)",
+    backgroundColor: "rgba(0, 0, 0, 0.22)",
     boxShadow: state.isFocused
-      ? `0 0 0 3px ${hasError ? "rgba(229,72,77,0.15)" : "rgba(255,92,0,0.15)"}`
+      ? `0 0 0 3px ${hasError ? "rgba(229, 72, 77, 0.2)" : "rgba(255, 92, 0, 0.25)"}`
       : "none",
-    opacity: state.isDisabled ? 0.6 : 1,
-    transition: "border-color 150ms, background-color 150ms, box-shadow 150ms",
-    "&:hover": { borderColor: hasError ? "#E5484D" : "#FF5C00" },
+    opacity: state.isDisabled ? 0.5 : 1,
+    cursor: "pointer",
+    transition: "border-color 150ms, box-shadow 150ms",
+    "&:hover": { borderColor: hasError ? "rgba(255, 143, 146, 0.8)" : "rgba(255, 255, 255, 0.28)" },
   }),
   valueContainer: (base) => ({ ...base, padding: "0 14px" }),
-  input: (base) => ({ ...base, margin: 0, padding: 0, fontSize: 13, color: "#1C1D22" }),
-  singleValue: (base) => ({ ...base, fontSize: 13, color: "#1C1D22" }),
-  placeholder: (base) => ({ ...base, fontSize: 13, color: "#A6AAB2" }),
+  input: (base) => ({ ...base, margin: 0, padding: 0, fontSize: 13, color: "#FFFFFF" }),
+  singleValue: (base) => ({ ...base, fontSize: 13, color: "#FFFFFF" }),
+  placeholder: (base) => ({ ...base, fontSize: 13, color: "rgba(255, 255, 255, 0.4)" }),
   menu: (base) => ({
     ...base,
+    marginTop: 6,
     borderRadius: 14,
     overflow: "hidden",
-    border: "1px solid #E8E8EC",
-    boxShadow: "0 12px 32px -12px rgba(28,29,34,0.18)",
+    backgroundColor: "#2B1E17",
+    border: "1px solid rgba(255, 255, 255, 0.14)",
+    boxShadow: "0 20px 44px -12px rgba(0, 0, 0, 0.6)",
   }),
+  menuList: (base) => ({ ...base, padding: 4 }),
   option: (base, state) => ({
     ...base,
     fontSize: 13,
-    backgroundColor: state.isSelected ? "#FF5C00" : state.isFocused ? "#F4F5F7" : "#FFFFFF",
-    color: state.isSelected ? "#FFFFFF" : "#1C1D22",
+    borderRadius: 8,
+    cursor: "pointer",
+    backgroundColor: state.isSelected ? "#FF5C00" : state.isFocused ? "rgba(255, 255, 255, 0.08)" : "transparent",
+    color: state.isSelected ? "#FFFFFF" : "rgba(255, 255, 255, 0.85)",
+    ":active": { backgroundColor: state.isSelected ? "#FF5C00" : "rgba(255, 92, 0, 0.22)" },
   }),
+  noOptionsMessage: (base) => ({ ...base, fontSize: 12.5, color: "rgba(255, 255, 255, 0.5)" }),
+  loadingMessage: (base) => ({ ...base, fontSize: 12.5, color: "rgba(255, 255, 255, 0.5)" }),
   menuPortal: (base) => ({ ...base, zIndex: 10000 }),
   indicatorSeparator: () => ({ display: "none" }),
-  dropdownIndicator: (base) => ({ ...base, color: "#A6AAB2" }),
-  clearIndicator: (base) => ({ ...base, color: "#A6AAB2" }),
+  dropdownIndicator: (base) => ({ ...base, color: "rgba(255, 255, 255, 0.45)" }),
+  clearIndicator: (base) => ({ ...base, color: "rgba(255, 255, 255, 0.45)" }),
+  loadingIndicator: (base) => ({ ...base, color: "rgba(255, 255, 255, 0.45)" }),
 });
 
 /** Bloque de campos con su encabezado. */
 function Group({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-2.5">
-      <span className="font-mono text-[9.5px] font-medium tracking-[1.3px] text-[#A6AAB2]">
-        {label}
-      </span>
+      <span className="font-mono text-[10px] font-medium tracking-[1.3px] text-white/50">{label}</span>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{children}</div>
     </div>
   );
@@ -642,26 +648,23 @@ interface FieldProps {
 /** Campo con etiqueta, indicador de carga y error debajo del control. */
 function Field({ label, error, help, loading, children }: FieldProps) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-[12px] font-semibold text-[#1C1D22]">
-        {label} <span className="text-[#E5484D]">*</span>
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <label className="pl-1 text-[12px] font-semibold text-white/80">
+        {label} <span className="text-[#FF8F92]">*</span>
       </label>
       <div className="relative">
         {children}
         {loading && (
-          <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-[#A6AAB2]" />
+          <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-white/50" />
         )}
       </div>
       {error ? (
-        <p
-          role="alert"
-          className="flex items-center gap-1.5 text-[11.5px] leading-snug text-[#E5484D]"
-        >
+        <p role="alert" className="flex items-center gap-1.5 pl-1 text-[11.5px] leading-snug text-[#FF8F92]">
           <CircleAlert className="h-3.5 w-3.5 flex-shrink-0" />
           {error}
         </p>
       ) : (
-        help && <p className="text-[11px] leading-snug text-[#A6AAB2]">{help}</p>
+        help && <p className="pl-1 text-[11px] leading-snug text-white/50">{help}</p>
       )}
     </div>
   );

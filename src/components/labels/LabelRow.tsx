@@ -31,10 +31,14 @@ const formatPercentage = (value: number): string => String(Math.round(value * 10
 
 const visibility = (key: string) => LABEL_COLUMNS.find((column) => column.key === key)!.visibility;
 
-/** Ruta del detalle: los personalizados tienen la suya porque agrupan sellos. */
+/**
+ * Ruta del detalle. Los artísticos van por su id; los personalizados tienen su
+ * propia ruta, por nombre, porque agrupan sellos.
+ */
 function labelPath(item: LabelListItem): string {
-  const encoded = encodeURIComponent(item.name);
-  return item.isCustom ? `/panel/labels/custom/${encoded}` : `/panel/labels/${encoded}`;
+  return item.isCustom
+    ? `/panel/labels/custom/${encodeURIComponent(item.name)}`
+    : `/panel/labels/${encodeURIComponent(item.id)}`;
 }
 
 /**
@@ -86,19 +90,19 @@ export function LabelRow({ item, onCreateSplits, onEdit, onInvite, onDelete }: L
   return (
     <div
       onClick={() => navigate(to)}
-      className={`${labelsGrid(showToPay)} group cursor-pointer px-5 py-3 transition-colors hover:bg-[#F4F5F7]`}
+      className={`${labelsGrid(showToPay)} group cursor-pointer px-5 py-3 transition-colors hover:bg-white/[0.04]`}
     >
       {/* Sello */}
       <div className="flex min-w-0 items-center gap-3">
         <div
           className={`flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center rounded-[14px] ${
-            item.isCustom ? "bg-[#FF5C00]" : "bg-[#FFEADD]"
+            item.isCustom ? "bg-[#FF5C00]" : "bg-[#FF5C00]/[0.16]"
           }`}
         >
           {item.isCustom ? (
             <Layers className="h-[17px] w-[17px] text-white" />
           ) : (
-            <Tag className="h-[17px] w-[17px] text-[#FF5C00]" />
+            <Tag className="h-[17px] w-[17px] text-[#FF8A3D]" />
           )}
         </div>
 
@@ -108,12 +112,12 @@ export function LabelRow({ item, onCreateSplits, onEdit, onInvite, onDelete }: L
               to={to}
               onClick={(e) => e.stopPropagation()}
               title={item.name}
-              className="truncate text-[13.5px] font-semibold text-[#1C1D22] transition-colors group-hover:text-[#FF5C00]"
+              className="truncate text-[13.5px] font-semibold text-white transition-colors group-hover:text-[#FFB067]"
             >
               {item.name || "Sin sello"}
             </Link>
             {item.isCustom && (
-              <span className="flex-shrink-0 rounded-[10px] bg-[#FFEADD] px-[7px] py-px text-[10px] font-semibold text-[#FF5C00]">
+              <span className="flex-shrink-0 rounded-full bg-[#FF5C00]/[0.16] px-[7px] py-px text-[10px] font-semibold text-[#FF9A5C]">
                 Personalizado
               </span>
             )}
@@ -124,23 +128,23 @@ export function LabelRow({ item, onCreateSplits, onEdit, onInvite, onDelete }: L
 
       {/* Canciones */}
       <div className={visibility("songs")}>
-        <span className="font-mono text-[13px] font-semibold text-[#1C1D22]">
+        <span className="font-mono text-[13px] font-medium text-white">
           {item.songCount.toLocaleString()}
         </span>
       </div>
 
       {/* Cobertura de splits */}
       <div className={`${visibility("coverage")} min-w-0`}>
-        <SplitCoverageMeter coverage={coverage} className="w-full" />
+        <SplitCoverageMeter coverage={coverage} className="w-full" onGlass />
       </div>
 
       {/* Colaboradores: visible para todos */}
       <div className={visibility("collaborators")}>
         <span
           title={item.collaborators.map((person) => person.name ?? person.email).filter(Boolean).join(", ")}
-          className="flex items-center gap-1.5 font-mono text-[13px] font-semibold text-[#1C1D22]"
+          className="flex items-center gap-1.5 font-mono text-[13px] font-medium text-white"
         >
-          <Users className="h-3.5 w-3.5 text-[#A6AAB2]" />
+          <Users className="h-3.5 w-3.5 text-white/50" />
           {item.collaborators.length}
         </span>
       </div>
@@ -148,8 +152,8 @@ export function LabelRow({ item, onCreateSplits, onEdit, onInvite, onDelete }: L
       {/* Estado del split */}
       <div className={visibility("splitStatus")}>
         <span
-          className={`rounded-[10px] px-2 py-0.5 text-[11px] font-semibold ${
-            item.splitActive ? "bg-[#E4F5EC] text-[#2FB37E]" : "bg-[#F4F5F7] text-[#71757E]"
+          className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+            item.splitActive ? "bg-[#45D39A]/[0.12] text-[#45D39A]" : "bg-white/[0.08] text-white/65"
           }`}
         >
           {item.splitActive ? "Activo" : "Inactivo"}
@@ -158,14 +162,14 @@ export function LabelRow({ item, onCreateSplits, onEdit, onInvite, onDelete }: L
 
       {/* Ingresos */}
       <div className={visibility("income")}>
-        <span className="font-mono text-[13px] font-semibold text-[#2FB37E]">
+        <span className="font-mono text-[14px] text-[#45D39A]">
           {formatCurrency(item.totalNetIncome)}
         </span>
       </div>
 
       {/* Ganancia del owner */}
       <div className={visibility("owner")}>
-        <span className="font-mono text-[13px] font-semibold text-[#FF5C00]">
+        <span className="font-mono text-[14px] text-[#FF8A3D]">
           {formatCurrency(item.ownerEarnings)}
         </span>
       </div>
@@ -173,7 +177,7 @@ export function LabelRow({ item, onCreateSplits, onEdit, onInvite, onDelete }: L
       {/* Porcentaje del owner en el sello */}
       {showToPay && (
         <div className={visibility("ownerPct")}>
-          <span className="font-mono text-[13px] font-semibold text-[#1C1D22]">
+          <span className="font-mono text-[13px] font-medium text-white">
             {item.ownerPercentage === null ? "—" : `${formatPercentage(item.ownerPercentage)}%`}
           </span>
         </div>
@@ -182,7 +186,7 @@ export function LabelRow({ item, onCreateSplits, onEdit, onInvite, onDelete }: L
       {/* A pagar: solo el owner */}
       {showToPay && (
         <div className={visibility("toPay")}>
-          <span className="font-mono text-[13px] font-semibold text-[#1C1D22]">
+          <span className="font-mono text-[14px] text-white">
             {formatCurrency(item.totalToPay)}
           </span>
         </div>
@@ -193,7 +197,7 @@ export function LabelRow({ item, onCreateSplits, onEdit, onInvite, onDelete }: L
         {coverage.complete ? (
           <span
             title="Todas las canciones de este sello tienen split"
-            className="hidden items-center gap-1.5 rounded-2xl bg-[#E4F5EC] px-2.5 py-1.5 text-[11.5px] font-semibold text-[#2FB37E] sm:flex"
+            className="hidden items-center gap-1.5 rounded-full bg-[#45D39A]/[0.12] px-2.5 py-1.5 text-[11.5px] font-semibold text-[#45D39A] sm:flex"
           >
             <Check className="h-3 w-3" />
             Completo
@@ -202,15 +206,15 @@ export function LabelRow({ item, onCreateSplits, onEdit, onInvite, onDelete }: L
           <button
             onClick={() => onCreateSplits(item)}
             title={`Repartir las canciones de ${item.name}`}
-            className="hidden items-center gap-1.5 rounded-2xl bg-[#FFEADD] px-2.5 py-1.5 text-[11.5px] font-semibold text-[#FF5C00] transition-colors hover:bg-[#FF5C00] hover:text-white sm:flex"
+            className="hidden items-center gap-1.5 rounded-full border border-[#FF8A3D]/35 bg-[#FF5C00]/[0.16] px-2.5 py-1.5 text-[11.5px] font-semibold text-[#FF9A5C] transition-colors hover:bg-[#FF5C00]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 sm:flex"
           >
             <Plus className="h-3 w-3" />
             Crear splits
           </button>
         )}
 
-        <RowActionsMenu actions={actions} label={`Acciones de ${item.name}`} />
-        <ChevronRight className="hidden h-4 w-4 flex-shrink-0 text-[#A6AAB2] lg:block" />
+        <RowActionsMenu onGlass actions={actions} label={`Acciones de ${item.name}`} />
+        <ChevronRight className="hidden h-4 w-4 flex-shrink-0 text-white/40 lg:block" />
       </div>
     </div>
   );
@@ -224,14 +228,14 @@ function GroupedLabels({ item }: { item: LabelListItem }) {
   if (!item.isCustom) {
     const artist = item.source?.topSongs?.[0]?.artistName;
     return (
-      <span className="truncate text-[11px] text-[#A6AAB2]">
+      <span className="truncate text-[11px] text-white/50">
         {artist ?? `${item.songCount} ${item.songCount === 1 ? "canción" : "canciones"}`}
       </span>
     );
   }
 
   if (item.artisticLabels.length === 0) {
-    return <span className="truncate text-[11px] text-[#A6AAB2]">Sin sellos agrupados</span>;
+    return <span className="truncate text-[11px] text-white/50">Sin sellos agrupados</span>;
   }
 
   const shown = item.artisticLabels.slice(0, 2);
@@ -239,12 +243,12 @@ function GroupedLabels({ item }: { item: LabelListItem }) {
 
   return (
     <span className="flex min-w-0 items-center gap-1.5">
-      <span className="flex-shrink-0 text-[11px] text-[#A6AAB2]">Agrupa</span>
+      <span className="flex-shrink-0 text-[11px] text-white/50">Agrupa</span>
       {shown.map((name) => (
         <span
           key={name}
           title={name}
-          className="max-w-[110px] truncate rounded-[9px] bg-[#F4F5F7] px-[7px] py-px text-[10.5px] font-medium text-[#71757E]"
+          className="max-w-[110px] truncate rounded-full bg-white/[0.08] px-[7px] py-px text-[10.5px] font-medium text-white/70"
         >
           {name}
         </span>
@@ -252,7 +256,7 @@ function GroupedLabels({ item }: { item: LabelListItem }) {
       {rest > 0 && (
         <span
           title={item.artisticLabels.slice(2).join(", ")}
-          className="flex-shrink-0 font-mono text-[10.5px] font-medium text-[#A6AAB2]"
+          className="flex-shrink-0 font-mono text-[10.5px] font-medium text-white/50"
         >
           +{rest}
         </span>

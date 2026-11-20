@@ -37,6 +37,15 @@ interface DistributorRevenueChartProps {
 const CHART_HEIGHT = 230;
 
 /**
+ * El primer trimestre va en tinta, que sobre la noche desaparece: la barra
+ * conserva su color con un aro claro, y la cifra encima pasa a blanco.
+ */
+const INK = "#1C1D22";
+const inkRing = (color: string): React.CSSProperties | undefined =>
+  color === INK ? { boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.25)" } : undefined;
+const labelColor = (color: string) => (color === INK ? "rgba(255, 255, 255, 0.8)" : color);
+
+/**
  * Ingresos por periodo cargado.
  *
  * La diferencia con un gráfico de barras normal está en los huecos: si entre
@@ -53,25 +62,26 @@ export function DistributorRevenueChart({ periods }: DistributorRevenueChartProp
   const format = (value: number) => formatValue(value, metric);
 
   return (
-    <div className="flex flex-col gap-[18px] rounded-[26px] border border-[#E8E8EC] bg-white p-[26px] shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
+    <div className="glass flex flex-col gap-[18px] rounded-[32px] px-7 py-6">
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <div className="flex flex-col gap-0.5">
-          <h2 className="font-display text-lg font-semibold text-[#1C1D22]">
+          <h2 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">
             Ingresos por periodo
           </h2>
-          <p className="text-[12.5px] text-[#71757E]">
+          <p className="text-[12.5px] text-white/65">
             Cada reporte cargado, en orden cronológico
           </p>
         </div>
-        <div className="flex items-center gap-0.5 rounded-full bg-[#F4F5F7] p-[3px]">
+        <div className="flex items-center gap-0.5 rounded-full bg-black/[0.22] p-1">
           {METRICS.map((option) => (
             <button
               key={option.value}
               onClick={() => setMetric(option.value)}
-              className={`rounded-full px-3.5 py-1.5 font-mono text-[11px] font-semibold transition-colors ${
+              aria-pressed={metric === option.value}
+              className={`rounded-full px-3.5 py-1.5 text-[11.5px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
                 metric === option.value
-                  ? "bg-[#FF5C00] text-white"
-                  : "text-[#71757E] hover:text-[#1C1D22]"
+                  ? "bg-[#F7EDE6]/[0.92] font-semibold text-[#1C1D22]"
+                  : "font-medium text-white/80 hover:text-white"
               }`}
             >
               {option.label}
@@ -81,7 +91,7 @@ export function DistributorRevenueChart({ periods }: DistributorRevenueChartProp
       </div>
 
       {bars.length === 0 ? (
-        <div className="flex h-[200px] items-center justify-center text-[12.5px] text-[#A6AAB2]">
+        <div className="flex h-[200px] items-center justify-center text-[12.5px] text-white/50">
           Sin cargas registradas todavía
         </div>
       ) : (
@@ -93,7 +103,7 @@ export function DistributorRevenueChart({ periods }: DistributorRevenueChartProp
             aria-hidden="true"
           >
             {[1, 0.75, 0.5, 0.25, 0].map((step) => (
-              <span key={step} className="font-mono text-[9.5px] text-[#A6AAB2]">
+              <span key={step} className="font-mono text-[9.5px] text-white/50">
                 {step === 0 ? "0" : formatAxis(max * step, metric)}
               </span>
             ))}
@@ -105,7 +115,7 @@ export function DistributorRevenueChart({ periods }: DistributorRevenueChartProp
               {[0, 0.25, 0.5, 0.75, 1].map((step) => (
                 <span
                   key={step}
-                  className="absolute left-0 right-0 h-px bg-[#E8E8EC]"
+                  className="absolute left-0 right-0 h-px bg-white/[0.07]"
                   style={{ top: `${step * 100}%` }}
                   aria-hidden="true"
                 />
@@ -117,13 +127,13 @@ export function DistributorRevenueChart({ periods }: DistributorRevenueChartProp
                     <div
                       key={`gap-${index}`}
                       title={`${slot.label}: sin reporte cargado`}
-                      className="flex h-full min-w-[72px] flex-1 flex-col items-center justify-center gap-1.5 rounded-[10px] bg-[#FF5C00]/[0.06]"
+                      className="flex h-full min-w-[72px] flex-1 flex-col items-center justify-center gap-1.5 rounded-[10px] border border-dashed border-[#FF8A3D]/30 bg-[#FF5C00]/[0.08]"
                     >
-                      <CalendarOff className="h-4 w-4 text-[#EA580C]" />
-                      <span className="font-mono text-[9.5px] font-semibold tracking-[1px] text-[#EA580C]">
+                      <CalendarOff className="h-4 w-4 text-[#FF8A3D]" />
+                      <span className="font-mono text-[9.5px] font-semibold tracking-[1px] text-[#FF8A3D]">
                         {slot.label.toUpperCase()}
                       </span>
-                      <span className="text-[10px] text-[#A6AAB2]">sin datos</span>
+                      <span className="text-[10px] text-white/50">sin datos</span>
                     </div>
                   ) : (
                     <div
@@ -133,7 +143,7 @@ export function DistributorRevenueChart({ periods }: DistributorRevenueChartProp
                     >
                       <span
                         className="font-mono text-[10.5px] font-semibold"
-                        style={{ color: slot.color }}
+                        style={{ color: labelColor(slot.color) }}
                       >
                         {formatAxis(slot.value, metric)}
                       </span>
@@ -142,6 +152,7 @@ export function DistributorRevenueChart({ periods }: DistributorRevenueChartProp
                         style={{
                           height: Math.max(4, (slot.value / max) * (CHART_HEIGHT - 26)),
                           backgroundColor: slot.color,
+                          ...inkRing(slot.color),
                         }}
                       />
                     </div>
@@ -157,8 +168,8 @@ export function DistributorRevenueChart({ periods }: DistributorRevenueChartProp
                   key={`label-${index}`}
                   className={`flex-1 truncate text-center font-mono text-[10.5px] ${
                     slot.kind === "gap"
-                      ? "min-w-[72px] font-semibold text-[#EA580C]"
-                      : "min-w-[52px] font-medium text-[#71757E]"
+                      ? "min-w-[72px] font-semibold text-[#FF8A3D]"
+                      : "min-w-[52px] font-medium text-white/65"
                   }`}
                 >
                   {slot.kind === "gap"

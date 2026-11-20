@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { TriangleAlert, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/utils/format.utils";
-import { ModalShell, SecondaryButton, DistributorMark } from "@/components/ui/ModalShell";
+import {
+  ModalShell,
+  SecondaryButton,
+  DangerButton,
+  DistributorMark,
+} from "@/components/ui/ModalShell";
 import type { DistributorListItem } from "./types";
 
 interface DeleteDistributorDialogProps {
@@ -40,6 +45,7 @@ export function DeleteDistributorDialog({
     <ModalShell
       title="Eliminar distribuidor"
       subtitle="Esta acción no se puede deshacer"
+      onGlass
       locked={deleting}
       onClose={onClose}
       logo={
@@ -55,24 +61,22 @@ export function DeleteDistributorDialog({
           <SecondaryButton onClick={onClose} disabled={deleting}>
             Cancelar
           </SecondaryButton>
-          <button
-            type="button"
+          <DangerButton
             onClick={handleDelete}
             disabled={deleting}
-            className="flex items-center gap-2 rounded-[22px] bg-[#E5484D] px-[18px] py-2.5 text-[12.5px] font-semibold text-white transition-colors enabled:hover:bg-[#C93B40] disabled:opacity-60"
+            icon={<Trash2 className="h-[15px] w-[15px]" />}
           >
-            <Trash2 className="h-[15px] w-[15px]" />
             {deleting ? "Eliminando…" : "Eliminar"}
-          </button>
+          </DangerButton>
         </>
       }
     >
-      <p className="text-[13px] leading-relaxed text-[#1C1D22]">
-        Vas a eliminar <strong className="font-semibold">{distributor.name}</strong> y todo su
+      <p className="text-[13px] leading-relaxed text-white/80">
+        Vas a eliminar <strong className="font-semibold text-white">{distributor.name}</strong> y todo su
         historial de cargas.
       </p>
 
-      <ul className="flex flex-col gap-2 rounded-[18px] bg-[#FDECEC] p-4">
+      <ul className="flex flex-col gap-2 rounded-[18px] border border-[#E5484D]/30 bg-[#E5484D]/[0.12] p-4">
         <Impact label="Cargas registradas" value={(kpi?.uploadCount ?? 0).toLocaleString()} />
         <Impact label="Canciones asociadas" value={(kpi?.songsCount ?? 0).toLocaleString()} />
         <Impact
@@ -81,13 +85,13 @@ export function DeleteDistributorDialog({
         />
       </ul>
 
-      <p className="flex items-start gap-2.5 text-[11.5px] leading-relaxed text-[#71757E]">
-        <TriangleAlert className="mt-px h-3.5 w-3.5 flex-shrink-0 text-[#E5484D]" />
+      <p className="flex items-start gap-2.5 text-[11.5px] leading-relaxed text-white/65">
+        <TriangleAlert className="mt-px h-3.5 w-3.5 flex-shrink-0 text-[#FF8F92]" />
         Las canciones seguirán en tu catálogo, pero perderán los ingresos que aportaba este
         distribuidor.
       </p>
 
-      {error && <p className="text-[12px] font-medium text-[#E5484D]">{error}</p>}
+      {error && <p className="text-[12px] font-medium text-[#FF8F92]">{error}</p>}
     </ModalShell>
   );
 }
@@ -95,8 +99,8 @@ export function DeleteDistributorDialog({
 function Impact({ label, value }: { label: string; value: string }) {
   return (
     <li className="flex items-center justify-between gap-4">
-      <span className="text-[12px] text-[#71757E]">{label}</span>
-      <span className="font-mono text-[12.5px] font-semibold text-[#1C1D22]">{value}</span>
+      <span className="text-[12px] text-white/65">{label}</span>
+      <span className="font-mono text-[13px] text-white">{value}</span>
     </li>
   );
 }

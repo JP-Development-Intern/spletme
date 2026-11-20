@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, LogOut, ShieldCheck, CircleAlert, Lock } from "lucide-react";
+import { LogOut, ShieldCheck, CircleAlert } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch } from "react-redux";
 import ProfessionStep from "./steps/ProfessionStep";
@@ -10,7 +10,7 @@ import CompletionStep from "./steps/CompletionStep";
 import { OnboardingService, OnboardingData } from "../../services/onboarding";
 import { setAuth } from "@/store/states/authSlice";
 import { AuthService } from "@/services/auth";
-import { SplitmeLogo } from "@/components/brand/SplitmeLogo";
+import { AuthShell } from "@/components/auth/AuthShell";
 
 const TOTAL_STEPS = 4;
 
@@ -26,7 +26,10 @@ const ROADMAP = [
   { name: "Listo", detail: "Entra al panel" },
 ];
 
-/** Titular y explicación del panel lateral en cada paso. */
+/**
+ * Por qué se pide lo de cada paso. El titular viejo del panel lateral ya no se
+ * usa: cada paso trae su propio título dentro de la tarjeta.
+ */
 const STEP_COPY: Record<number, { headline: string; noteTitle: string; noteText: string }> = {
   1: {
     headline: "Cuéntanos a qué te dedicas.",
@@ -190,128 +193,87 @@ const OnboardingContainer = () => {
   const copy = STEP_COPY[currentStep];
 
   return (
-    <div className="flex min-h-screen bg-white">
-      {/* Paso actual */}
-      <div className="flex w-full flex-col justify-between gap-8 px-6 py-8 sm:px-12 lg:w-[560px] lg:flex-shrink-0 lg:px-16 lg:py-10">
-        <div className="flex flex-col gap-5">
-          <div className="flex items-center justify-between gap-4">
-            <SplitmeLogo className="h-[34px] text-[#1C1D22]" />
-            <button
-              onClick={() => AuthService.logout()}
-              className="flex items-center gap-1.5 rounded-2xl px-3 py-1.5 text-[12.5px] font-medium text-[#A6AAB2] transition-colors hover:bg-[#F4F5F7] hover:text-[#1C1D22] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5C00]"
-            >
-              <LogOut className="h-[15px] w-[15px]" />
-              Cerrar sesión
-            </button>
-          </div>
-
-          {/* Progreso compacto: sustituye al mapa lateral en pantallas pequeñas */}
-          <div className="flex flex-col gap-2 lg:hidden">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] font-medium tracking-[1.3px] text-[#A6AAB2]">
-                PASO {roadmapPosition} DE {ROADMAP.length}
-              </span>
-              <span className="text-[12px] font-semibold text-[#1C1D22]">
-                {ROADMAP[roadmapPosition - 1].name}
-              </span>
-            </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#F4F5F7]">
-              <div
-                className="h-full rounded-full bg-[#FF5C00] transition-all"
-                style={{ width: `${(roadmapPosition / ROADMAP.length) * 100}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          {onboardingError && (
-            <p
-              role="alert"
-              className="flex items-center gap-2 rounded-[14px] bg-[#FDECEC] px-3.5 py-2.5 text-[12px] leading-snug text-[#E5484D]"
-            >
-              <CircleAlert className="h-4 w-4 flex-shrink-0" />
-              {onboardingError}
-            </p>
-          )}
-
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentStep}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.25 }}
-            >
-              {stepComponents[currentStep]}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Lock className="h-3 w-3 text-[#A6AAB2]" />
-          <span className="text-[11.5px] text-[#A6AAB2]">
-            Tus datos se guardan cifrados y nunca se comparten.
-          </span>
-        </div>
-      </div>
-
-      {/* Mapa del recorrido */}
-      <aside className="hidden flex-1 flex-col justify-center gap-8 bg-[#101114] px-[72px] lg:flex">
-        <div className="flex flex-col gap-3">
-          <span className="font-mono text-[10px] font-medium tracking-[1.4px] text-[#FF5C00]">
+    <AuthShell
+      // Los datos van a dos columnas: la tarjeta se ensancha solo en ese paso.
+      wide={currentStep === 2}
+      belowCard={
+        <button
+          onClick={() => AuthService.logout()}
+          className="glass-control flex min-h-[40px] items-center gap-1.5 rounded-full px-4 text-[12.5px] font-medium text-white/75 transition-colors hover:bg-white/[0.12] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
+        >
+          <LogOut className="h-[15px] w-[15px]" />
+          Cerrar sesión
+        </button>
+      }
+    >
+      {/*
+        Progreso: sustituye al mapa lateral. Un tramo por punto del recorrido,
+        incluido «Crea tu cuenta», que ya está hecho, para que se vea el camino
+        entero y no solo lo que falta.
+      */}
+      <div className="flex w-full flex-col gap-2">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="font-mono text-[10.5px] font-medium tracking-[1.3px] text-[#FFB48A]">
             PASO {roadmapPosition} DE {ROADMAP.length}
           </span>
-          <h2 className="max-w-[620px] font-display text-[34px] font-semibold leading-[1.18] text-white">
-            {copy.headline}
-          </h2>
+          <span className="truncate text-[12px] text-white/60">
+            {roadmapPosition < ROADMAP.length ? `Después: ${ROADMAP[roadmapPosition].name}` : "Último paso"}
+          </span>
         </div>
-
-        <ol className="flex flex-col">
+        <ol className="grid grid-cols-5 gap-1.5" aria-label="Recorrido del alta">
           {ROADMAP.map((step, index) => {
             const position = index + 1;
-            const done = position < roadmapPosition;
-            const current = position === roadmapPosition;
+            const state = position < roadmapPosition ? "hecho" : position === roadmapPosition ? "actual" : "pendiente";
             return (
-              <li key={step.name} className="flex flex-col">
-                {index > 0 && <span className="ml-[15px] h-[18px] w-0.5 bg-white/10" />}
-                <div className="flex items-center gap-3.5">
-                  <span
-                    className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full font-mono text-[12px] font-semibold ${
-                      done
-                        ? "bg-[#2FB37E] text-white"
-                        : current
-                          ? "bg-[#FF5C00] text-white"
-                          : "border-[1.5px] border-white/15 text-white/40"
-                    }`}
-                  >
-                    {done ? <Check className="h-[15px] w-[15px]" /> : position}
-                  </span>
-                  <span className="flex flex-col">
-                    <span
-                      className={`text-[14px] font-semibold ${current ? "text-white" : done ? "text-white/80" : "text-white/50"}`}
-                    >
-                      {step.name}
-                    </span>
-                    <span className={`text-[12px] ${current ? "text-white/60" : "text-white/30"}`}>
-                      {step.detail}
-                    </span>
-                  </span>
-                </div>
+              <li
+                key={step.name}
+                title={step.name}
+                aria-current={state === "actual" ? "step" : undefined}
+                className={`h-1.5 rounded-full ${
+                  state === "pendiente" ? "bg-white/[0.12]" : state === "actual" ? "bg-[#FF5C00]" : "bg-[#FF8A3D]/60"
+                }`}
+              >
+                <span className="sr-only">
+                  {step.name}: {state}
+                </span>
               </li>
             );
           })}
         </ol>
+      </div>
 
-        <div className="flex max-w-[620px] items-start gap-3.5 rounded-[20px] border border-white/10 bg-white/[0.05] p-[18px]">
-          <ShieldCheck className="h-[18px] w-[18px] flex-shrink-0 text-[#FF5C00]" />
-          <div className="flex flex-col gap-1">
-            <span className="text-[13px] font-semibold text-white">{copy.noteTitle}</span>
-            <span className="text-[12px] leading-relaxed text-white/60">{copy.noteText}</span>
-          </div>
+      {onboardingError && (
+        <p
+          role="alert"
+          className="flex w-full items-center gap-2 rounded-[14px] bg-[#E5484D]/[0.16] px-3.5 py-2.5 text-[12px] leading-snug text-[#FFB3B5]"
+        >
+          <CircleAlert className="h-4 w-4 flex-shrink-0" />
+          {onboardingError}
+        </p>
+      )}
+
+      {/* La transición anima un envoltorio DENTRO del vidrio, nunca uno que lo contenga. */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentStep}
+          className="w-full"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.25 }}
+        >
+          {stepComponents[currentStep]}
+        </motion.div>
+      </AnimatePresence>
+
+      <div className="flex w-full items-start gap-3 rounded-[18px] bg-white/[0.05] px-4 py-3.5">
+        <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#FF8A3D]" />
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[12.5px] font-semibold text-white">{copy.noteTitle}</span>
+          <span className="text-[12px] leading-relaxed text-white/60">{copy.noteText}</span>
         </div>
-      </aside>
-    </div>
+      </div>
+    </AuthShell>
   );
 };
 

@@ -6,8 +6,6 @@ import type { SongAlbum } from "@/types/music.types";
 interface SongAlbumsBreakdownProps {
   albums: SongAlbum[];
   loading?: boolean;
-  /** Sobre el vidrio oscuro del listado; la cabecera del detalle sigue en claro. */
-  onGlass?: boolean;
 }
 
 /** Escala monocroma: el reparto del split ya usa un color por persona. */
@@ -15,32 +13,18 @@ const SHADES = ["#FF5C00", "#FF9257", "#FFC3A3"];
 /** El gris está reservado a lo que no se sabe atribuir. */
 const UNKNOWN = "#A6AAB2";
 
-/** Los mismos papeles de color en la hoja clara y sobre el vidrio. */
-const TONES = {
-  light: {
-    skeletonDot: "bg-[#E8E8EC]",
-    skeleton: "bg-[#F4F5F7]",
-    empty: "text-[#A6AAB2]",
-    hover: "hover:bg-[#F4F5F7]",
-    title: "text-[#1C1D22]",
-    meta: "text-[#71757E]",
-    money: "text-[12.5px] font-semibold text-[#1C1D22]",
-    muted: "text-[#71757E]",
-    faint: "text-[#A6AAB2]",
-    unknownRow: "",
-  },
-  glass: {
-    skeletonDot: "bg-white/20",
-    skeleton: "bg-white/[0.08]",
-    empty: "text-white/50",
-    hover: "hover:bg-white/[0.06]",
-    title: "text-white",
-    meta: "text-white/50",
-    money: "font-mono text-[13.5px] text-[#45D39A]",
-    muted: "text-white/65",
-    faint: "text-white/50",
-    unknownRow: "bg-white/[0.03]",
-  },
+/** Papeles de color sobre el vidrio. */
+const t = {
+  skeletonDot: "bg-white/20",
+  skeleton: "bg-white/[0.08]",
+  empty: "text-white/50",
+  hover: "hover:bg-white/[0.06]",
+  title: "text-white",
+  meta: "text-white/50",
+  money: "font-mono text-[13.5px] text-[#45D39A]",
+  muted: "text-white/65",
+  faint: "text-white/50",
+  unknownRow: "bg-white/[0.03]",
 };
 
 /**
@@ -49,8 +33,7 @@ const TONES = {
  * Es el contenido del desplegable, compartido por la cabecera del detalle y la
  * tabla de canciones: si el desglose cambia, cambia en los dos sitios a la vez.
  */
-export function SongAlbumsBreakdown({ albums, loading, onGlass = false }: SongAlbumsBreakdownProps) {
-  const t = onGlass ? TONES.glass : TONES.light;
+export function SongAlbumsBreakdown({ albums, loading }: SongAlbumsBreakdownProps) {
   const identified = albums.filter((album) => Boolean(album.albumId));
   const unknown = albums.find((album) => !album.albumId);
   const total = albums.reduce((sum, album) => sum + (album.netIncome ?? 0), 0);

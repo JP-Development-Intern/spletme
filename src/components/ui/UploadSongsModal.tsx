@@ -268,13 +268,14 @@ export default function UploadSongsModal({
           converts && rate !== null ? ` · 1 € = $${formatRate(rate)}` : ""
         }`}
         width="lg"
+        onGlass
         locked={busy}
         onClose={onClose}
         logo={<DistributorMark name={distributorName} logo={distributorLogo} size={36} />}
         footer={
           done ? (
             <>
-              <span className="flex-1 text-[11px] text-[#A6AAB2]">
+              <span className="flex-1 text-[11px] text-white/50">
                 Los datos del distribuidor ya están actualizados
               </span>
               <PrimaryButton
@@ -286,7 +287,7 @@ export default function UploadSongsModal({
             </>
           ) : (
             <>
-              <span className="flex-1 text-[11px] text-[#A6AAB2]">
+              <span className="flex-1 text-[11px] text-white/50">
                 Puedes cerrar esta ventana: el proceso sigue en el servidor.
               </span>
               <SecondaryButton onClick={onClose}>Seguir en segundo plano</SecondaryButton>
@@ -299,12 +300,12 @@ export default function UploadSongsModal({
         {phase === "uploading" && (
           <>
             <Phase title="Subiendo archivo" value={`${progress}%`} percent={progress} />
-            <div className="flex items-center gap-2.5 rounded-[14px] bg-[#F4F5F7] px-3.5 py-3">
-              <FileSpreadsheet className="h-[15px] w-[15px] flex-shrink-0 text-[#71757E]" />
-              <span className="flex-1 truncate font-mono text-[11px] text-[#71757E]">
+            <div className="flex items-center gap-2.5 rounded-[14px] bg-white/[0.06] px-3.5 py-3">
+              <FileSpreadsheet className="h-[15px] w-[15px] flex-shrink-0 text-white/65" />
+              <span className="flex-1 truncate font-mono text-[11px] text-white/80">
                 {file?.name}
               </span>
-              <span className="flex-shrink-0 font-mono text-[10.5px] text-[#A6AAB2]">
+              <span className="flex-shrink-0 font-mono text-[10.5px] text-white/50">
                 {formatSize(file?.size ?? 0)}
               </span>
             </div>
@@ -319,11 +320,11 @@ export default function UploadSongsModal({
               percent={processingProgress}
             />
             <div className="grid grid-cols-2 gap-2.5">
-              <LiveMetric label="PROCESADAS" value={liveProcessed} color="#2FB37E" />
-              <LiveMetric label="OMITIDAS" value={liveRejected} color="#E5484D" />
+              <LiveMetric label="PROCESADAS" value={liveProcessed} color="#45D39A" />
+              <LiveMetric label="OMITIDAS" value={liveRejected} color="#FF8F92" />
             </div>
-            <p className="flex items-start gap-2.5 rounded-[14px] bg-[#FFEADD] px-3.5 py-3 text-[11px] leading-relaxed text-[#EA580C]">
-              <CircleAlert className="mt-px h-3.5 w-3.5 flex-shrink-0 text-[#FF5C00]" />
+            <p className="flex items-start gap-2.5 rounded-[14px] border border-[#FF8A3D]/30 bg-[#FF5C00]/[0.14] px-3.5 py-3 text-[11px] leading-relaxed text-[#FFB48A]">
+              <CircleAlert className="mt-px h-3.5 w-3.5 flex-shrink-0 text-[#FF8A3D]" />
               Puedes cerrar esta ventana: el reporte se sigue procesando en el servidor.
             </p>
           </>
@@ -352,11 +353,12 @@ export default function UploadSongsModal({
           existingUploads.length === 1 ? "reporte cargado" : "reportes cargados"
         }`}
         width="lg"
+        onGlass
         onClose={onClose}
         logo={<DistributorMark name={distributorName} logo={distributorLogo} />}
         footer={
           <>
-            <span className="flex-1 text-[11px] text-[#A6AAB2]">
+            <span className="flex-1 text-[11px] text-white/50">
               Los ISRC ya registrados por otro usuario se omiten
             </span>
             <SecondaryButton onClick={onClose}>Cancelar</SecondaryButton>
@@ -376,7 +378,7 @@ export default function UploadSongsModal({
             <FieldLabel required invalid={Boolean(overlapping)}>
               PERIODO DEL REPORTE
             </FieldLabel>
-            <div className="flex items-center gap-0.5 rounded-2xl bg-[#F4F5F7] p-0.5">
+            <div className="flex items-center gap-0.5 rounded-full bg-black/[0.22] p-1">
               {YEARS.map((y) => (
                 <button
                   key={y}
@@ -385,8 +387,8 @@ export default function UploadSongsModal({
                     setYear(y);
                     setAnchor(null);
                   }}
-                  className={`rounded-[13px] px-2.5 py-1.5 font-mono text-[10.5px] font-semibold transition-colors ${
-                    y === year ? "bg-[#FF5C00] text-white" : "text-[#71757E] hover:text-[#1C1D22]"
+                  className={`rounded-full px-2.5 py-1.5 font-mono text-[10.5px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
+                    y === year ? "bg-[#F7EDE6]/[0.92] text-[#1C1D22]" : "text-white/70 hover:text-white"
                   }`}
                 >
                   {y}
@@ -417,38 +419,38 @@ export default function UploadSongsModal({
                       : `${MONTH_NAMES[index]} ${year}`
                   }
                   className={[
-                    "flex h-14 flex-1 flex-col items-center justify-center gap-1 rounded-[13px] transition-colors",
+                    "flex h-14 flex-1 flex-col items-center justify-center gap-1 rounded-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70",
                     conflict
-                      ? "border-[1.5px] border-[#E5484D] bg-[#FDECEC]"
+                      ? "border-[1.5px] border-[#FF8F92] bg-[#E5484D]/[0.14]"
                       : selected
                         ? "bg-[#FF5C00]"
                         : taken
-                          ? "cursor-not-allowed border border-[#E8E8EC] bg-[#F4F5F7]"
-                          : "border border-[#E8E8EC] bg-white hover:border-[#FF5C00]",
-                    isAnchor && !conflict ? "ring-[3px] ring-[#FF5C00]/25" : "",
+                          ? "cursor-not-allowed border border-white/[0.06] bg-black/[0.18]"
+                          : "border border-white/[0.12] bg-white/[0.06] hover:border-[#FF8A3D]/60 hover:bg-white/[0.10]",
+                    isAnchor && !conflict ? "ring-[3px] ring-[#FF8A3D]/40" : "",
                   ].join(" ")}
                 >
                   <span
                     className={`font-mono text-[10.5px] font-semibold ${
                       conflict
-                        ? "text-[#E5484D]"
+                        ? "text-[#FF8F92]"
                         : selected
                           ? "text-white"
                           : taken
-                            ? "text-[#A6AAB2]"
-                            : "text-[#1C1D22]"
+                            ? "text-white/35"
+                            : "text-white"
                     }`}
                   >
                     {short}
                   </span>
                   {conflict ? (
-                    <CircleAlert className="h-3 w-3 text-[#E5484D]" />
+                    <CircleAlert className="h-3 w-3 text-[#FF8F92]" />
                   ) : taken ? (
-                    <Lock className="h-3 w-3 text-[#A6AAB2]" />
+                    <Lock className="h-3 w-3 text-white/35" />
                   ) : (
                     <span
                       className={`h-[5px] w-[5px] rounded-full ${
-                        selected ? "bg-white/40" : "bg-[#E8E8EC]"
+                        selected ? "bg-white/40" : "bg-white/20"
                       }`}
                     />
                   )}
@@ -467,10 +469,10 @@ export default function UploadSongsModal({
                   type="button"
                   disabled={blocked}
                   onClick={() => applyPreset(preset)}
-                  className={`rounded-[14px] border px-2.5 py-1.5 text-[11px] transition-colors ${
+                  className={`rounded-full border px-2.5 py-1.5 text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
                     active
-                      ? "border-[#FF5C00] bg-[#FFEADD] font-semibold text-[#FF5C00]"
-                      : "border-[#E8E8EC] bg-white font-medium text-[#71757E] enabled:hover:border-[#D9DAE0]"
+                      ? "border-[#FF8A3D] bg-[#FF5C00]/[0.16] font-semibold text-[#FFB48A]"
+                      : "border-white/[0.12] bg-white/[0.06] font-medium text-white/70 enabled:hover:bg-white/[0.10] enabled:hover:text-white"
                   } disabled:cursor-not-allowed disabled:opacity-45`}
                   title={blocked ? "Todos sus meses ya están cargados" : undefined}
                 >
@@ -478,7 +480,7 @@ export default function UploadSongsModal({
                 </button>
               );
             })}
-            <span className="ml-auto text-[10.5px] text-[#A6AAB2]">
+            <span className="ml-auto text-[10.5px] text-white/50">
               {anchor === null
                 ? "Pulsa un mes y luego otro para marcar el rango"
                 : `Desde ${MONTH_NAMES[anchor - 1]}… elige el mes final`}
@@ -502,39 +504,39 @@ export default function UploadSongsModal({
               setDragging(false);
               acceptFile(e.dataTransfer.files?.[0] ?? null);
             }}
-            className={`flex w-full items-center gap-3 rounded-[18px] px-4 py-4 transition-colors ${
+            className={`flex w-full items-center gap-3 rounded-[18px] px-4 py-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
               file
-                ? "border-[1.5px] border-[#2FB37E] bg-[#E4F5EC]"
+                ? "border-[1.5px] border-[#45D39A]/60 bg-[#45D39A]/[0.10]"
                 : dragging
-                  ? "border-[1.5px] border-dashed border-[#FF5C00] bg-[#FFEADD]"
-                  : "border-[1.5px] border-dashed border-[#E8E8EC] bg-white hover:border-[#FF5C00] hover:bg-[#FFEADD]/40"
+                  ? "border-[1.5px] border-dashed border-[#FF8A3D] bg-[#FF5C00]/[0.14]"
+                  : "border-[1.5px] border-dashed border-white/25 bg-white/[0.04] hover:border-[#FF8A3D] hover:bg-[#FF5C00]/[0.08]"
             }`}
           >
             <span
               className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[13px] ${
-                file ? "bg-white" : "bg-[#F4F5F7]"
+                file ? "bg-[#45D39A]/[0.16]" : "bg-white/[0.08]"
               }`}
             >
               {file ? (
-                <FileSpreadsheet className="h-[19px] w-[19px] text-[#2FB37E]" />
+                <FileSpreadsheet className="h-[19px] w-[19px] text-[#45D39A]" />
               ) : (
-                <Upload className="h-[19px] w-[19px] text-[#A6AAB2]" />
+                <Upload className="h-[19px] w-[19px] text-white/60" />
               )}
             </span>
             <span className="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
               <span
                 className={`truncate text-[12.5px] font-semibold ${
-                  file ? "font-mono text-[#1C1D22]" : "text-[#71757E]"
+                  file ? "font-mono text-white" : "text-white/80"
                 }`}
               >
                 {file ? file.name : "Arrastra el archivo o pulsa para elegirlo"}
               </span>
-              <span className={`text-[11px] ${file ? "text-[#2FB37E]" : "text-[#A6AAB2]"}`}>
+              <span className={`text-[11px] ${file ? "text-[#45D39A]" : "text-white/50"}`}>
                 {file ? formatSize(file.size) : "CSV, XLSX o XLS"}
               </span>
             </span>
             {file && (
-              <span className="flex-shrink-0 rounded-[14px] bg-white px-3 py-1.5 text-[11.5px] font-semibold text-[#71757E]">
+              <span className="flex-shrink-0 rounded-full bg-white/[0.10] px-3 py-1.5 text-[11.5px] font-semibold text-white/80">
                 Cambiar
               </span>
             )}
@@ -571,8 +573,8 @@ export default function UploadSongsModal({
               showError={rateTouched}
             />
           ) : (
-            <p className="flex items-start gap-2.5 rounded-[14px] bg-[#F4F5F7] px-3.5 py-3 text-[11px] leading-relaxed text-[#71757E]">
-              <CircleCheck className="mt-px h-3.5 w-3.5 flex-shrink-0 text-[#A6AAB2]" />
+            <p className="flex items-start gap-2.5 rounded-[14px] bg-white/[0.06] px-3.5 py-3 text-[11px] leading-relaxed text-white/65">
+              <CircleCheck className="mt-px h-3.5 w-3.5 flex-shrink-0 text-white/50" />
               El archivo ya viene en dólares: sus importes se guardan tal cual.
             </p>
           )}
@@ -580,15 +582,15 @@ export default function UploadSongsModal({
 
         {/* Resumen o conflicto */}
         {overlapping ? (
-          <div className="flex flex-col gap-3 rounded-[18px] bg-[#FDECEC] p-4">
+          <div className="flex flex-col gap-3 rounded-[18px] border border-[#E5484D]/30 bg-[#E5484D]/[0.14] p-4">
             <span className="flex items-center gap-2.5">
-              <CircleAlert className="h-[15px] w-[15px] flex-shrink-0 text-[#E5484D]" />
-              <span className="text-[12.5px] font-semibold text-[#E5484D]">
+              <CircleAlert className="h-[15px] w-[15px] flex-shrink-0 text-[#FF8F92]" />
+              <span className="text-[12.5px] font-semibold text-[#FF8F92]">
                 {conflictingMonths.map((m) => MONTH_SHORT_NAMES[m - 1]).join(", ")} ya{" "}
                 {conflictingMonths.length === 1 ? "está cubierto" : "están cubiertos"}
               </span>
             </span>
-            <span className="text-[11px] leading-relaxed text-[#E5484D]">
+            <span className="text-[11px] leading-relaxed text-white/75">
               El reporte «{formatUploadPeriod(overlapping)}» ya incluye esos meses. Cada mes solo
               puede pertenecer a una carga.
             </span>
@@ -596,34 +598,34 @@ export default function UploadSongsModal({
               <button
                 type="button"
                 onClick={() => applyPreset(suggestedRange)}
-                className="self-start rounded-[13px] bg-[#E5484D] px-3.5 py-2 text-[11.5px] font-semibold text-white transition-colors hover:bg-[#C93B40]"
+                className="self-start rounded-full bg-[#E5484D] px-3.5 py-2 text-[11.5px] font-semibold text-white transition-colors hover:bg-[#C93B40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
               >
                 Ajustar a {formatMonthRange(suggestedRange)}
               </button>
             )}
           </div>
         ) : (
-          <div className="flex items-center gap-3 rounded-[18px] bg-[#FFEADD] p-4">
-            <CalendarCheck className="h-[17px] w-[17px] flex-shrink-0 text-[#FF5C00]" />
+          <div className="flex items-center gap-3 rounded-[18px] border border-[#FF8A3D]/30 bg-[#FF5C00]/[0.14] p-4">
+            <CalendarCheck className="h-[17px] w-[17px] flex-shrink-0 text-[#FF8A3D]" />
             <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="text-[12.5px] font-semibold text-[#EA580C]">
+              <span className="text-[12.5px] font-semibold text-[#FFB48A]">
                 {periodLabel} · {months} {months === 1 ? "mes" : "meses"}
               </span>
-              <span className="text-[11px] text-[#EA580C]">
+              <span className="text-[11px] text-white/65">
                 No se solapa con ninguna carga anterior de {distributorName}.
               </span>
               {converts && rate !== null && !rateError && (
-                <span className="text-[11px] text-[#EA580C]">
+                <span className="text-[11px] text-white/65">
                   Importes convertidos a dólares · 1 € = ${formatRate(rate)}
                 </span>
               )}
             </span>
-            <CircleCheck className="h-[17px] w-[17px] flex-shrink-0 text-[#FF5C00]" />
+            <CircleCheck className="h-[17px] w-[17px] flex-shrink-0 text-[#FF8A3D]" />
           </div>
         )}
 
         {error && (
-          <p className="flex items-center gap-1.5 text-[12px] font-medium text-[#E5484D]">
+          <p className="flex items-center gap-1.5 text-[12px] font-medium text-[#FF8F92]">
             <TriangleAlert className="h-3.5 w-3.5 flex-shrink-0" />
             {error}
           </p>
@@ -670,12 +672,14 @@ function ExchangeRateField({
   return (
     <div
       className={`flex flex-col gap-3 rounded-[18px] border p-4 transition-colors ${
-        alerting ? "border-[1.5px] border-[#E5484D] bg-[#FDECEC]" : "border-[#E8E8EC] bg-white"
+        alerting
+          ? "border-[1.5px] border-[#FF8F92] bg-[#E5484D]/[0.12]"
+          : "border-white/[0.12] bg-white/[0.04]"
       }`}
     >
       <label htmlFor={inputId} className="flex items-center gap-2">
         <ArrowLeftRight
-          className={`h-3.5 w-3.5 flex-shrink-0 ${alerting ? "text-[#E5484D]" : "text-[#FF5C00]"}`}
+          className={`h-3.5 w-3.5 flex-shrink-0 ${alerting ? "text-[#FF8F92]" : "text-[#FF8A3D]"}`}
         />
         <FieldLabel required invalid={alerting}>
           TIPO DE CAMBIO DEL REPORTE
@@ -684,15 +688,15 @@ function ExchangeRateField({
 
       {/* La igualdad completa: lo que se teclea es sólo su lado derecho. */}
       <div className="flex items-center gap-2.5">
-        <span className="flex h-11 flex-shrink-0 items-center gap-1.5 rounded-[14px] bg-[#F4F5F7] px-3.5 font-mono text-[13px] font-semibold text-[#1C1D22]">
+        <span className="flex h-11 flex-shrink-0 items-center gap-1.5 rounded-[14px] bg-white/[0.08] px-3.5 font-mono text-[13px] font-semibold text-white">
           1 €
         </span>
-        <span className="flex-shrink-0 font-mono text-[15px] text-[#A6AAB2]">=</span>
+        <span className="flex-shrink-0 font-mono text-[15px] text-white/50">=</span>
         <span
-          className={`flex h-11 min-w-0 flex-1 items-center rounded-[14px] border bg-white px-3.5 transition-colors focus-within:ring-[3px] ${
+          className={`flex h-11 min-w-0 flex-1 items-center rounded-[14px] border bg-white/[0.06] px-3.5 transition-colors focus-within:ring-[3px] ${
             alerting
-              ? "border-[1.5px] border-[#E5484D] focus-within:ring-[#E5484D]/15"
-              : "border-[#E8E8EC] focus-within:border-[#FF5C00] focus-within:ring-[#FF5C00]/15"
+              ? "border-[1.5px] border-[#FF8F92] focus-within:ring-[#E5484D]/25"
+              : "border-white/[0.14] focus-within:border-[#FF8A3D] focus-within:ring-[#FF5C00]/25"
           }`}
         >
           <input
@@ -705,9 +709,9 @@ function ExchangeRateField({
             placeholder="1,0842"
             aria-describedby={helperId}
             aria-invalid={Boolean(error)}
-            className="min-w-0 flex-1 bg-transparent font-mono text-[13px] font-semibold text-[#1C1D22] placeholder:font-normal placeholder:text-[#A6AAB2] focus:outline-none"
+            className="min-w-0 flex-1 border-none bg-transparent p-0 font-mono text-[13px] font-semibold text-white placeholder:font-normal placeholder:text-white/40 focus:outline-none focus:ring-0"
           />
-          <span className="flex-shrink-0 pl-2 font-mono text-[11.5px] font-semibold text-[#A6AAB2]">
+          <span className="flex-shrink-0 pl-2 font-mono text-[11.5px] font-semibold text-white/50">
             USD
           </span>
         </span>
@@ -716,7 +720,7 @@ function ExchangeRateField({
       <p
         id={helperId}
         className={`flex items-start gap-2 text-[11px] leading-relaxed ${
-          alerting ? "font-medium text-[#E5484D]" : "text-[#71757E]"
+          alerting ? "font-medium text-[#FF8F92]" : "text-white/65"
         }`}
       >
         {alerting ? (
@@ -726,14 +730,14 @@ function ExchangeRateField({
           </>
         ) : valid ? (
           <>
-            <CircleCheck className="mt-px h-3.5 w-3.5 flex-shrink-0 text-[#2FB37E]" />
+            <CircleCheck className="mt-px h-3.5 w-3.5 flex-shrink-0 text-[#45D39A]" />
             <span>
               Un ingreso de{" "}
-              <span className="font-mono font-semibold text-[#1C1D22]">
+              <span className="font-mono font-semibold text-white">
                 {formatMoney(RATE_SAMPLE, "EUR")}
               </span>{" "}
               del reporte se guardará como{" "}
-              <span className="font-mono font-semibold text-[#2FB37E]">
+              <span className="font-mono font-semibold text-[#45D39A]">
                 {formatCurrency(RATE_SAMPLE * (rate as number))}
               </span>
               .
@@ -795,7 +799,7 @@ function Steps({ phase }: { phase: UploadPhase }) {
           <div key={step.label} className="flex flex-1 items-center last:flex-none">
             {index > 0 && (
               <span
-                className={`mx-1 h-0.5 flex-1 ${index <= active ? "bg-[#FF5C00]" : "bg-[#E8E8EC]"}`}
+                className={`mx-1 h-0.5 flex-1 ${index <= active ? "bg-[#FF5C00]" : "bg-white/[0.12]"}`}
               />
             )}
             <span className="flex flex-shrink-0 items-center gap-2">
@@ -804,15 +808,15 @@ function Steps({ phase }: { phase: UploadPhase }) {
                   done
                     ? "bg-[#FF5C00] text-white"
                     : current
-                      ? "border-[1.5px] border-[#FF5C00] bg-[#FFEADD] text-[#FF5C00]"
-                      : "bg-[#F4F5F7] text-[#A6AAB2]"
+                      ? "border-[1.5px] border-[#FF8A3D] bg-[#FF5C00]/[0.16] text-[#FF8A3D]"
+                      : "bg-white/[0.08] text-white/50"
                 }`}
               >
                 {done ? <Check className="h-3.5 w-3.5" /> : step.icon}
               </span>
               <span
                 className={`text-[11.5px] ${
-                  done || current ? "font-semibold text-[#1C1D22]" : "text-[#A6AAB2]"
+                  done || current ? "font-semibold text-white" : "text-white/50"
                 }`}
               >
                 {step.label}
@@ -829,10 +833,10 @@ function Phase({ title, value, percent }: { title: string; value: string; percen
   return (
     <div className="flex flex-col gap-2.5">
       <div className="flex items-center justify-between">
-        <span className="text-[12.5px] font-semibold text-[#1C1D22]">{title}</span>
-        <span className="font-mono text-[12px] font-semibold text-[#FF5C00]">{value}</span>
+        <span className="text-[12.5px] font-semibold text-white">{title}</span>
+        <span className="font-mono text-[12px] font-semibold text-[#FF8A3D]">{value}</span>
       </div>
-      <span className="h-2 w-full overflow-hidden rounded-full bg-[#F4F5F7]">
+      <span className="h-2 w-full overflow-hidden rounded-full bg-white/[0.10]">
         <span
           className="block h-full rounded-full bg-[#FF5C00] transition-all duration-300"
           style={{ width: `${Math.min(100, Math.max(2, percent))}%` }}
@@ -844,11 +848,11 @@ function Phase({ title, value, percent }: { title: string; value: string; percen
 
 function LiveMetric({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="flex flex-col gap-1 rounded-[14px] bg-[#F4F5F7] px-3.5 py-3">
-      <span className="font-mono text-[9.5px] font-medium tracking-[1.1px] text-[#A6AAB2]">
+    <div className="flex flex-col gap-1 rounded-[14px] bg-white/[0.06] px-3.5 py-3">
+      <span className="font-mono text-[9.5px] font-medium tracking-[1.1px] text-white/50">
         {label}
       </span>
-      <span className="font-mono text-[17px] font-semibold" style={{ color }}>
+      <span className="font-mono text-[20px] font-light tracking-[-0.015em]" style={{ color }}>
         {value.toLocaleString()}
       </span>
     </div>
@@ -875,16 +879,16 @@ function UploadResult({
 
   return (
     <>
-      <div className="flex items-center gap-3 rounded-[18px] bg-[#E4F5EC] p-4">
-        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#2FB37E]">
-          <Check className="h-5 w-5 text-white" />
+      <div className="flex items-center gap-3 rounded-[18px] border border-[#45D39A]/30 bg-[#45D39A]/[0.12] p-4">
+        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#45D39A]">
+          <Check className="h-5 w-5 text-[#0E2A1F]" />
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-[14px] font-semibold text-[#1F7D58]">
+          <span className="text-[14px] font-semibold text-[#5BE3AB]">
             {(result?.songsProcessed ?? 0).toLocaleString()}{" "}
             {result?.songsProcessed === 1 ? "canción procesada" : "canciones procesadas"}
           </span>
-          <span className="text-[11.5px] text-[#2FB37E]">
+          <span className="text-[11.5px] text-white/65">
             {periodLabel}
             {exchangeRate !== null && ` · convertidas a dólares a 1 € = $${formatRate(exchangeRate)}`}
           </span>
@@ -892,16 +896,16 @@ function UploadResult({
       </div>
 
       {rejected.length > 0 && (
-        <div className="flex flex-col gap-3 rounded-[18px] border border-[#E8E8EC] p-4">
+        <div className="flex flex-col gap-3 rounded-[18px] border border-white/[0.12] bg-white/[0.04] p-4">
           <div className="flex items-center gap-2.5">
-            <CalendarOff className="h-3.5 w-3.5 flex-shrink-0 text-[#EA580C]" />
-            <span className="flex-1 text-[12.5px] font-semibold text-[#1C1D22]">
+            <CalendarOff className="h-3.5 w-3.5 flex-shrink-0 text-[#FF8A3D]" />
+            <span className="flex-1 text-[12.5px] font-semibold text-white">
               {rejected.length} {rejected.length === 1 ? "canción omitida" : "canciones omitidas"}
             </span>
             <button
               type="button"
               onClick={() => downloadRejections(rejected, periodLabel)}
-              className="flex flex-shrink-0 items-center gap-1.5 rounded-xl bg-[#F4F5F7] px-2.5 py-1.5 text-[10.5px] font-semibold text-[#71757E] transition-colors hover:bg-[#E8E8EC] hover:text-[#1C1D22]"
+              className="flex flex-shrink-0 items-center gap-1.5 rounded-full bg-white/[0.08] px-2.5 py-1.5 text-[10.5px] font-semibold text-white/75 transition-colors hover:bg-white/[0.14] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
             >
               <Download className="h-3 w-3" />
               CSV
@@ -911,9 +915,9 @@ function UploadResult({
           {groups.map((group) => (
             <div key={group.reason} className="flex flex-col gap-2">
               <span className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#EA580C]" />
-                <span className="flex-1 text-[11.5px] text-[#71757E]">{group.reason}</span>
-                <span className="font-mono text-[11.5px] font-semibold text-[#1C1D22]">
+                <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#FF8A3D]" />
+                <span className="flex-1 text-[11.5px] text-white/65">{group.reason}</span>
+                <span className="font-mono text-[11.5px] font-semibold text-white">
                   {group.items.length}
                 </span>
               </span>
@@ -922,13 +926,13 @@ function UploadResult({
                   <span
                     key={`${song.isrc || song.trackTitle}-${index}`}
                     title={`${song.trackTitle} — ${song.artistName}`}
-                    className="rounded-[11px] bg-[#FFEADD] px-2 py-1 font-mono text-[10px] text-[#EA580C]"
+                    className="rounded-full bg-[#FF5C00]/[0.16] px-2 py-1 font-mono text-[10px] text-[#FF9A5C]"
                   >
                     {song.isrc || song.trackTitle || "—"}
                   </span>
                 ))}
                 {group.items.length > 6 && (
-                  <span className="text-[10.5px] text-[#A6AAB2]">
+                  <span className="text-[10.5px] text-white/50">
                     y {group.items.length - 6} más
                   </span>
                 )}

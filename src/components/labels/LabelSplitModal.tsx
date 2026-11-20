@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { glassSelectStyles } from "@/components/ui/selectStyles";
 import Select from "react-select";
 import {
   Crown,
@@ -19,7 +20,12 @@ import type { FilterType, SelectOption } from "@/types";
 
 export interface LabelSplitTarget {
   type: "artistic" | "custom";
-  /** Nombre del sello, que es lo que espera el servidor en ambos casos. */
+  /**
+   * Cómo lo identifica el servidor: el id del sello artístico, o el nombre del
+   * personalizado (sus rutas de reparto siguen yendo por nombre).
+   */
+  ref: string;
+  /** Nombre del sello, para mostrarlo. */
   name: string;
   songCount: number;
   /** Canciones que ya tenían split, para avisar de que se sobrescriben. */
@@ -30,6 +36,11 @@ interface LabelSplitModalProps {
   isOpen: boolean;
   onClose: () => void;
   target: LabelSplitTarget;
+  /**
+   * Panel de vidrio, para cuando se abre desde una página ya migrada. Por
+   * defecto sigue en claro: el detalle de sello aún no está en vidrio.
+   */
+  onGlass?: boolean;
 }
 
 interface SplitSummary {
@@ -51,7 +62,8 @@ interface SplitResult {
  * cambia el extremo del servidor—, así que comparten formulario: tenerlo dos
  * veces garantizaba que uno se quedara atrás al tocar el otro.
  */
-export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProps) {
+export function LabelSplitModal({ isOpen, onClose, target, onGlass = false }: LabelSplitModalProps) {
+  const g = onGlass;
   const [percentage, setPercentage] = useState("");
   const [countriesType, setCountriesType] = useState<FilterType>("all");
   const [selectedCountries, setSelectedCountries] = useState<readonly SelectOption[]>([]);
@@ -84,8 +96,8 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
     let active = true;
     const request =
       target.type === "custom"
-        ? labelsService.getSongsByCustomLabel(target.name).then((res) => res.data?.songs ?? [])
-        : labelsService.getSongsByLabel(target.name).then((res) => res.data ?? []);
+        ? labelsService.getSongsByCustomLabel(target.ref).then((res) => res.data?.songs ?? [])
+        : labelsService.getSongsByLabel(target.ref).then((res) => res.data ?? []);
 
     request.then((songs) => {
       if (active) setSongIds(songs.map((song) => song._id));
@@ -94,7 +106,7 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
     return () => {
       active = false;
     };
-  }, [isOpen, target.name, target.type]);
+  }, [isOpen, target.ref, target.type]);
 
   const willOverwrite = target.alreadyWithSplit ?? 0;
 
@@ -129,8 +141,8 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
 
       const response =
         target.type === "custom"
-          ? await labelsService.createSplitByCustomLabel({ ...payload, labelName: target.name })
-          : await labelsService.createSplitByLabel({ ...payload, label: target.name });
+          ? await labelsService.createSplitByCustomLabel({ ...payload, labelName: target.ref })
+          : await labelsService.createSplitByLabel({ ...payload, labelId: target.ref });
 
       if (response.error) {
         setError(response.message ?? "Los splits no se pudieron crear.");
@@ -148,13 +160,13 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
   const mark = (
     <span
       className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[14px] ${
-        target.type === "custom" ? "bg-[#FF5C00]" : "bg-[#FFEADD]"
+        target.type === "custom" ? "bg-[#FF5C00]" : g ? "bg-[#FF5C00]/[0.16]" : "bg-[#FFEADD]"
       }`}
     >
       {target.type === "custom" ? (
         <Layers className="h-[18px] w-[18px] text-white" />
       ) : (
-        <Crown className="h-[18px] w-[18px] text-[#FF5C00]" />
+        <Crown className={`h-[18px] w-[18px] ${g ? "text-[#FF8A3D]" : "text-[#FF5C00]"}`} />
       )}
     </span>
   );
@@ -167,6 +179,7 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
       <ModalShell
         title="Splits guardados"
         width="lg"
+        onGlass={g}
         onClose={onClose}
         footer={
           <>
@@ -176,27 +189,51 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
         }
       >
         <div className="flex flex-col items-center gap-3 pb-1 pt-3 text-center">
-          <span className="flex h-[52px] w-[52px] items-center justify-center rounded-[18px] bg-[#E4F5EC]">
-            <Check className="h-[22px] w-[22px] text-[#2FB37E]" />
+          <span
+            className={`flex h-[52px] w-[52px] items-center justify-center rounded-[18px] ${
+              g ? "bg-[#45D39A]/[0.14]" : "bg-[#E4F5EC]"
+            }`}
+          >
+            <Check className={`h-[22px] w-[22px] ${g ? "text-[#45D39A]" : "text-[#2FB37E]"}`} />
           </span>
-          <h3 className="font-display text-[17px] font-semibold text-[#1C1D22]">
+          <h3
+            className={`font-display text-[17px] ${
+              g ? "font-medium text-white" : "font-semibold text-[#1C1D22]"
+            }`}
+          >
             Tu {percentage}% quedó aplicado
           </h3>
-          <p className="text-[12.5px] text-[#71757E]">en las canciones de {target.name}</p>
+          <p className={`text-[12.5px] ${g ? "text-white/65" : "text-[#71757E]"}`}>
+            en las canciones de {target.name}
+          </p>
         </div>
 
-        <div className="flex items-center divide-x divide-[#E8E8EC] rounded-[18px] bg-[#F4F5F7] px-1 py-3">
-          <ResultCell label="TOTAL" value={summary.total ?? 0} />
+        <div
+          className={`flex items-center divide-x rounded-[18px] px-1 py-3 ${
+            g ? "divide-white/[0.09] bg-white/[0.06]" : "divide-[#E8E8EC] bg-[#F4F5F7]"
+          }`}
+        >
+          <ResultCell glass={g} label="TOTAL" value={summary.total ?? 0} />
           <ResultCell
+            glass={g}
             label="CREADOS"
             value={summary.created ?? 0}
-            valueClassName="text-[#2FB37E]"
+            valueClassName={g ? "text-[#45D39A]" : "text-[#2FB37E]"}
           />
-          <ResultCell label="ACTUALIZADOS" value={summary.updated ?? 0} />
+          <ResultCell glass={g} label="ACTUALIZADOS" value={summary.updated ?? 0} />
           <ResultCell
+            glass={g}
             label="ERRORES"
             value={summary.errors ?? 0}
-            valueClassName={summary.errors ? "text-[#E5484D]" : "text-[#A6AAB2]"}
+            valueClassName={
+              summary.errors
+                ? g
+                  ? "text-[#FF8F92]"
+                  : "text-[#E5484D]"
+                : g
+                  ? "text-white/50"
+                  : "text-[#A6AAB2]"
+            }
           />
         </div>
 
@@ -207,12 +244,16 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
               {failed.map((item, index) => (
                 <div
                   key={`${item.trackTitle}-${index}`}
-                  className="flex flex-col gap-0.5 rounded-[14px] bg-[#FDECEC] px-3.5 py-2.5"
+                  className={`flex flex-col gap-0.5 rounded-[14px] px-3.5 py-2.5 ${
+                    g ? "border border-[#E5484D]/30 bg-[#E5484D]/[0.12]" : "bg-[#FDECEC]"
+                  }`}
                 >
-                  <span className="text-[12px] font-semibold text-[#1C1D22]">
+                  <span className={`text-[12px] font-semibold ${g ? "text-white" : "text-[#1C1D22]"}`}>
                     {item.trackTitle ?? "Canción sin título"}
                   </span>
-                  <span className="text-[11px] text-[#E5484D]">{item.reason}</span>
+                  <span className={`text-[11px] ${g ? "text-[#FF8F92]" : "text-[#E5484D]"}`}>
+                    {item.reason}
+                  </span>
                 </div>
               ))}
             </div>
@@ -233,12 +274,13 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
         </span>
       }
       width="lg"
+      onGlass={g}
       locked={submitting}
       onClose={onClose}
       logo={mark}
       footer={
         <>
-          <span className="min-w-0 flex-1 text-[11px] text-[#A6AAB2]">
+          <span className={`min-w-0 flex-1 text-[11px] ${g ? "text-white/50" : "text-[#A6AAB2]"}`}>
             Se aplicará a {target.songCount} {target.songCount === 1 ? "canción" : "canciones"}
           </span>
           <SecondaryButton onClick={onClose} disabled={submitting}>
@@ -260,9 +302,15 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
         </>
       }
     >
-      <div className="flex items-start gap-2.5 rounded-2xl bg-[#FFEADD] px-4 py-3">
-        <Info className="mt-px h-4 w-4 flex-shrink-0 text-[#FF5C00]" />
-        <span className="text-[11.5px] leading-relaxed text-[#1C1D22]">{notice}</span>
+      <div
+        className={`flex items-start gap-2.5 rounded-2xl px-4 py-3 ${
+          g ? "border border-[#FF8A3D]/30 bg-[#FF5C00]/[0.14]" : "bg-[#FFEADD]"
+        }`}
+      >
+        <Info className={`mt-px h-4 w-4 flex-shrink-0 ${g ? "text-[#FF8A3D]" : "text-[#FF5C00]"}`} />
+        <span className={`text-[11.5px] leading-relaxed ${g ? "text-white/80" : "text-[#1C1D22]"}`}>
+          {notice}
+        </span>
       </div>
 
       <label className="flex flex-col gap-2">
@@ -284,17 +332,33 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
               }}
               disabled={submitting}
               placeholder="0"
-              className={`w-full rounded-2xl border bg-white py-3 pl-4 pr-9 font-mono text-base font-semibold text-[#1C1D22] placeholder:text-[#A6AAB2] focus:outline-none focus:ring-[3px] disabled:opacity-50 ${
-                error
-                  ? "border-[#E5484D] focus:border-[#E5484D] focus:ring-[#E5484D]/15"
-                  : "border-[#E8E8EC] focus:border-[#FF5C00] focus:ring-[#FF5C00]/15"
+              className={`w-full rounded-2xl border py-3 pl-4 pr-9 font-mono text-base font-semibold focus:outline-none focus:ring-[3px] disabled:opacity-50 ${
+                g
+                  ? `text-white placeholder:text-white/40 ${
+                      error
+                        ? "border-[#FF8F92] bg-[#E5484D]/[0.12] focus:border-[#FF8F92] focus:ring-[#E5484D]/25"
+                        : "border-white/[0.14] bg-white/[0.06] focus:border-[#FF8A3D] focus:ring-[#FF5C00]/25"
+                    }`
+                  : `bg-white text-[#1C1D22] placeholder:text-[#A6AAB2] ${
+                      error
+                        ? "border-[#E5484D] focus:border-[#E5484D] focus:ring-[#E5484D]/15"
+                        : "border-[#E8E8EC] focus:border-[#FF5C00] focus:ring-[#FF5C00]/15"
+                    }`
               }`}
             />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 font-mono text-sm text-[#A6AAB2]">
+            <span
+              className={`absolute right-4 top-1/2 -translate-y-1/2 font-mono text-sm ${
+                g ? "text-white/50" : "text-[#A6AAB2]"
+              }`}
+            >
               %
             </span>
           </div>
-          <span className="min-w-0 flex-1 text-[11.5px] leading-relaxed text-[#A6AAB2]">
+          <span
+            className={`min-w-0 flex-1 text-[11.5px] leading-relaxed ${
+              g ? "text-white/50" : "text-[#A6AAB2]"
+            }`}
+          >
             El resto queda disponible para tus colaboradores en cada canción.
           </span>
         </div>
@@ -302,7 +366,7 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
 
       <div className="flex flex-col gap-2.5">
         <div className="flex flex-wrap items-center gap-2.5">
-          <Globe className="h-[13px] w-[13px] text-[#A6AAB2]" />
+          <Globe className={`h-[13px] w-[13px] ${g ? "text-white/50" : "text-[#A6AAB2]"}`} />
           <FieldLabel>PAÍSES</FieldLabel>
           <div className="ml-auto">
             <SegmentedControl
@@ -318,7 +382,11 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
           </div>
         </div>
         {countriesType === "all" ? (
-          <p className="rounded-2xl border border-[#E8E8EC] px-4 py-3 text-[12.5px] text-[#71757E]">
+          <p
+            className={`rounded-2xl border px-4 py-3 text-[12.5px] ${
+              g ? "border-white/[0.12] bg-white/[0.04] text-white/65" : "border-[#E8E8EC] text-[#71757E]"
+            }`}
+          >
             Todos los países donde se reportaron ingresos.
           </p>
         ) : (
@@ -328,7 +396,7 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
             options={countryOptions}
             value={selectedCountries}
             onChange={(selection) => setSelectedCountries(selection ?? [])}
-            styles={labelSelectStyles}
+            styles={g ? glassSelectStyles : labelSelectStyles}
             menuPortalTarget={document.body}
             placeholder="Seleccionar países…"
             noOptionsMessage={() => "No hay países disponibles"}
@@ -338,7 +406,7 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
 
       <div className="flex flex-col gap-2.5">
         <div className="flex flex-wrap items-center gap-2.5">
-          <Radio className="h-[13px] w-[13px] text-[#A6AAB2]" />
+          <Radio className={`h-[13px] w-[13px] ${g ? "text-white/50" : "text-[#A6AAB2]"}`} />
           <FieldLabel>PLATAFORMAS</FieldLabel>
           <div className="ml-auto">
             <SegmentedControl
@@ -354,7 +422,11 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
           </div>
         </div>
         {platformsType === "all" ? (
-          <p className="rounded-2xl border border-[#E8E8EC] px-4 py-3 text-[12.5px] text-[#71757E]">
+          <p
+            className={`rounded-2xl border px-4 py-3 text-[12.5px] ${
+              g ? "border-white/[0.12] bg-white/[0.04] text-white/65" : "border-[#E8E8EC] text-[#71757E]"
+            }`}
+          >
             Todas las plataformas que reportan este sello.
           </p>
         ) : (
@@ -364,7 +436,7 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
             options={platformOptions}
             value={selectedPlatforms}
             onChange={(selection) => setSelectedPlatforms(selection ?? [])}
-            styles={labelSelectStyles}
+            styles={g ? glassSelectStyles : labelSelectStyles}
             menuPortalTarget={document.body}
             placeholder="Seleccionar plataformas…"
             noOptionsMessage={() => "No hay plataformas disponibles"}
@@ -375,10 +447,14 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
       {error && (
         <div
           role="alert"
-          className="flex items-start gap-2.5 rounded-2xl border border-[#F5C2C4] bg-[#FDECEC] px-4 py-3"
+          className={`flex items-start gap-2.5 rounded-2xl border px-4 py-3 ${
+            g ? "border-[#E5484D]/30 bg-[#E5484D]/[0.12]" : "border-[#F5C2C4] bg-[#FDECEC]"
+          }`}
         >
-          <TriangleAlert className="mt-px h-4 w-4 flex-shrink-0 text-[#E5484D]" />
-          <span className="text-[12.5px] text-[#E5484D]">{error}</span>
+          <TriangleAlert
+            className={`mt-px h-4 w-4 flex-shrink-0 ${g ? "text-[#FF8F92]" : "text-[#E5484D]"}`}
+          />
+          <span className={`text-[12.5px] ${g ? "text-[#FF8F92]" : "text-[#E5484D]"}`}>{error}</span>
         </div>
       )}
     </ModalShell>
@@ -388,18 +464,30 @@ export function LabelSplitModal({ isOpen, onClose, target }: LabelSplitModalProp
 function ResultCell({
   label,
   value,
-  valueClassName = "text-[#1C1D22]",
+  valueClassName,
+  glass = false,
 }: {
   label: string;
   value: number;
   valueClassName?: string;
+  glass?: boolean;
 }) {
   return (
     <div className="flex min-w-0 flex-1 flex-col items-center gap-1 px-2">
-      <span className="font-mono text-[9px] font-medium tracking-[1.1px] text-[#A6AAB2]">
+      <span
+        className={`font-mono text-[9px] font-medium tracking-[1.1px] ${
+          glass ? "text-white/50" : "text-[#A6AAB2]"
+        }`}
+      >
         {label}
       </span>
-      <span className={`font-mono text-[17px] font-semibold ${valueClassName}`}>{value}</span>
+      <span
+        className={`font-mono text-[17px] ${glass ? "font-light" : "font-semibold"} ${
+          valueClassName ?? (glass ? "text-white" : "text-[#1C1D22]")
+        }`}
+      >
+        {value}
+      </span>
     </div>
   );
 }

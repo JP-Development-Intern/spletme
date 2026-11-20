@@ -19,6 +19,8 @@ export function useHomeDashboard() {
   const [topSongs, setTopSongs] = useState<TopSong[]>([]);
   const [dataPoints, setDataPoints] = useState<DataPoint[]>([]);
   const [apiSummary, setApiSummary] = useState({ totalStreams: 0, totalNetIncome: 0, matchingReleases: 0, songsWithMatches: 0 });
+  /** Mientras llega la serie del periodo; sin esto, el gráfico decía «Sin datos» al abrir. */
+  const [loading, setLoading] = useState(true);
 
   const { totalAmount } = useSplitPayments();
   const { user } = useAuth0();
@@ -38,14 +40,19 @@ export function useHomeDashboard() {
   }, []);
 
   const fetchData = useCallback(async (timeframe: string) => {
+    setLoading(true);
     const res = await SongService.getSongsByParams(timeframe);
-    if (!res) return;
-    if (res.summary) setApiSummary(res.summary);
-    setDataPoints((res.data ?? []).map((row) => ({
-      date:    row.date,
-      streams: row.totalStreams,
-      income:  row.totalNetIncome,
-    })));
+    // La carga termina junto con los datos, en el mismo render: si se apagara
+    // antes, el gráfico pintaría «Sin datos» un fotograma.
+    if (res?.summary) setApiSummary(res.summary);
+    if (res) {
+      setDataPoints((res.data ?? []).map((row) => ({
+        date:    row.date,
+        streams: row.totalStreams,
+        income:  row.totalNetIncome,
+      })));
+    }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -63,5 +70,6 @@ export function useHomeDashboard() {
     totalAmount,
     netBalance,
     points: dataPoints,
+    loading,
   };
 }

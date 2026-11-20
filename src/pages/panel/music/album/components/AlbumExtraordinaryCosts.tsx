@@ -51,10 +51,17 @@ const STATUS_LABELS: Record<AccountingStatus, string> = {
 };
 
 const STATUS_CLASSES: Record<AccountingStatus, string> = {
-  pending: "bg-yellow-100 text-yellow-800",
-  paid: "bg-green-100 text-green-800",
-  cancelled: "bg-gray-100 text-gray-500",
+  pending: "bg-[#FF5C00]/[0.16] text-[#FF9A5C]",
+  paid: "bg-[#45D39A]/[0.12] text-[#45D39A]",
+  cancelled: "bg-white/[0.08] text-white/65",
 };
+
+// El átomo `Button` pinta para la hoja clara: en la página se usan estos, y el
+// átomo queda solo en el modal, que sigue en claro.
+const PRIMARY_BUTTON =
+  "inline-flex items-center gap-[7px] rounded-full bg-[#FF5C00] px-4 py-2.5 text-[12px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70";
+const SECONDARY_BUTTON =
+  "glass-control inline-flex items-center gap-[7px] rounded-full px-4 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-white/[0.12] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70";
 
 const CONCEPT_LABELS: Record<string, string> = {
   INCOME: "Ingreso",
@@ -129,16 +136,16 @@ const StatPill = ({
   accent?: "green" | "orange" | "red" | "default";
 }) => {
   const valueClass = {
-    green: "text-green-600",
-    orange: "text-orange-500",
-    red: "text-red-600",
-    default: "text-gray-900",
+    green: "text-[#45D39A]",
+    orange: "text-[#FF8A3D]",
+    red: "text-[#FF8F92]",
+    default: "text-white",
   }[accent ?? "default"];
 
   return (
-    <div className="flex flex-col gap-0.5 rounded-xl bg-gray-50 p-3">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500">{label}</p>
-      <p className={`text-base font-bold leading-tight ${valueClass}`}>{value}</p>
+    <div className="flex flex-col gap-0.5 rounded-2xl bg-white/[0.06] p-3">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-white/50">{label}</p>
+      <p className={`font-mono text-base font-medium leading-tight ${valueClass}`}>{value}</p>
     </div>
   );
 };
@@ -220,54 +227,58 @@ const BalanceFace = ({
   const ingPct = totalForBar > 0 ? (totalIngresos / totalForBar) * 100 : 50;
 
   return (
-    <div className="flex h-full flex-col gap-4 p-5">
-      <div className="flex shrink-0 items-center justify-between">
+    <div className="glass flex h-full flex-col gap-4 rounded-[28px] px-6 py-5">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="text-base font-semibold text-gray-900">Balance del Álbum</span>
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+          <span className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">
+            Balance del Álbum
+          </span>
+          <span className="rounded-full bg-white/[0.08] px-2 py-0.5 text-xs text-white/65">
             {totalEntries} mov.
           </span>
-          {loadingBalance && <RefreshCw className="h-3 w-3 animate-spin text-gray-400" />}
+          {loadingBalance && <RefreshCw className="h-3 w-3 animate-spin text-white/50" />}
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onFlip}
-            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-white/65 transition-colors hover:bg-white/[0.08] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Ver detalle
           </button>
-          <Button onClick={onToggleExpand} type="primary">
+          <button type="button" onClick={onToggleExpand} className={SECONDARY_BUTTON}>
             {expanded ? "Ver menos" : "Ver más"}
-          </Button>
+          </button>
         </div>
       </div>
 
       {balanceError && (
-        <p className="shrink-0 rounded-lg bg-yellow-50 px-3 py-2 text-xs text-yellow-600">
+        <p className="shrink-0 rounded-xl bg-[#F0A202]/[0.14] px-3 py-2 text-xs text-[#FFC24D]">
           No se pudo actualizar el balance desde el servidor. Mostrando datos locales.
         </p>
       )}
 
       <div
         className={`flex shrink-0 items-center justify-between rounded-xl px-4 py-3 ${
-          isPositive ? "border border-green-100 bg-green-50" : "border border-red-100 bg-red-50"
+          isPositive
+            ? "border border-[#45D39A]/25 bg-[#45D39A]/[0.12]"
+            : "border border-[#E5484D]/30 bg-[#E5484D]/[0.14]"
         }`}
       >
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-white/50">
             Balance neto
           </p>
           <p
-            className={`text-2xl font-bold leading-tight ${isPositive ? "text-green-600" : "text-red-600"}`}
+            className={`font-mono text-[26px] font-light leading-tight tracking-[-0.015em] ${isPositive ? "text-[#45D39A]" : "text-[#FF8F92]"}`}
           >
             {isPositive ? "+" : "-"}${fmt(Math.abs(netBalance))}
           </p>
         </div>
         <span
           className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-            isPositive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+            isPositive ? "bg-[#45D39A]/[0.16] text-[#45D39A]" : "bg-[#E5484D]/[0.18] text-[#FF8F92]"
           }`}
         >
           {isPositive ? "Superávit" : "Déficit"}
@@ -275,29 +286,29 @@ const BalanceFace = ({
       </div>
 
       <div className="grid shrink-0 grid-cols-2 gap-3">
-        <div className="rounded-xl bg-gray-50 p-3">
+        <div className="rounded-2xl bg-white/[0.06] p-3">
           <div className="mb-2 flex items-center gap-1.5">
-            <ArrowUpCircle className="h-3.5 w-3.5 text-green-500" />
-            <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500">
+            <ArrowUpCircle className="h-3.5 w-3.5 text-[#45D39A]" />
+            <p className="text-[11px] font-medium uppercase tracking-wide text-white/50">
               Ingresos
             </p>
           </div>
-          <p className="text-base font-bold text-gray-900">${fmt(totalIngresos)}</p>
+          <p className="font-mono text-base font-medium text-white">${fmt(totalIngresos)}</p>
           {/* {albumNetIncome > 0 && (
             <p className="text-[11px] text-blue-600 mt-0.5">Incl. ${fmt(albumNetIncome)} ganancia álbum</p>
           )} */}
           {pendingIngresos > 0 && (
-            <p className="mt-0.5 text-[11px] text-yellow-600">${fmt(pendingIngresos)} pendiente</p>
+            <p className="mt-0.5 text-[11px] text-[#FFC24D]">${fmt(pendingIngresos)} pendiente</p>
           )}
         </div>
-        <div className="rounded-xl bg-gray-50 p-3">
+        <div className="rounded-2xl bg-white/[0.06] p-3">
           <div className="mb-2 flex items-center gap-1.5">
-            <ArrowDownCircle className="h-3.5 w-3.5 text-orange-500" />
-            <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500">Egresos</p>
+            <ArrowDownCircle className="h-3.5 w-3.5 text-[#FF8A3D]" />
+            <p className="text-[11px] font-medium uppercase tracking-wide text-white/50">Egresos</p>
           </div>
-          <p className="text-base font-bold text-gray-900">${fmt(totalEgresos)}</p>
+          <p className="font-mono text-base font-medium text-white">${fmt(totalEgresos)}</p>
           {pendingEgresos > 0 && (
-            <p className="mt-0.5 text-[11px] text-yellow-600">${fmt(pendingEgresos)} pendiente</p>
+            <p className="mt-0.5 text-[11px] text-[#FFC24D]">${fmt(pendingEgresos)} pendiente</p>
           )}
         </div>
       </div>
@@ -306,13 +317,13 @@ const BalanceFace = ({
         <>
           {totalForBar > 0 && (
             <div className="shrink-0">
-              <div className="mb-1.5 flex justify-between text-[11px] text-gray-400">
+              <div className="mb-1.5 flex justify-between text-[11px] text-white/50">
                 <span>Ingresos {ingPct.toFixed(0)}%</span>
                 <span>Egresos {(100 - ingPct).toFixed(0)}%</span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-orange-200">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-[#FF5C00]/45">
                 <div
-                  className="h-full rounded-full bg-green-500 transition-all duration-500"
+                  className="h-full rounded-full bg-[#45D39A] transition-all duration-500"
                   style={{ width: `${ingPct}%` }}
                 />
               </div>
@@ -541,14 +552,14 @@ const AlbumExtraordinaryCosts = ({ albumId, albumUpc, tracks }: AlbumExtraordina
               visibility: isFlipped ? "hidden" : "visible",
             }}
           >
-            <div className="flex flex-col gap-4 p-5">
-              <div className="flex shrink-0 items-center justify-between">
+            <div className="glass flex flex-col gap-4 rounded-[28px] px-6 py-5">
+              <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-base font-semibold text-gray-900">
+                  <span className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">
                     Contabilidad del Álbum
                   </span>
                   {costs.length > 0 && (
-                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                    <span className="rounded-full bg-white/[0.08] px-2 py-0.5 text-xs text-white/65">
                       {costs.length}
                     </span>
                   )}
@@ -558,135 +569,131 @@ const AlbumExtraordinaryCosts = ({ albumId, albumUpc, tracks }: AlbumExtraordina
                     <button
                       type="button"
                       onClick={() => setIsFlipped(true)}
-                      className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                      className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-white/65 transition-colors hover:bg-white/[0.08] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
                     >
                       <RefreshCw className="h-3.5 w-3.5" />
                       Balance
                     </button>
                   )}
-                  <Button onClick={toggleExpand} type="primary">
+                  <button type="button" onClick={toggleExpand} className={SECONDARY_BUTTON}>
                     {expanded ? "Ver menos" : "Ver más"}
-                  </Button>
+                  </button>
                 </div>
               </div>
 
               {expanded && (
                 <>
-                  <div className="flex shrink-0 items-center justify-between">
-                    <div className="mr-3 grid flex-1 grid-cols-4 gap-3">
-                      <div className="rounded-xl bg-gray-50 p-3">
+                  <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
+                    <div className="grid min-w-0 flex-1 grid-cols-2 gap-3 md:grid-cols-4">
+                      <div className="rounded-2xl bg-white/[0.06] p-3">
                         <div className="mb-0.5 flex items-center gap-1">
-                          <ArrowUpCircle className="h-3 w-3 shrink-0 text-green-500" />
-                          <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                          <ArrowUpCircle className="h-3 w-3 shrink-0 text-[#45D39A]" />
+                          <p className="text-[11px] font-medium uppercase tracking-wide text-white/50">
                             Ingresos
                           </p>
                         </div>
-                        <p className="text-sm font-bold text-green-600">${fmt(tableIngresos)}</p>
+                        <p className="font-mono text-sm font-medium text-[#45D39A]">${fmt(tableIngresos)}</p>
                       </div>
-                      <div className="rounded-xl bg-gray-50 p-3">
+                      <div className="rounded-2xl bg-white/[0.06] p-3">
                         <div className="mb-0.5 flex items-center gap-1">
-                          <ArrowDownCircle className="h-3 w-3 shrink-0 text-orange-500" />
-                          <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                          <ArrowDownCircle className="h-3 w-3 shrink-0 text-[#FF8A3D]" />
+                          <p className="text-[11px] font-medium uppercase tracking-wide text-white/50">
                             Egresos
                           </p>
                         </div>
-                        <p className="text-sm font-bold text-orange-500">${fmt(tableEgresos)}</p>
+                        <p className="font-mono text-sm font-medium text-[#FF8A3D]">${fmt(tableEgresos)}</p>
                       </div>
                       <div
-                        className={`rounded-xl p-3 ${tableBalancePositive ? "bg-green-50" : "bg-red-50"}`}
+                        className={`rounded-2xl p-3 ${tableBalancePositive ? "bg-[#45D39A]/[0.12]" : "bg-[#E5484D]/[0.14]"}`}
                       >
-                        <p className="mb-0.5 text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                        <p className="mb-0.5 text-[11px] font-medium uppercase tracking-wide text-white/50">
                           Balance
                         </p>
                         <p
-                          className={`text-sm font-bold ${tableBalancePositive ? "text-green-600" : "text-red-600"}`}
+                          className={`font-mono text-sm font-medium ${tableBalancePositive ? "text-[#45D39A]" : "text-[#FF8F92]"}`}
                         >
                           {tableBalancePositive ? "+" : "-"}${fmt(Math.abs(tableBalance))}
                         </p>
                       </div>
-                      <div className="rounded-xl bg-gray-50 p-3">
-                        <p className="mb-0.5 text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                      <div className="rounded-2xl bg-white/[0.06] p-3">
+                        <p className="mb-0.5 text-[11px] font-medium uppercase tracking-wide text-white/50">
                           Selección
                         </p>
-                        <p className="text-sm font-bold text-gray-900">
+                        <p className="font-mono text-sm font-medium text-white">
                           {selectedCosts.length > 0
                             ? `$${fmt(selectedTotal)}`
                             : `${selectedCosts.length} ítems`}
                         </p>
                       </div>
                     </div>
-                    <Button onClick={() => setShowForm(true)} type="quinary">
-                      <span className="flex items-center gap-1.5">
-                        <Plus className="h-4 w-4" />
-                        Nuevo
-                      </span>
-                    </Button>
+                    <button type="button" onClick={() => setShowForm(true)} className={PRIMARY_BUTTON}>
+                      <Plus className="h-3.5 w-3.5" />
+                      Nuevo
+                    </button>
                   </div>
 
                   {selectedCosts.length > 0 && (
-                    <div className="bg-primary-50 flex shrink-0 items-center justify-between rounded-xl px-4 py-2.5">
-                      <span className="text-primary-700 text-sm">
+                    <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#FF8A3D]/30 bg-[#FF5C00]/[0.14] px-4 py-2.5">
+                      <span className="text-sm text-[#FFB48A]">
                         {selectedCosts.length} ítem(s) seleccionado(s)
                       </span>
-                      <Button onClick={handleMarkAsPaid} type="quinary">
-                        <span className="flex items-center gap-1.5">
-                          <DollarSign className="h-4 w-4" />
-                          {markingPaid ? "Marcando..." : "Marcar como pagado"}
-                        </span>
-                      </Button>
+                      <button type="button" onClick={handleMarkAsPaid} className={PRIMARY_BUTTON}>
+                        <DollarSign className="h-3.5 w-3.5" />
+                        {markingPaid ? "Marcando..." : "Marcar como pagado"}
+                      </button>
                     </div>
                   )}
 
                   {error && (
-                    <div className="shrink-0 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-500">
+                    <div className="shrink-0 rounded-xl border border-[#E5484D]/30 bg-[#E5484D]/[0.14] px-3 py-2 text-sm text-[#FF8F92]">
                       {error}
                     </div>
                   )}
 
-                  <div className="max-h-80 overflow-auto rounded-xl border border-gray-100">
+                  <div className="max-h-80 overflow-auto rounded-2xl border border-white/[0.09]">
                     <table className="w-full text-left text-sm">
-                      <thead className="sticky top-0 z-10 bg-gray-50">
+                      <thead className="sticky top-0 z-10 bg-[#2B1E17]">
                         <tr>
                           <th className="w-10 p-3">
                             <input
                               type="checkbox"
                               checked={allSelected}
                               onChange={toggleSelectAll}
-                              className="accent-primary-600 h-4 w-4 rounded"
+                              className="h-4 w-4 rounded accent-[#FF5C00]"
                             />
                           </th>
-                          <th className="px-3 py-3 text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                          <th className="px-3 py-3 text-[11px] font-medium uppercase tracking-wide text-white/50">
                             Concepto
                           </th>
-                          <th className="px-3 py-3 text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                          <th className="px-3 py-3 text-[11px] font-medium uppercase tracking-wide text-white/50">
                             Canción
                           </th>
-                          <th className="px-3 py-3 text-center text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                          <th className="px-3 py-3 text-center text-[11px] font-medium uppercase tracking-wide text-white/50">
                             Tipo
                           </th>
-                          <th className="px-3 py-3 text-center text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                          <th className="px-3 py-3 text-center text-[11px] font-medium uppercase tracking-wide text-white/50">
                             Fecha
                           </th>
-                          <th className="px-3 py-3 text-right text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                          <th className="px-3 py-3 text-right text-[11px] font-medium uppercase tracking-wide text-white/50">
                             Monto
                           </th>
-                          <th className="px-3 py-3 text-center text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                          <th className="px-3 py-3 text-center text-[11px] font-medium uppercase tracking-wide text-white/50">
                             Estado
                           </th>
                           <th className="w-10" />
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
+                      <tbody className="divide-y divide-white/[0.09]">
                         {loading && (
                           <tr>
-                            <td colSpan={8} className="px-4 py-8 text-center text-sm text-gray-400">
+                            <td colSpan={8} className="px-4 py-8 text-center text-sm text-white/50">
                               Cargando costos...
                             </td>
                           </tr>
                         )}
                         {!loading && costs.length === 0 && (
                           <tr>
-                            <td colSpan={8} className="px-4 py-8 text-center text-sm text-gray-400">
+                            <td colSpan={8} className="px-4 py-8 text-center text-sm text-white/50">
                               No hay costos registrados para este álbum.
                             </td>
                           </tr>
@@ -701,7 +708,7 @@ const AlbumExtraordinaryCosts = ({ albumId, albumUpc, tracks }: AlbumExtraordina
                             return (
                               <tr
                                 key={item._id}
-                                className={`transition-colors hover:bg-gray-50 ${isSelected ? "bg-primary-50/50" : ""}`}
+                                className={`transition-colors hover:bg-white/[0.04] ${isSelected ? "bg-[#FF5C00]/[0.08]" : ""}`}
                               >
                                 <td className="p-3">
                                   <input
@@ -709,22 +716,22 @@ const AlbumExtraordinaryCosts = ({ albumId, albumUpc, tracks }: AlbumExtraordina
                                     checked={isSelected}
                                     onChange={() => toggleSelection(item._id)}
                                     disabled={item.status !== "pending"}
-                                    className="accent-primary-600 h-4 w-4 rounded disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="h-4 w-4 rounded accent-[#FF5C00] disabled:cursor-not-allowed disabled:opacity-50"
                                   />
                                 </td>
                                 <td className="px-3 py-3">
-                                  <p className="font-medium text-gray-900">
+                                  <p className="font-medium text-white">
                                     {conceptLabel(item.concept)}
                                   </p>
                                   {item.description && (
-                                    <p className="mt-0.5 text-xs text-gray-500">
+                                    <p className="mt-0.5 text-xs text-white/50">
                                       {item.description}
                                     </p>
                                   )}
                                 </td>
                                 <td className="px-3 py-3">
                                   <p
-                                    className="max-w-[120px] truncate text-xs text-gray-600"
+                                    className="max-w-[120px] truncate text-xs text-white/65"
                                     title={songTitle}
                                   >
                                     {songTitle}
@@ -734,18 +741,18 @@ const AlbumExtraordinaryCosts = ({ albumId, albumUpc, tracks }: AlbumExtraordina
                                   <span
                                     className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                                       isIncome(item.concept)
-                                        ? "bg-green-100 text-green-800"
-                                        : "bg-orange-100 text-orange-800"
+                                        ? "bg-[#45D39A]/[0.12] text-[#45D39A]"
+                                        : "bg-[#FF5C00]/[0.16] text-[#FF9A5C]"
                                     }`}
                                   >
                                     {conceptLabel(item.concept)}
                                   </span>
                                 </td>
                                 <td className="whitespace-nowrap px-3 py-3 text-center">
-                                  <p className="text-xs text-gray-600">{date}</p>
-                                  <p className="text-xs text-gray-400">{time}</p>
+                                  <p className="text-xs text-white/65">{date}</p>
+                                  <p className="text-xs text-white/50">{time}</p>
                                 </td>
-                                <td className="whitespace-nowrap px-3 py-3 text-right font-semibold text-gray-900">
+                                <td className="whitespace-nowrap px-3 py-3 text-right font-mono font-medium text-white">
                                   ${fmt(item.amount)}
                                 </td>
                                 <td className="px-3 py-3 text-center">
@@ -759,7 +766,7 @@ const AlbumExtraordinaryCosts = ({ albumId, albumUpc, tracks }: AlbumExtraordina
                                   <button
                                     type="button"
                                     onClick={() => handleDelete(item._id)}
-                                    className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                                    className="grid h-[30px] w-[30px] place-items-center rounded-full bg-white/[0.06] text-white/50 transition-colors hover:bg-[#E5484D]/[0.14] hover:text-[#FF8F92] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </button>
