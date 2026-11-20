@@ -128,7 +128,7 @@ export function SongAlbumsBadge({ songId, count }: SongAlbumsBadgeProps) {
               <p className="text-[11px] text-white/50">Ordenados por lo que aportan al total</p>
             </div>
             <div className="h-px bg-white/[0.09]" />
-            <SongAlbumsBreakdown albums={albums} loading={loading} onGlass />
+            <SongAlbumsBreakdown albums={albums} loading={loading} />
           </div>,
           document.body,
         )}

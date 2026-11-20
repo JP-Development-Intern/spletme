@@ -34,37 +34,37 @@ export function MyShareCard({
   const pending = Math.max(0, amount - paid);
 
   return (
-    <section className="col-span-12 flex min-w-0 flex-col gap-4 rounded-[26px] border border-[#E8E8EC] bg-white p-[26px] shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)] xl:col-span-8">
+    <section className="glass col-span-12 flex min-w-0 flex-col gap-4 rounded-[28px] px-6 py-5 xl:col-span-8">
       <div className="flex flex-col gap-0.5">
-        <h2 className="font-display text-lg font-semibold text-[#1C1D22]">Tu parte</h2>
-        <p className="text-[12.5px] text-[#71757E]">Lo que te corresponde de esta canción</p>
+        <h2 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">Tu parte</h2>
+        <p className="text-[12.5px] text-white/65">Lo que te corresponde de esta canción</p>
       </div>
 
       <div className="flex flex-wrap items-end gap-x-10 gap-y-5">
         <span className="flex flex-col gap-1">
-          <span className="font-mono text-[9.5px] font-medium tracking-[1.3px] text-[#71757E]">
+          <span className="font-mono text-[9.5px] font-medium tracking-[1.3px] text-white/50">
             TU SPLIT
           </span>
-          <span className="font-mono text-[30px] font-semibold leading-none text-[#1C1D22]">
+          <span className="font-mono text-[34px] font-light leading-none tracking-[-0.015em] text-white">
             {percentage}%
           </span>
         </span>
 
         <span className="flex flex-col gap-1">
-          <span className="font-mono text-[9.5px] font-medium tracking-[1.3px] text-[#71757E]">
+          <span className="font-mono text-[9.5px] font-medium tracking-[1.3px] text-white/50">
             DEVENGADO
           </span>
-          <span className="font-mono text-[30px] font-semibold leading-none text-[#2FB37E]">
+          <span className="font-mono text-[34px] font-light leading-none tracking-[-0.015em] text-[#45D39A]">
             {formatCurrency(amount)}
           </span>
         </span>
 
         {paid > 0 && (
           <span className="flex flex-col gap-1">
-            <span className="font-mono text-[9.5px] font-medium tracking-[1.3px] text-[#71757E]">
+            <span className="font-mono text-[9.5px] font-medium tracking-[1.3px] text-white/50">
               YA COBRADO
             </span>
-            <span className="font-mono text-[20px] font-semibold leading-none text-[#71757E]">
+            <span className="font-mono text-[22px] font-light leading-none tracking-[-0.015em] text-white/65">
               {formatCurrency(paid)}
             </span>
           </span>
@@ -72,11 +72,11 @@ export function MyShareCard({
       </div>
 
       {scope && (
-        <p className="flex items-center gap-2 rounded-[16px] bg-[#F4F5F7] px-3.5 py-3 text-[11.5px] text-[#71757E]">
+        <p className="flex items-center gap-2 rounded-[16px] bg-white/[0.06] px-3.5 py-3 text-[11.5px] text-white/65">
           {scope.worldwide ? (
-            <Globe className="h-3.5 w-3.5 flex-shrink-0 text-[#A6AAB2]" />
+            <Globe className="h-3.5 w-3.5 flex-shrink-0 text-white/50" />
           ) : (
-            <Radio className="h-3.5 w-3.5 flex-shrink-0 text-[#A6AAB2]" />
+            <Radio className="h-3.5 w-3.5 flex-shrink-0 text-white/50" />
           )}
           {scope.worldwide
             ? "Tu split aplica en todos los países y plataformas"
@@ -84,17 +84,17 @@ export function MyShareCard({
         </p>
       )}
 
-      <div className="h-px bg-[#E8E8EC]" />
+      <div className="h-px bg-white/[0.09]" />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="flex items-center gap-2.5">
           {pending > 0 ? (
-            <Clock3 className="h-3.5 w-3.5 text-[#EA580C]" />
+            <Clock3 className="h-3.5 w-3.5 text-[#FF8A3D]" />
           ) : (
-            <CircleCheck className="h-3.5 w-3.5 text-[#2FB37E]" />
+            <CircleCheck className="h-3.5 w-3.5 text-[#45D39A]" />
           )}
           <span
-            className={`text-[12.5px] font-semibold ${pending > 0 ? "text-[#EA580C]" : "text-[#2FB37E]"}`}
+            className={`text-[12.5px] font-semibold ${pending > 0 ? "text-[#FF8A3D]" : "text-[#45D39A]"}`}
           >
             {pending > 0 ? `${formatCurrency(pending)} por cobrar` : "Estás al día"}
           </span>
@@ -103,7 +103,7 @@ export function MyShareCard({
         {pending > 0 && onRequest && !requestPending && (
           <button
             onClick={onRequest}
-            className="flex items-center gap-2 rounded-[20px] bg-[#FF5C00] px-4 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#EA580C]"
+            className="flex items-center gap-2 rounded-full bg-[#FF5C00] px-4 py-2.5 text-[12px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
           >
             <HandCoins className="h-3.5 w-3.5" />
             Solicitar mis regalías

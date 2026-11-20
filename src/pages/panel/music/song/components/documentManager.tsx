@@ -6,6 +6,7 @@ import {
   Trash2,
   FileText,
   Folder,
+  FolderOpen,
   AlertCircle,
   TriangleAlert,
   Info,
@@ -36,6 +37,14 @@ const CATEGORIES: { value: DocumentCategory; label: string }[] = [
 
 /** Cada categoría con su color, para distinguirlas de un vistazo en la tabla. */
 const CATEGORY_STYLE: Record<DocumentCategory, string> = {
+  contrato: "bg-white/[0.10] text-white",
+  licencia: "bg-[#FF5C00]/[0.16] text-[#FF9A5C]",
+  factura: "bg-[#45D39A]/[0.12] text-[#45D39A]",
+  otro: "bg-white/[0.06] text-white/65",
+};
+
+/** Los mismos papeles en la hoja clara del visor, que sigue sin migrar. */
+const CATEGORY_STYLE_LIGHT: Record<DocumentCategory, string> = {
   contrato: "bg-[#F4F5F7] text-[#1C1D22]",
   licencia: "bg-[#FFEADD] text-[#FF5C00]",
   factura: "bg-[#E4F5EC] text-[#2FB37E]",
@@ -187,16 +196,16 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ songId }) => {
 
   return (
     <>
-      <section className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
+      <section className="glass overflow-hidden rounded-[28px]">
         {forbidden && !loading ? (
           <div className="flex flex-col items-center gap-2.5 px-6 py-14 text-center">
-            <span className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-[#F4F5F7] text-[#71757E]">
+            <span className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-white/[0.08] text-white/65">
               <FolderOpen className="h-5 w-5" />
             </span>
-            <h3 className="font-display text-[16px] font-semibold text-[#1C1D22]">
+            <h3 className="font-display text-[16px] font-medium text-white">
               Sin permiso para ver documentos
             </h3>
-            <p className="max-w-[340px] text-[12px] leading-relaxed text-[#71757E]">
+            <p className="max-w-[340px] text-[12px] leading-relaxed text-white/65">
               El propietario de esta canción no ha habilitado el acceso a los documentos.
             </p>
           </div>
@@ -204,10 +213,10 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ songId }) => {
           <>
         <header className="flex flex-wrap items-center justify-between gap-3.5 px-5 py-[18px]">
           <div className="flex flex-col gap-0.5">
-            <h3 className="font-display text-[18px] font-semibold text-[#1C1D22]">
+            <h3 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">
               Los papeles de esta canción
             </h3>
-            <p className="text-[12.5px] font-medium text-[#71757E]">
+            <p className="text-[12.5px] text-white/65">
               Contratos, licencias y facturas que respaldan el reparto
             </p>
           </div>
@@ -215,23 +224,23 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ songId }) => {
             type="button"
             onClick={() => setShowUpload(true)}
             disabled={uploading}
-            className="inline-flex items-center gap-[7px] rounded-[20px] bg-[#FF5C00] px-4 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#EA580C] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00] focus-visible:ring-offset-2 disabled:opacity-50"
+            className="inline-flex items-center gap-[7px] rounded-full bg-[#FF5C00] px-[18px] py-[11px] text-[12.5px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors enabled:hover:bg-[#EA580C] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:bg-white/[0.08] disabled:text-white/40 disabled:shadow-none"
           >
             <Upload className="h-3.5 w-3.5" />
             Subir documento
           </button>
         </header>
 
-        <div className="h-px bg-[#E8E8EC]" />
+        <div className="h-px bg-white/[0.09]" />
 
         {error && (
-          <div className="flex items-center gap-2.5 bg-[#FDECEC] px-5 py-3">
-            <AlertCircle className="h-3.5 w-3.5 shrink-0 text-[#E5484D]" />
-            <span className="flex-1 text-[12px] font-medium text-[#E5484D]">{error}</span>
+          <div className="flex items-center gap-2.5 border-b border-[#E5484D]/30 bg-[#E5484D]/[0.14] px-5 py-3">
+            <AlertCircle className="h-3.5 w-3.5 shrink-0 text-[#FF8F92]" />
+            <span className="flex-1 text-[12px] font-medium text-[#FF8F92]">{error}</span>
             <button
               type="button"
               onClick={() => setError(null)}
-              className="text-[11px] font-semibold text-[#E5484D] underline"
+              className="rounded text-[11px] font-semibold text-[#FF8F92] underline transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
             >
               Descartar
             </button>
@@ -240,23 +249,23 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ songId }) => {
 
         {loading ? (
           <div className="flex flex-col items-center gap-2.5 py-16 text-center">
-            <Loader className="h-6 w-6 animate-spin text-[#A6AAB2]" />
-            <p className="text-sm text-[#71757E]">Trayendo los documentos…</p>
+            <Loader className="h-6 w-6 animate-spin text-white/50" />
+            <p className="text-sm text-white/65">Trayendo los documentos…</p>
           </div>
         ) : documents.length === 0 ? (
           <div className="flex flex-col items-center gap-2.5 py-16 text-center">
-            <span className="grid h-[58px] w-[58px] place-items-center rounded-[20px] bg-[#FFEADD]">
-              <FileText className="h-6 w-6 text-[#FF5C00]" />
+            <span className="grid h-[58px] w-[58px] place-items-center rounded-[20px] bg-[#FF5C00]/15">
+              <FileText className="h-6 w-6 text-[#FF8A3D]" />
             </span>
-            <p className="text-[15px] font-semibold text-[#1C1D22]">Aún no hay papeles aquí</p>
-            <p className="max-w-[400px] text-[13px] text-[#71757E]">
+            <p className="font-display text-[17px] font-medium text-white">Aún no hay papeles aquí</p>
+            <p className="max-w-[400px] text-[13px] leading-relaxed text-white/65">
               Sube el contrato de reparto o la licencia y quedará junto a la canción, a la vista de
               quienes cobran de ella.
             </p>
             <button
               type="button"
               onClick={() => setShowUpload(true)}
-              className="mt-1 inline-flex items-center gap-[7px] rounded-[20px] bg-[#FF5C00] px-4 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#EA580C]"
+              className="mt-1 inline-flex items-center gap-[7px] rounded-full bg-[#FF5C00] px-[18px] py-[11px] text-[12.5px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             >
               <Upload className="h-3.5 w-3.5" />
               Subir el primero
@@ -265,38 +274,38 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ songId }) => {
         ) : (
           <>
             <div className="hidden items-center gap-3.5 px-5 py-[13px] lg:flex">
-              <span className="flex-1 font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+              <span className="flex-1 font-mono text-[9.5px] font-medium tracking-[1.2px] text-white/50">
                 DOCUMENTO
               </span>
-              <span className="w-[130px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+              <span className="w-[130px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-white/50">
                 TIPO
               </span>
-              <span className="w-[96px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+              <span className="w-[96px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-white/50">
                 TAMAÑO
               </span>
-              <span className="w-[170px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+              <span className="w-[170px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-white/50">
                 SUBIDO POR
               </span>
-              <span className="w-[110px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+              <span className="w-[110px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-white/50">
                 FECHA
               </span>
               <span className="w-[110px]" />
             </div>
 
-            <div className="h-px bg-[#E8E8EC]" />
+            <div className="h-px bg-white/[0.09]" />
 
             <ul>
               {documents.map((doc, index) => {
                 const uploader = uploaderName(doc);
                 return (
                   <li key={docKey(doc) || index}>
-                    {index > 0 && <div className="h-px bg-[#E8E8EC]" />}
+                    {index > 0 && <div className="h-px bg-white/[0.09]" />}
                     <div className="flex flex-wrap items-center gap-3.5 px-5 py-3">
                       <div className="flex min-w-[200px] flex-1 items-center gap-3">
-                        <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[12px] bg-[#F4F5F7] font-mono text-[10px] font-semibold tracking-[0.4px] text-[#71757E]">
+                        <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[12px] bg-white/[0.06] font-mono text-[10px] font-semibold tracking-[0.4px] text-white/65">
                           {(doc.type || "?").toUpperCase().slice(0, 4)}
                         </span>
-                        <span className="min-w-0 truncate text-[13px] font-semibold text-[#1C1D22]">
+                        <span className="min-w-0 truncate text-[13px] font-semibold text-white">
                           {doc.name}
                         </span>
                       </div>
@@ -309,20 +318,20 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ songId }) => {
                         </span>
                       </div>
 
-                      <div className="w-[96px] font-mono text-[11.5px] font-medium text-[#71757E]">
+                      <div className="w-[96px] font-mono text-[11.5px] font-medium text-white/65">
                         {doc.size || "—"}
                       </div>
 
                       <div className="flex w-[170px] items-center gap-2">
-                        <span className="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full bg-[#1C1D22] text-[9.5px] font-semibold text-white">
+                        <span className="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full border border-white/25 bg-[#1C1D22] text-[9.5px] font-semibold text-white">
                           {initialsOf(uploader)}
                         </span>
-                        <span className="truncate text-[12px] font-medium text-[#71757E]">
+                        <span className="truncate text-[12px] font-medium text-white/65">
                           {uploader}
                         </span>
                       </div>
 
-                      <div className="w-[110px] text-[11.5px] text-[#71757E]">
+                      <div className="w-[110px] text-[11.5px] text-white/65">
                         {formatDate(doc.uploadDate)}
                       </div>
 
@@ -343,15 +352,15 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ songId }) => {
               })}
             </ul>
 
-            <div className="h-px bg-[#E8E8EC]" />
+            <div className="h-px bg-white/[0.09]" />
 
             <footer className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5">
-              <span className="flex items-center gap-2.5 text-[12px] text-[#71757E]">
+              <span className="flex items-center gap-2.5 text-[12px] text-white/65">
                 <Folder className="h-3.5 w-3.5" />
                 {documents.length} {documents.length === 1 ? "archivo" : "archivos"}
                 {sizeLabel ? ` · ${sizeLabel} en total` : ""}
               </span>
-              <span className="text-[11px] text-[#A6AAB2]">
+              <span className="text-[11px] text-white/50">
                 Solo tú y los colaboradores de la canción pueden abrirlos
               </span>
             </footer>
@@ -407,8 +416,10 @@ const IconButton = ({
     onClick={onClick}
     title={label}
     aria-label={label}
-    className={`grid h-[30px] w-[30px] place-items-center rounded-full border border-[#E8E8EC] bg-white transition-colors hover:bg-[#F4F5F7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00] ${
-      danger ? "text-[#E5484D]" : "text-[#71757E]"
+    className={`grid h-[30px] w-[30px] place-items-center rounded-full bg-white/[0.06] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
+      danger
+        ? "text-[#FF8F92] hover:bg-[#E5484D]/[0.14]"
+        : "text-white/70 hover:bg-white/[0.12] hover:text-white"
     }`}
   >
     {children}
@@ -672,7 +683,7 @@ const PreviewModal = ({
 
       <div className="flex flex-wrap items-center gap-[7px]">
         <span
-          className={`rounded-[12px] px-[9px] py-1 text-[10.5px] font-semibold ${CATEGORY_STYLE[categoryOf(doc)]}`}
+          className={`rounded-[12px] px-[9px] py-1 text-[10.5px] font-semibold ${CATEGORY_STYLE_LIGHT[categoryOf(doc)]}`}
         >
           {categoryLabel(doc)}
         </span>

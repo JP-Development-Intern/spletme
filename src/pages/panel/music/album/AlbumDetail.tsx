@@ -39,7 +39,7 @@ import { MoneyWaterfall } from "@/components/music/MoneyWaterfall";
 import { MyShareCard } from "@/components/music/MyShareCard";
 import { SongLabelsBadge } from "@/components/music/SongLabelsBadge";
 import { MetricConsole, type MetricChannel } from "@/components/ui/MetricConsole";
-import Loading from "@/components/loading/loading";
+import { DetailSkeleton } from "@/components/music/DetailSkeleton";
 import Platforms from "../song/components/platforms";
 import Performance from "../song/components/performance";
 import AlbumOwnerSplitModal from "./components/AlbumOwnerSplitModal";
@@ -255,35 +255,35 @@ export default function AlbumDetail() {
   const mine = shares.find((share) => myIds.includes(String(share.id)));
   const myAlbumShare = { percentage: mine?.percentage ?? 0, amount: mine?.amount ?? 0 };
 
-  if (loading) return <Loading />;
+  if (loading) return <DetailSkeleton label="Cargando el álbum" />;
 
   if (error || !album) {
     return (
-      <div className="flex min-h-full flex-col items-center justify-center gap-3 bg-[#F7F7F9] px-4">
-        <span className="flex h-[52px] w-[52px] items-center justify-center rounded-[18px] bg-[#FDECEC]">
-          <TriangleAlert className="h-[22px] w-[22px] text-[#E5484D]" />
+      <section className="glass mx-4 flex flex-col items-center gap-3 rounded-[32px] px-6 py-14 text-center lg:ml-4 lg:mr-8">
+        <span className="flex h-[60px] w-[60px] items-center justify-center rounded-[22px] bg-[#E5484D]/[0.14]">
+          <TriangleAlert className="h-[24px] w-[24px] text-[#FF8F92]" />
         </span>
-        <h2 className="font-display text-base font-semibold text-[#1C1D22]">
+        <h2 className="font-display text-[19px] font-medium text-white">
           {error ?? "No se pudo cargar el álbum"}
         </h2>
-        <p className="text-[12.5px] text-[#71757E]">
+        <p className="text-[12.5px] text-white/65">
           Puede que ya no exista o que la conexión haya fallado.
         </p>
         <div className="flex items-center gap-2.5 pt-1.5">
           <button
             onClick={() => setRefreshKey((k) => k + 1)}
-            className="rounded-2xl bg-[#FF5C00] px-4 py-2.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-[#EA580C]"
+            className="rounded-full bg-[#FF5C00] px-[18px] py-[11px] text-[12.5px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
           >
             Reintentar
           </button>
           <Link
             to="/panel/music?view=albums"
-            className="rounded-2xl border border-[#E8E8EC] bg-white px-4 py-2.5 text-[12.5px] font-semibold text-[#1C1D22] transition-colors hover:bg-[#F4F5F7]"
+            className="glass-control rounded-full px-[18px] py-[11px] text-[12.5px] font-semibold text-white transition-colors hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
           >
             Volver a Música
           </Link>
         </div>
-      </div>
+      </section>
     );
   }
 
@@ -309,15 +309,15 @@ export default function AlbumDetail() {
   const channels: MetricChannel[] = [
     {
       key: "tracks",
-      label: "PISTAS",
-      icon: <Music className="h-[13px] w-[13px] text-[#71757E]" />,
+      label: "Pistas",
+      icon: <Music className="h-[15px] w-[15px] text-white" />,
       value: String(coverage.total),
       caption: `${coverage.withSplit} con split`,
     },
     {
       key: "streams",
-      label: "STREAMS",
-      icon: <Play className="h-[13px] w-[13px] text-[#71757E]" />,
+      label: "Streams",
+      icon: <Play className="h-[15px] w-[15px] text-white" />,
       value: formatStreams(album.totalStreams ?? 0),
     },
     // El ingreso del álbum y lo que queda sin repartir son cuentas del dueño:
@@ -327,10 +327,10 @@ export default function AlbumDetail() {
       ? [
           {
             key: "net",
-            label: "INGRESO NETO",
-            icon: <DollarSign className="h-[13px] w-[13px] text-[#2FB37E]" />,
+            label: "Ingreso neto",
+            icon: <DollarSign className="h-[15px] w-[15px] text-white" />,
             value: formatCurrency(netIncome),
-            valueColor: "#2FB37E",
+            valueColor: "#45D39A",
             width: 300,
             caption: grossIncome > 0 ? `bruto ${formatCurrency(grossIncome)}` : undefined,
           } as MetricChannel,
@@ -338,8 +338,8 @@ export default function AlbumDetail() {
       : []),
     {
       key: "coverage",
-      label: "SPLIT ASIGNADO",
-      icon: <Crown className="h-[13px] w-[13px] text-[#71757E]" />,
+      label: "Split asignado",
+      icon: <Crown className="h-[15px] w-[15px] text-white" />,
       value: coverage.total > 0 ? `${Math.round((coverage.withSplit / coverage.total) * 100)}%` : "—",
       caption: `${coverage.withSplit} de ${coverage.total} pistas`,
     },
@@ -347,10 +347,10 @@ export default function AlbumDetail() {
       ? [
           {
             key: "earnings",
-            label: "TU GANANCIA",
-            icon: <Crown className="h-[13px] w-[13px] text-[#FF5C00]" />,
+            label: "Tu ganancia",
+            icon: <Crown className="h-[15px] w-[15px] text-white" />,
             value: formatCurrency(Number(album.ownerEarnings ?? 0) || 0),
-            valueColor: "#FF5C00",
+            valueColor: "#FF8A3D",
             caption: "según tus splits",
           } as MetricChannel,
         ]
@@ -359,8 +359,8 @@ export default function AlbumDetail() {
       ? [
           {
             key: "unassigned",
-            label: "SIN REPARTIR",
-            icon: <CircleAlert className="h-[13px] w-[13px] text-[#FF5C00]" />,
+            label: "Sin repartir",
+            icon: <CircleAlert className="h-[15px] w-[15px] text-[#FF8A3D]" />,
             value: pending > 0 ? formatCurrency(unassignedIncome) : "Al día",
             highlight: true,
             width: 270,
@@ -378,19 +378,19 @@ export default function AlbumDetail() {
     : album.tracks;
 
   return (
-    <div className="min-h-full bg-[#F7F7F9]">
-      <div className="flex flex-col gap-5 px-4 py-6 lg:px-8">
+    <>
+      <div className="flex flex-col gap-5 px-4 lg:pl-4 lg:pr-8">
         <DetailHeader
           backTo="/panel/music?view=albums"
           cover={cover}
-          fallbackIcon={<Disc3 className="h-9 w-9 text-[#A6AAB2]" />}
+          fallbackIcon={<Disc3 className="h-9 w-9 text-white/50" />}
           title={album.albumTitle}
           codeLabel="UPC"
           code={album.upc}
           meta={
             <>
               <span>{album.artistName}</span>
-              <span className="text-[#A6AAB2]">·</span>
+              <span className="text-white/40">·</span>
               <span>
                 {coverage.total} {coverage.total === 1 ? "pista" : "pistas"}
               </span>
@@ -405,9 +405,9 @@ export default function AlbumDetail() {
                 <button
                   onClick={() => setCollabSplitOpen(true)}
                   disabled={coverage.total === 0}
-                  className="flex items-center gap-2 rounded-[22px] border border-[#E8E8EC] bg-white px-[18px] py-3 text-[12.5px] font-semibold text-[#1C1D22] transition-colors enabled:hover:bg-[#F4F5F7] disabled:cursor-not-allowed disabled:text-[#A6AAB2]"
+                  className="glass-control flex min-h-[44px] items-center gap-2 rounded-full px-[18px] py-[11px] text-[12.5px] font-semibold text-white transition-colors enabled:hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 disabled:cursor-not-allowed disabled:text-white/40"
                 >
-                  <Users className="h-[15px] w-[15px] text-[#71757E]" />
+                  <Users className="h-[15px] w-[15px] text-white/70" />
                   Split de colaborador
                 </button>
               )}
@@ -424,16 +424,16 @@ export default function AlbumDetail() {
                 <button
                   onClick={() => setInviteModalOpen(true)}
                   disabled={coverage.total === 0}
-                  className="flex items-center gap-2 rounded-[22px] border border-[#E8E8EC] bg-white px-[18px] py-3 text-[12.5px] font-semibold text-[#1C1D22] transition-colors enabled:hover:bg-[#F4F5F7] disabled:cursor-not-allowed disabled:text-[#A6AAB2]"
+                  className="glass-control flex min-h-[44px] items-center gap-2 rounded-full px-[18px] py-[11px] text-[12.5px] font-semibold text-white transition-colors enabled:hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 disabled:cursor-not-allowed disabled:text-white/40"
                 >
-                  <UserPlus className="h-[15px] w-[15px] text-[#71757E]" />
+                  <UserPlus className="h-[15px] w-[15px] text-white/70" />
                   Invitar al álbum
                 </button>
               )}
               <button
                 onClick={() => setSplitModalOpen(true)}
                 disabled={coverage.total === 0}
-                className="flex items-center gap-2 rounded-[22px] bg-[#FF5C00] px-[18px] py-3 text-[12.5px] font-semibold text-white shadow-[0_6px_16px_-4px_rgba(255,92,0,0.4)] transition-colors enabled:hover:bg-[#EA580C] disabled:cursor-not-allowed disabled:bg-[#F4F5F7] disabled:text-[#A6AAB2] disabled:shadow-none"
+                className="flex min-h-[44px] items-center gap-2 rounded-full bg-[#FF5C00] px-[18px] py-[11px] text-[12.5px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors enabled:hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:bg-white/[0.08] disabled:text-white/40 disabled:shadow-none"
               >
                 <Crown className="h-[15px] w-[15px]" />
                 Tu split del álbum
@@ -465,20 +465,20 @@ export default function AlbumDetail() {
               }
               notice={
                 pending > 0 ? (
-                  <div className="flex flex-wrap items-center gap-3 rounded-[16px] bg-[#FFEADD] px-3.5 py-3">
-                    <CircleAlert className="h-[15px] w-[15px] flex-shrink-0 text-[#FF5C00]" />
+                  <div className="flex flex-wrap items-center gap-3 rounded-[16px] border border-[#FF8A3D]/30 bg-[#FF5C00]/[0.14] px-3.5 py-3">
+                    <CircleAlert className="h-[15px] w-[15px] flex-shrink-0 text-[#FF8A3D]" />
                     <span className="flex min-w-[200px] flex-1 flex-col gap-0.5">
-                      <span className="text-[12px] font-semibold text-[#EA580C]">
+                      <span className="text-[12px] font-semibold text-[#FFB48A]">
                         {pending} {pending === 1 ? "pista todavía no reparte" : "pistas todavía no reparten"}
                       </span>
-                      <span className="text-[11px] text-[#EA580C]">
+                      <span className="text-[11px] text-white/65">
                         Sus {formatCurrency(unassignedIncome)} van enteros a ti hasta que les
                         asignes un split.
                       </span>
                     </span>
                     <button
                       onClick={() => setSplitModalOpen(true)}
-                      className="rounded-[14px] bg-[#FF5C00] px-3.5 py-2 text-[11.5px] font-semibold text-white transition-colors hover:bg-[#EA580C]"
+                      className="rounded-full bg-[#FF5C00] px-3.5 py-2 text-[11.5px] font-semibold text-white transition-colors hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                     >
                       Asignar
                     </button>
@@ -541,13 +541,14 @@ export default function AlbumDetail() {
       {collabSplitOpen && (
         <BulkCollaboratorSplitModal
           isOpen={collabSplitOpen}
+          onGlass
           showOwnerContext={(album?.tracks ?? []).some((track) => viewerOwnsSong(track))}
           onClose={() => setCollabSplitOpen(false)}
           name={album.albumTitle}
           context={album.artistName}
           logo={
-            <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-[14px] bg-[#F4F5F7]">
-              <Disc3 className="h-[19px] w-[19px] text-[#A6AAB2]" />
+            <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-[14px] bg-white/[0.08]">
+              <Disc3 className="h-[19px] w-[19px] text-white/60" />
             </span>
           }
           tracks={(album.tracks ?? []).map((track) => ({
@@ -577,7 +578,7 @@ export default function AlbumDetail() {
           onSplitsCreated={() => setRefreshKey((k) => k + 1)}
         />
       )}
-    </div>
+    </>
   );
 }
 
@@ -600,13 +601,13 @@ function TracksTable({
   const pending = Math.max(0, total - withSplit);
 
   return (
-    <div className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
-      <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-[18px]">
+    <div className="glass overflow-hidden rounded-[28px]">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-5">
         <div className="flex flex-col gap-0.5">
-          <h2 className="font-display text-lg font-semibold text-[#1C1D22]">
+          <h2 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">
             Las {total} {total === 1 ? "pista" : "pistas"}
           </h2>
-          <p className="text-[12.5px] text-[#71757E]">
+          <p className="text-[12.5px] text-white/65">
             {withSplit} reparten · {pending} van enteras a ti
           </p>
         </div>
@@ -614,10 +615,10 @@ function TracksTable({
           <button
             onClick={onToggleFilter}
             aria-pressed={onlyWithoutSplit}
-            className={`flex items-center gap-2 rounded-[18px] px-3.5 py-2 text-[12px] font-semibold transition-colors ${
+            className={`flex items-center gap-2 rounded-full px-3.5 py-2 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
               onlyWithoutSplit
-                ? "bg-[#FFEADD] text-[#FF5C00]"
-                : "border border-[#E8E8EC] bg-white text-[#1C1D22] hover:bg-[#F4F5F7]"
+                ? "glass-cream text-[#1C1D22]"
+                : "glass-control text-white hover:bg-white/[0.12]"
             }`}
           >
             <Funnel className="h-3.5 w-3.5" />
@@ -626,7 +627,7 @@ function TracksTable({
           {pending > 0 && (
             <button
               onClick={onAssignAll}
-              className="flex items-center gap-2 rounded-[20px] bg-[#FF5C00] px-4 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#EA580C]"
+              className="flex items-center gap-2 rounded-full bg-[#FF5C00] px-4 py-2.5 text-[12px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             >
               <Crown className="h-3.5 w-3.5" />
               Asignar a las {pending}
@@ -635,48 +636,48 @@ function TracksTable({
         </div>
       </div>
 
-      <div className="h-px bg-[#E8E8EC]" />
+      <div className="h-px bg-white/[0.09]" />
 
       {tracks.length === 0 ? (
-        <p className="px-5 py-12 text-center text-[12.5px] text-[#71757E]">
+        <p className="px-6 py-12 text-center text-[12.5px] text-white/65">
           {onlyWithoutSplit
             ? "Todas las pistas reparten ya."
             : "Este álbum no tiene pistas cargadas."}
         </p>
       ) : (
-        <ul className="flex flex-col divide-y divide-[#E8E8EC]">
+        <ul className="flex flex-col divide-y divide-white/[0.09]">
           {tracks.map((track, index) => {
             const hasSplit = Boolean(track?.split || (track as any)?.ownerId?.split);
             const collaborators = ((track as any)?.collaborators ?? []) as any[];
             return (
               <li
                 key={track._id || track.isrc || index}
-                className={`flex flex-wrap items-center gap-3.5 px-5 py-3 ${
-                  hasSplit ? "" : "bg-[#FFEADD]"
+                className={`flex flex-wrap items-center gap-3.5 px-6 py-3 transition-colors ${
+                  hasSplit ? "hover:bg-white/[0.04]" : "bg-[#FF5C00]/[0.08]"
                 }`}
               >
-                <span className="w-[26px] flex-shrink-0 font-mono text-[12px] font-semibold text-[#A6AAB2]">
+                <span className="w-[26px] flex-shrink-0 font-mono text-[12px] font-semibold text-white/50">
                   {index + 1}
                 </span>
 
                 <span className="flex min-w-[180px] flex-1 items-center gap-3">
                   <span
                     className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[11px] ${
-                      hasSplit ? "bg-[#F4F5F7]" : "bg-white"
+                      hasSplit ? "bg-white/[0.08]" : "bg-[#FF5C00]/[0.16]"
                     }`}
                   >
-                    <Music className="h-[15px] w-[15px] text-[#A6AAB2]" />
+                    <Music className={`h-[15px] w-[15px] ${hasSplit ? "text-white/50" : "text-[#FF8A3D]"}`} />
                   </span>
                   <span className="flex min-w-0 flex-col gap-0.5">
                     <Link
                       to={`/panel/song/${track._id}`}
                       title={track.trackTitle}
-                      className="truncate text-[13px] font-semibold text-[#1C1D22] transition-colors hover:text-[#FF5C00]"
+                      className="truncate text-[13px] font-semibold text-white transition-colors hover:text-[#FFB067]"
                     >
                       {track.trackTitle}
                     </Link>
                     {track.isrc && (
-                      <span className="truncate font-mono text-[10px] text-[#A6AAB2]">
+                      <span className="truncate font-mono text-[10px] text-white/50">
                         {track.isrc}
                       </span>
                     )}
@@ -685,14 +686,14 @@ function TracksTable({
 
                 <span className="w-[130px] flex-shrink-0">
                   {hasSplit ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-[14px] bg-[#E4F5EC] px-2.5 py-1.5">
-                      <Crown className="h-3 w-3 text-[#2FB37E]" />
-                      <span className="text-[10.5px] font-semibold text-[#2FB37E]">Reparte</span>
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#45D39A]/[0.12] px-2.5 py-1">
+                      <Crown className="h-3 w-3 text-[#45D39A]" />
+                      <span className="text-[11px] font-semibold text-[#45D39A]">Reparte</span>
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 rounded-[14px] bg-white px-2.5 py-1.5">
-                      <CircleAlert className="h-3 w-3 text-[#FF5C00]" />
-                      <span className="text-[10.5px] font-semibold text-[#FF5C00]">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FF5C00]/[0.16] px-2.5 py-1">
+                      <CircleAlert className="h-3 w-3 text-[#FF8A3D]" />
+                      <span className="text-[11px] font-semibold text-[#FF8A3D]">
                         Sin asignar
                       </span>
                     </span>
@@ -704,25 +705,25 @@ function TracksTable({
                 </span>
 
                 <span className="hidden w-[100px] flex-shrink-0 items-center gap-1.5 md:flex">
-                  <Play className="h-3 w-3 text-[#A6AAB2]" />
-                  <span className="font-mono text-[11.5px] text-[#71757E]">
+                  <Play className="h-3 w-3 text-white/50" />
+                  <span className="font-mono text-[11.5px] text-white/65">
                     {formatStreams(track.totalStreams ?? 0)}
                   </span>
                 </span>
 
-                <span className="w-[110px] flex-shrink-0 font-mono text-[13px] font-semibold text-[#2FB37E]">
+                <span className="w-[110px] flex-shrink-0 font-mono text-[14px] text-[#45D39A]">
                   {formatCurrency(track.totalNetIncome ?? 0)}
                 </span>
 
                 <span className="hidden w-[130px] flex-shrink-0 items-center gap-1 lg:flex">
                   {collaborators.length === 0 ? (
-                    <span className="text-[11.5px] text-[#A6AAB2]">Solo tú</span>
+                    <span className="text-[11.5px] text-white/50">Solo tú</span>
                   ) : (
                     collaborators.slice(0, 4).map((collaborator, position) => (
                       <span
                         key={collaborator?._id ?? position}
                         title={collaborator?.name}
-                        className="h-6 w-6 rounded-full ring-2 ring-white"
+                        className="h-6 w-6 rounded-full ring-1 ring-white/25"
                         style={{ backgroundColor: collaboratorColor(position + 1) }}
                       />
                     ))
@@ -732,7 +733,7 @@ function TracksTable({
                 <Link
                   to={`/panel/song/${track._id}`}
                   aria-label={`Abrir ${track.trackTitle}`}
-                  className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full border border-[#E8E8EC] bg-white text-[#71757E] transition-colors hover:text-[#1C1D22]"
+                  className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-white/70 transition-colors hover:bg-white/[0.12] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
                 >
                   <ChevronRight className="h-3.5 w-3.5" />
                 </Link>

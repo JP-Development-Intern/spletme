@@ -128,12 +128,13 @@ export default function CreateDistributorModal({ onClose, onConfirm, existingNam
           provider ? provider.name : "Conecta la cuenta de la que descargas tus reportes"
         }
         width="lg"
+        onGlass
         locked={loading}
         onClose={onClose}
         logo={provider ? <DistributorMark name={provider.name} logo={provider.logo} /> : undefined}
         footer={
           <>
-            <span className="flex-1 text-[11px] text-[#A6AAB2]">
+            <span className="flex-1 text-[11px] text-white/50">
               Después podrás subir su primer reporte
             </span>
             <SecondaryButton onClick={onClose} disabled={loading}>
@@ -164,16 +165,19 @@ export default function CreateDistributorModal({ onClose, onConfirm, existingNam
                   type="button"
                   onClick={() => selectProvider(d)}
                   aria-pressed={selected}
-                  className={`flex h-[74px] flex-col items-center justify-center gap-1.5 rounded-2xl px-2 transition-colors ${
+                  className={`flex h-[78px] flex-col items-center justify-center gap-1.5 rounded-2xl px-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
                     selected
-                      ? "border-[1.5px] border-[#FF5C00] bg-[#FFEADD]"
-                      : "border border-[#E8E8EC] bg-white hover:border-[#D9DAE0]"
+                      ? "border-[1.5px] border-[#FF8A3D] bg-[#FF5C00]/[0.16]"
+                      : "border border-white/[0.12] bg-white/[0.06] hover:bg-white/[0.10]"
                   }`}
                 >
-                  <img src={d.logo} alt="" loading="lazy" className="h-7 w-7 object-contain" />
+                  {/* Los logos de Spotify están pensados para fondo claro: van en su placa blanca */}
+                  <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-white p-1">
+                    <img src={d.logo} alt="" loading="lazy" className="h-full w-full object-contain" />
+                  </span>
                   <span
                     className={`w-full truncate text-center text-[10.5px] ${
-                      selected ? "font-semibold text-[#EA580C]" : "font-medium text-[#71757E]"
+                      selected ? "font-semibold text-[#FFB48A]" : "font-medium text-white/70"
                     }`}
                   >
                     {d.name}
@@ -188,37 +192,41 @@ export default function CreateDistributorModal({ onClose, onConfirm, existingNam
               type="button"
               onClick={() => setOpen((v) => !v)}
               aria-expanded={open}
-              className="flex w-full items-center gap-2.5 rounded-2xl bg-[#F4F5F7] px-3.5 py-3 text-left transition-colors hover:bg-[#E8E8EC]"
+              className="flex w-full items-center gap-2.5 rounded-2xl border border-white/[0.12] bg-white/[0.06] px-3.5 py-3 text-left transition-colors hover:bg-white/[0.10] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
             >
-              <Search className="h-[15px] w-[15px] flex-shrink-0 text-[#71757E]" />
-              <span className="flex-1 truncate text-[12px] text-[#71757E]">
+              <Search className="h-[15px] w-[15px] flex-shrink-0 text-white/50" />
+              <span className="flex-1 truncate text-[12px] text-white/70">
                 {provider && !FEATURED.some((f) => f.id === provider.id)
                   ? provider.name
                   : `Buscar entre ${restCount} distribuidores más…`}
               </span>
-              <ChevronDown className="h-[15px] w-[15px] flex-shrink-0 text-[#A6AAB2]" />
+              <ChevronDown
+                className={`h-[15px] w-[15px] flex-shrink-0 text-white/50 transition-transform ${open ? "rotate-180" : ""}`}
+              />
             </button>
 
             {open && (
-              <div className="absolute bottom-full left-0 z-10 mb-1.5 flex w-full flex-col overflow-hidden rounded-2xl border border-[#E8E8EC] bg-white shadow-[0_14px_36px_-8px_rgba(16,17,20,0.16)]">
-                <div className="flex items-center gap-2.5 border-b border-[#E8E8EC] px-3.5 py-2.5">
-                  <Search className="h-4 w-4 flex-shrink-0 text-[#A6AAB2]" />
+              // Opaco y no de vidrio: un desenfoque dentro del panel, que ya es
+              // vidrio, solo vería el propio panel.
+              <div className="absolute bottom-full left-0 z-10 mb-1.5 flex w-full flex-col overflow-hidden rounded-2xl border border-white/[0.14] bg-[#2B1E17] shadow-[0_20px_44px_-12px_rgba(0,0,0,0.6)]">
+                <div className="flex items-center gap-2.5 border-b border-white/[0.09] px-3.5 py-2.5">
+                  <Search className="h-4 w-4 flex-shrink-0 text-white/50" />
                   <input
                     autoFocus
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Buscar distribuidor…"
-                    className="w-full text-[12.5px] text-[#1C1D22] placeholder:text-[#A6AAB2] focus:outline-none"
+                    className="w-full border-none bg-transparent p-0 text-[12.5px] text-white placeholder:text-white/40 focus:outline-none focus:ring-0"
                   />
-                  <span className="flex-shrink-0 rounded-lg bg-[#F4F5F7] px-2 py-0.5 font-mono text-[10px] font-semibold text-[#71757E]">
+                  <span className="flex-shrink-0 rounded-full bg-white/[0.08] px-2 py-0.5 font-mono text-[10px] font-semibold text-white/65">
                     {filtered.length}
                   </span>
                 </div>
                 <div className="max-h-[220px] overflow-y-auto p-1.5">
                   {filtered.length === 0 ? (
-                    <p className="flex items-center gap-2 px-2.5 py-3 text-[12px] text-[#71757E]">
-                      <CirclePlus className="h-3.5 w-3.5 flex-shrink-0 text-[#A6AAB2]" />
+                    <p className="flex items-center gap-2 px-2.5 py-3 text-[12px] text-white/65">
+                      <CirclePlus className="h-3.5 w-3.5 flex-shrink-0 text-white/50" />
                       No está en el catálogo de Spotify.
                     </p>
                   ) : (
@@ -227,21 +235,18 @@ export default function CreateDistributorModal({ onClose, onConfirm, existingNam
                         key={d.id}
                         type="button"
                         onClick={() => selectProvider(d)}
-                        className={`flex w-full items-center gap-2.5 rounded-[13px] px-2.5 py-2 text-left transition-colors ${
-                          provider?.id === d.id ? "bg-[#FFEADD]" : "hover:bg-[#F4F5F7]"
+                        className={`flex w-full items-center gap-2.5 rounded-[13px] px-2.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
+                          provider?.id === d.id ? "bg-[#FF5C00]/[0.16]" : "hover:bg-white/[0.06]"
                         }`}
                       >
-                        <img
-                          src={d.logo}
-                          alt=""
-                          loading="lazy"
-                          className="h-6 w-6 flex-shrink-0 rounded object-contain"
-                        />
-                        <span className="flex-1 truncate text-[12.5px] text-[#1C1D22]">
+                        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-white p-[3px]">
+                          <img src={d.logo} alt="" loading="lazy" className="h-full w-full object-contain" />
+                        </span>
+                        <span className="flex-1 truncate text-[12.5px] text-white">
                           {d.name}
                         </span>
                         {provider?.id === d.id && (
-                          <Check className="h-4 w-4 flex-shrink-0 text-[#FF5C00]" />
+                          <Check className="h-4 w-4 flex-shrink-0 text-[#FF8A3D]" />
                         )}
                       </button>
                     ))
@@ -265,27 +270,27 @@ export default function CreateDistributorModal({ onClose, onConfirm, existingNam
               if (error) setError("");
             }}
             placeholder="Ej. Mi cuenta de DistroKid"
-            className={`rounded-2xl border px-4 py-3 text-[13px] font-medium text-[#1C1D22] placeholder:font-normal placeholder:text-[#A6AAB2] transition-colors focus:outline-none focus:ring-[3px] focus:ring-[#FF5C00]/15 ${
+            className={`rounded-2xl border px-4 py-3 text-[13px] font-medium text-white placeholder:font-normal placeholder:text-white/40 transition-colors focus:outline-none focus:ring-[3px] focus:ring-[#FF5C00]/25 ${
               nameInvalid
-                ? "border-[1.5px] border-[#E5484D] bg-[#FDECEC]"
-                : "border-[#E8E8EC] focus:border-[#FF5C00]"
+                ? "border-[1.5px] border-[#FF8F92] bg-[#E5484D]/[0.12]"
+                : "border-white/[0.14] bg-white/[0.06] focus:border-[#FF8A3D]"
             }`}
           />
           {duplicated ? (
             <div className="flex flex-col gap-2">
-              <span className="flex items-center gap-1.5 text-[11.5px] font-medium text-[#E5484D]">
+              <span className="flex items-center gap-1.5 text-[11.5px] font-medium text-[#FF8F92]">
                 <TriangleAlert className="h-3 w-3 flex-shrink-0" />
                 Ya tienes un distribuidor llamado así.
               </span>
               {suggestions.length > 0 && (
                 <span className="flex flex-wrap items-center gap-2">
-                  <span className="text-[11px] text-[#A6AAB2]">Sugerencias:</span>
+                  <span className="text-[11px] text-white/50">Sugerencias:</span>
                   {suggestions.map((s) => (
                     <button
                       key={s}
                       type="button"
                       onClick={() => setName(s)}
-                      className="rounded-[13px] bg-[#F4F5F7] px-2.5 py-1 text-[11px] font-medium text-[#1C1D22] transition-colors hover:bg-[#E8E8EC]"
+                      className="rounded-full bg-white/[0.08] px-2.5 py-1 text-[11px] font-medium text-white transition-colors hover:bg-white/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
                     >
                       {s}
                     </button>
@@ -294,7 +299,7 @@ export default function CreateDistributorModal({ onClose, onConfirm, existingNam
               )}
             </div>
           ) : (
-            <span className="text-[11px] leading-relaxed text-[#A6AAB2]">
+            <span className="text-[11px] leading-relaxed text-white/50">
               Así lo verás en tus listas. Útil si tienes varias cuentas del mismo distribuidor.
             </span>
           )}
@@ -306,14 +311,14 @@ export default function CreateDistributorModal({ onClose, onConfirm, existingNam
           <CurrencyPicker value={currency} onChange={setCurrency} />
         </div>
 
-        <p className="flex items-start gap-2.5 rounded-[14px] bg-[#F4F5F7] px-3.5 py-3 text-[11px] leading-relaxed text-[#71757E]">
+        <p className="flex items-start gap-2.5 rounded-[14px] bg-white/[0.06] px-3.5 py-3 text-[11px] leading-relaxed text-white/65">
           <Info className="mt-px h-3.5 w-3.5 flex-shrink-0" />
           Todo el dinero se guarda en dólares. Si eliges euros, cada vez que subas un reporte te
           pediremos el cambio de su periodo para convertirlo.
         </p>
 
         {error && !duplicated && (
-          <p className="text-[12px] font-medium text-[#E5484D]">{error}</p>
+          <p className="text-[12px] font-medium text-[#FF8F92]">{error}</p>
         )}
       </ModalShell>
     </form>

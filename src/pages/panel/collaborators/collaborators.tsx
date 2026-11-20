@@ -1,5 +1,15 @@
 import { useMemo, useState } from "react";
-import { Search, ShieldCheck, SlidersHorizontal, TriangleAlert, UserPlus, Users } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import {
+  Search,
+  UserPlus,
+  TriangleAlert,
+  Users,
+  GalleryHorizontal,
+  Rows3,
+  ShieldCheck,
+  SlidersHorizontal,
+} from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PermissionsModal } from "@/components/music/PermissionsModal";
 import { PermissionsDefaultsModal } from "@/components/music/PermissionsDefaultsModal";
@@ -8,6 +18,7 @@ import { useCollaboratorSongs } from "@/hooks/useCollaboratorSongs";
 import { CollaboratorsSummaryStrip } from "@/components/collaborators/CollaboratorsSummaryStrip";
 import { CollaboratorDial, type MoneyView } from "@/components/collaborators/CollaboratorDial";
 import { CollaboratorSongsPanel } from "@/components/collaborators/CollaboratorSongsPanel";
+import { CollaboratorsList } from "@/components/collaborators/CollaboratorsList";
 import { CollaboratorDetailModal } from "@/components/collaborators/CollaboratorDetailModal";
 import {
   CollaboratorPaymentModal,
@@ -20,11 +31,28 @@ import LocalStorageService from "@/services/localstorage";
 import type { Collaborator } from "@/types";
 
 /**
- * Colaboradores: un resumen de lo que se reparte, un carrusel para recorrer a
- * las personas una a una y, debajo, las canciones que compartes con la que está
- * enfocada.
+ * Colaboradores: un resumen de lo que se reparte, las personas y, debajo, las
+ * canciones que compartes con la que está enfocada.
+ *
+ * Las personas se ven de dos formas: el carrusel, para recorrerlas una a una, y
+ * la lista, para compararlas y llegar directo a cualquiera. Son la misma
+ * selección con otra forma: comparten orden y persona enfocada. La forma vive
+ * en la URL, como en Música.
  */
 export default function Collaborators() {
+  const [params, setParams] = useSearchParams();
+  const layout = params.get("layout") === "list" ? "list" : "dial";
+  const setLayout = (next: "dial" | "list") =>
+    setParams(
+      (prev) => {
+        const nextParams = new URLSearchParams(prev);
+        if (next === "list") nextParams.set("layout", "list");
+        else nextParams.delete("layout");
+        return nextParams;
+      },
+      { replace: true },
+    );
+
   const {
     loading,
     error,
@@ -145,6 +173,20 @@ export default function Collaborators() {
             </button>
           </>
         )}
+        {collaborators.length > 0 && (
+          <div
+            role="group"
+            aria-label="Forma de ver a los colaboradores"
+            className="ml-auto flex flex-shrink-0 items-center gap-0.5 rounded-full bg-black/[0.22] p-1"
+          >
+            <LayoutButton active={layout === "dial"} onClick={() => setLayout("dial")} label="Carrusel">
+              <GalleryHorizontal className="h-4 w-4" />
+            </LayoutButton>
+            <LayoutButton active={layout === "list"} onClick={() => setLayout("list")} label="Lista">
+              <Rows3 className="h-4 w-4" />
+            </LayoutButton>
+          </div>
+        )}
       </div>
 
       {error && (
@@ -181,6 +223,18 @@ export default function Collaborators() {
 
           {focused ? (
             <>
+              {layout === "list" ? (
+                <CollaboratorsList
+                  collaborators={visible}
+                  focusedId={focused.id}
+                  onFocus={(c) => setFocusedId(c.id)}
+                  colorOf={colorOf}
+                  sortBy={sortBy}
+                  onSortChange={setSortBy}
+                  onOpenProfile={setProfileOf}
+                  onPay={(c) => setPayTargets([toTarget(c)])}
+                />
+              ) : (
               <CollaboratorDial
                 collaborators={visible}
                 focusIndex={focusIndex}
@@ -199,6 +253,7 @@ export default function Collaborators() {
                 onOpenProfile={setProfileOf}
                 onPay={(c) => setPayTargets([toTarget(c)])}
               />
+              )}
 
               <CollaboratorSongsPanel
                 collaborator={focused}
@@ -248,6 +303,35 @@ export default function Collaborators() {
 
       {defaultsOpen && <PermissionsDefaultsModal onClose={() => setDefaultsOpen(false)} />}
     </div>
+  );
+}
+
+/** Opción del selector Carrusel / Lista: icono con su nombre al lado desde `sm`. */
+function LayoutButton({
+  active,
+  onClick,
+  label,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      aria-label={label}
+      title={label}
+      className={`flex h-9 items-center gap-1.5 rounded-full px-3 text-[12.5px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
+        active ? "bg-[#F7EDE6]/[0.92] font-semibold text-[#1C1D22]" : "font-medium text-white/70 hover:text-white"
+      }`}
+    >
+      {children}
+      <span className="hidden sm:inline">{label}</span>
+    </button>
   );
 }
 

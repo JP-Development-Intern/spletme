@@ -1,5 +1,11 @@
 import { useState, useCallback, useEffect } from "react";
-import LabelsService, { Label, LabelSong, CustomLabel } from "../services/labels";
+import LabelsService, {
+  Label,
+  LabelSong,
+  CustomLabel,
+  ArtisticLabelSummary,
+  ArtisticLabelRef,
+} from "../services/labels";
 
 export const useLabels = () => {
   const [labels, setLabels] = useState<Label[]>([]);
@@ -49,6 +55,7 @@ export const useLabels = () => {
             // Campos adicionales para labels personalizados
             _id: custom._id,
             artisticLabels: custom.artisticLabels,
+            artisticLabelIds: custom.artisticLabelIds,
             createdAt: custom.createdAt,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any,
@@ -87,6 +94,8 @@ export const useLabels = () => {
 
 export const useLabelSongs = (label: string) => {
   const [songs, setSongs] = useState<LabelSong[]>([]);
+  // El sello con sus totales, de `artistic_labels`: lo que pinta la cabecera.
+  const [artisticLabel, setArtisticLabel] = useState<ArtisticLabelSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
 
@@ -100,10 +109,16 @@ export const useLabelSongs = (label: string) => {
       const response = await LabelsService.getSongsByLabel(label);
 
       if (response.error) {
-        setError(response.message || "Error al cargar las canciones");
+        setError(
+          response.notFound
+            ? "Este sello no existe o ya no tiene canciones."
+            : "No pudimos cargar las canciones del sello.",
+        );
         setSongs([]);
+        setArtisticLabel(null);
       } else {
         setSongs(response.data || []);
+        setArtisticLabel(response.label ?? null);
       }
     } catch (err) {
       console.error("Error loading songs by label:", err);
@@ -120,6 +135,7 @@ export const useLabelSongs = (label: string) => {
 
   return {
     songs,
+    artisticLabel,
     loading,
     error,
     loadSongs,
@@ -131,7 +147,8 @@ export const useCustomLabelSongs = (labelName: string) => {
   const [customLabel, setCustomLabel] = useState<{
     _id: string;
     name: string;
-    artisticLabels: string[];
+    artisticLabelIds: string[];
+    artisticLabels: ArtisticLabelRef[];
     createdAt: string;
   } | null>(null);
   const [loading, setLoading] = useState(false);

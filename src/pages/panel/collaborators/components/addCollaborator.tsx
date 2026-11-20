@@ -182,7 +182,7 @@ export default function AddCollaborator({
         ? isOwner && (
             <button
               onClick={() => setShowCollaboratorsModal(true)}
-              className="flex items-center gap-2 rounded-full bg-[#FF5C00] px-4 py-2.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-[#EA580C]"
+              className="flex items-center gap-2 rounded-full bg-[#FF5C00] px-4 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             >
               <Plus className="h-[15px] w-[15px]" />
               Agregar colaborador

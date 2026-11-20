@@ -9,25 +9,36 @@ interface Option {
 }
 
 /**
- * Estilos de los dos desplegables de fecha: los de siempre, pero apretados.
+ * Estilos de los dos desplegables de fecha: los del vidrio, pero apretados.
  *
- * Comparten familia con `selectStyles` (mismo naranja, mismo radio) y solo
- * cambian de talla: aquí caben dos por fila dentro del modal, así que el
- * control pierde el alto por defecto de react-select y el separador vertical,
- * que a este tamaño solo mete ruido.
+ * Comparten familia con `glassSelectStyles` (mismo control translúcido, mismo
+ * menú opaco en el tono de la noche) y solo cambian de talla: aquí caben dos
+ * por fila dentro del modal, así que el control pierde el alto por defecto de
+ * react-select y el separador vertical, que a este tamaño solo mete ruido.
  */
 const monthSelectStyles: StylesConfig<Option, false> = {
   menuPortal: (base) => ({ ...base, zIndex: 10000 }),
-  menu: (base) => ({ ...base, width: "auto", minWidth: "100%", marginTop: 4 }),
+  menu: (base) => ({
+    ...base,
+    width: "auto",
+    minWidth: "100%",
+    marginTop: 4,
+    backgroundColor: "#2B1E17",
+    border: "1px solid rgba(255, 255, 255, 0.14)",
+    borderRadius: 12,
+    boxShadow: "0 20px 44px -12px rgba(0, 0, 0, 0.6)",
+    overflow: "hidden",
+  }),
   menuList: (base) => ({ ...base, maxHeight: 200, padding: 4 }),
   control: (base, { isFocused }) => ({
     ...base,
     "minHeight": 33,
-    "border": `1px solid ${isFocused ? "#FF5C00" : "#E8E8EC"}`,
+    "backgroundColor": "rgba(255, 255, 255, 0.06)",
+    "border": `1px solid ${isFocused ? "#FF8A3D" : "rgba(255, 255, 255, 0.14)"}`,
     "borderRadius": 10,
-    "boxShadow": isFocused ? "0 0 0 2px rgba(255,92,0,0.2)" : "none",
+    "boxShadow": isFocused ? "0 0 0 2px rgba(255,92,0,0.3)" : "none",
     "cursor": "pointer",
-    "&:hover": { border: `1px solid ${isFocused ? "#FF5C00" : "#D5D6DB"}` },
+    "&:hover": { border: `1px solid ${isFocused ? "#FF8A3D" : "rgba(255, 255, 255, 0.24)"}` },
   }),
   valueContainer: (base) => ({ ...base, padding: "0 2px 0 8px" }),
   singleValue: (base) => ({
@@ -35,23 +46,28 @@ const monthSelectStyles: StylesConfig<Option, false> = {
     fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
     fontSize: 12,
     fontWeight: 600,
-    color: "#1C1D22",
+    color: "#FFFFFF",
   }),
-  placeholder: (base) => ({ ...base, fontSize: 12, color: "#A6AAB2" }),
-  input: (base) => ({ ...base, margin: 0, padding: 0, fontSize: 12 }),
+  placeholder: (base) => ({ ...base, fontSize: 12, color: "rgba(255, 255, 255, 0.45)" }),
+  input: (base) => ({ ...base, margin: 0, padding: 0, fontSize: 12, color: "#FFFFFF" }),
   indicatorSeparator: () => ({ display: "none" }),
-  dropdownIndicator: (base) => ({ ...base, padding: "0 4px", color: "#C9CBD1" }),
+  dropdownIndicator: (base) => ({ ...base, padding: "0 4px", color: "rgba(255, 255, 255, 0.45)" }),
+  noOptionsMessage: (base) => ({ ...base, fontSize: 12, color: "rgba(255, 255, 255, 0.5)" }),
   option: (base, { isSelected, isFocused }) => ({
     ...base,
-    "backgroundColor": isSelected ? "#FF5C00" : isFocused ? "#FFF3EB" : "white",
-    "color": isSelected ? "white" : "#1C1D22",
+    "backgroundColor": isSelected
+      ? "#FF5C00"
+      : isFocused
+        ? "rgba(255, 255, 255, 0.08)"
+        : "transparent",
+    "color": isSelected ? "white" : "rgba(255, 255, 255, 0.85)",
     "fontFamily": "ui-monospace, SFMono-Regular, Menlo, monospace",
     "fontSize": 12,
     "fontWeight": 600,
     "borderRadius": 6,
     "padding": "6px 8px",
     "cursor": "pointer",
-    ":active": { backgroundColor: isSelected ? "#FF5C00" : "#FFEADD" },
+    ":active": { backgroundColor: isSelected ? "#FF5C00" : "rgba(255, 92, 0, 0.22)" },
   }),
 };
 
@@ -107,7 +123,7 @@ export function MonthField({
         ...monthSelectStyles,
         control: (base, state) => ({
           ...(monthSelectStyles.control?.(base, state) as object),
-          border: "1px solid #E5484D",
+          border: "1px solid #FF8F92",
         }),
       }
     : monthSelectStyles;

@@ -162,8 +162,8 @@ const Historyofsplits = ({
     return (
       <Card>
         <div className="flex flex-col items-center gap-2.5 py-14 text-center">
-          <Clock3 className="h-6 w-6 animate-pulse text-[#A6AAB2]" />
-          <p className="text-sm text-[#71757E]">Trayendo el historial de splits…</p>
+          <Clock3 className="h-6 w-6 animate-pulse text-white/50" />
+          <p className="text-sm text-white/65">Trayendo el historial de splits…</p>
         </div>
       </Card>
     );
@@ -173,11 +173,11 @@ const Historyofsplits = ({
     return (
       <Card>
         <div className="flex flex-col items-center gap-2.5 py-14 text-center">
-          <span className="grid h-[52px] w-[52px] place-items-center rounded-[18px] bg-[#FDECEC]">
-            <AlertCircle className="h-6 w-6 text-[#E5484D]" />
+          <span className="grid h-[52px] w-[52px] place-items-center rounded-[18px] bg-[#E5484D]/[0.14]">
+            <AlertCircle className="h-6 w-6 text-[#FF8F92]" />
           </span>
-          <p className="text-[15px] font-semibold text-[#1C1D22]">{error}</p>
-          <p className="max-w-[340px] text-[13px] text-[#71757E]">
+          <p className="text-[15px] font-semibold text-white">{error}</p>
+          <p className="max-w-[340px] text-[13px] text-white/65">
             Vuelve a entrar en un momento. El reparto vigente no se ha tocado.
           </p>
         </div>
@@ -189,11 +189,11 @@ const Historyofsplits = ({
     return (
       <Card>
         <div className="flex flex-col items-center gap-2.5 py-14 text-center">
-          <span className="grid h-[58px] w-[58px] place-items-center rounded-[20px] bg-[#FFEADD]">
-            <GitBranch className="h-6 w-6 text-[#FF5C00]" />
+          <span className="grid h-[58px] w-[58px] place-items-center rounded-[20px] bg-[#FF5C00]/15">
+            <GitBranch className="h-6 w-6 text-[#FF8A3D]" />
           </span>
-          <p className="text-[15px] font-semibold text-[#1C1D22]">Todavía no hay cambios de reparto</p>
-          <p className="max-w-[380px] text-[13px] text-[#71757E]">
+          <p className="text-[15px] font-semibold text-white">Todavía no hay cambios de reparto</p>
+          <p className="max-w-[380px] text-[13px] text-white/65">
             En cuanto asignes el primer split, aquí queda el registro de quién lo cambió y cuándo.
           </p>
         </div>
@@ -205,38 +205,38 @@ const Historyofsplits = ({
     <>
       <div className="flex flex-col gap-5 lg:flex-row">
         {/* ── Historial de versiones ── */}
-        <section className="flex-1 overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
+        <section className="glass flex-1 overflow-hidden rounded-[28px]">
           <header className="flex flex-wrap items-center justify-between gap-3.5 px-5 py-[18px]">
             <div className="flex flex-col gap-0.5">
-              <h3 className="font-display text-[18px] font-semibold text-[#1C1D22]">
+              <h3 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">
                 Cómo ha cambiado el reparto
               </h3>
-              <p className="text-[12.5px] font-medium text-[#71757E]">
+              <p className="text-[12.5px] text-white/65">
                 Cada cambio guarda su versión · la v{latestVersion} es la que se aplica hoy
               </p>
             </div>
-            <span className="inline-flex items-center gap-1.5 rounded-[14px] bg-[#E4F5EC] px-2.5 py-[5px] text-[10.5px] font-semibold text-[#2FB37E]">
+            <span className="inline-flex items-center gap-1.5 rounded-[14px] bg-[#45D39A]/[0.12] px-2.5 py-[5px] text-[10.5px] font-semibold text-[#45D39A]">
               <CheckCircle2 className="h-[11px] w-[11px]" />v{latestVersion} vigente
             </span>
           </header>
 
-          <div className="h-px bg-[#E8E8EC]" />
+          <div className="h-px bg-white/[0.09]" />
 
           <div className="hidden items-center gap-3.5 px-5 py-[13px] lg:flex">
             <span className="w-[38px]" />
-            <span className="flex-1 font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+            <span className="flex-1 font-mono text-[9.5px] font-medium tracking-[1.2px] text-white/50">
               CAMBIO
             </span>
-            <span className="w-[150px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+            <span className="w-[150px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-white/50">
               ALCANCE
             </span>
-            <span className="w-[120px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+            <span className="w-[120px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-white/50">
               DEL % AL %
             </span>
             <span className="w-[96px]" />
           </div>
 
-          <div className="h-px bg-[#E8E8EC]" />
+          <div className="h-px bg-white/[0.09]" />
 
           <ul>
             {changes.map((change, index) => {
@@ -251,52 +251,52 @@ const Historyofsplits = ({
 
               return (
                 <li key={change.key}>
-                  {index > 0 && <div className="h-px bg-[#E8E8EC]" />}
+                  {index > 0 && <div className="h-px bg-white/[0.09]" />}
                   <button
                     type="button"
                     onClick={() => setSelectedKey(change.key)}
-                    className={`flex w-full flex-wrap items-center gap-3.5 px-5 py-3 text-left transition-colors hover:bg-[#FAFAFB] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00] focus-visible:ring-offset-[-2px] ${
-                      isCurrent ? "bg-[#FF5C00]/[0.04]" : ""
+                    className={`flex w-full flex-wrap items-center gap-3.5 px-5 py-3 text-left transition-colors hover:bg-white/[0.04] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#FF5C00]/70 ${
+                      isCurrent ? "bg-[#FF5C00]/[0.08]" : ""
                     }`}
                   >
                     <span
                       className={`grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[12px] font-mono text-[12px] font-semibold ${
-                        isCurrent ? "bg-[#FF5C00] text-white" : "bg-[#F4F5F7] text-[#71757E]"
+                        isCurrent ? "bg-[#FF5C00] text-white" : "bg-white/[0.06] text-white/65"
                       }`}
                     >
                       v{item.version ?? "—"}
                     </span>
 
                     <span className="flex min-w-[180px] flex-1 flex-col gap-0.5">
-                      <span className="truncate text-[13px] font-semibold text-[#1C1D22]">{title}</span>
-                      <span className="truncate text-[11px] text-[#A6AAB2]">
+                      <span className="truncate text-[13px] font-semibold text-white">{title}</span>
+                      <span className="truncate text-[11px] text-white/50">
                         por {item.updatedBy?.name || "—"} · {formatDate(splitDate(item))}
                       </span>
                     </span>
 
                     <span className="flex w-[150px] items-center gap-1.5">
                       {scope.worldwide ? (
-                        <Globe className="h-3 w-3 shrink-0 text-[#A6AAB2]" />
+                        <Globe className="h-3 w-3 shrink-0 text-white/50" />
                       ) : (
-                        <Radio className="h-3 w-3 shrink-0 text-[#A6AAB2]" />
+                        <Radio className="h-3 w-3 shrink-0 text-white/50" />
                       )}
-                      <span className="truncate text-[11px] text-[#71757E]">{scope.text}</span>
+                      <span className="truncate text-[11px] text-white/65">{scope.text}</span>
                     </span>
 
                     <span className="flex w-[120px] flex-col gap-0.5">
                       <span className="flex items-center gap-2">
-                        <span className="font-mono text-[12.5px] font-medium text-[#A6AAB2]">
+                        <span className="font-mono text-[12.5px] font-medium text-white/50">
                           {change.previousPercentage === null
                             ? "—"
                             : `${change.previousPercentage}%`}
                         </span>
-                        <ArrowRight className="h-3 w-3 text-[#A6AAB2]" />
-                        <span className="font-mono text-[14px] font-semibold text-[#1C1D22]">
+                        <ArrowRight className="h-3 w-3 text-white/50" />
+                        <span className="font-mono text-[14px] font-semibold text-white">
                           {item.percentage ?? 0}%
                         </span>
                       </span>
                       {(item.periods?.length ?? 0) > 0 && (
-                        <span className="flex items-center gap-1 text-[10px] font-semibold text-[#FF5C00]">
+                        <span className="flex items-center gap-1 text-[10px] font-semibold text-[#FF8A3D]">
                           <CalendarRange className="h-2.5 w-2.5 shrink-0" />
                           {item.periods?.length}{" "}
                           {item.periods?.length === 1 ? "tramo" : "tramos"} · y después
@@ -304,7 +304,7 @@ const Historyofsplits = ({
                       )}
                     </span>
 
-                    <span className="flex w-[96px] items-center justify-end gap-1.5 text-[11.5px] font-semibold text-[#FF5C00]">
+                    <span className="flex w-[96px] items-center justify-end gap-1.5 text-[11.5px] font-semibold text-[#FF8A3D]">
                       Ver detalle
                       <ArrowRight className="h-3 w-3" />
                     </span>
@@ -314,14 +314,14 @@ const Historyofsplits = ({
             })}
           </ul>
 
-          <div className="h-px bg-[#E8E8EC]" />
+          <div className="h-px bg-white/[0.09]" />
 
           <footer className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5">
-            <span className="flex items-center gap-2.5 text-[12px] text-[#71757E]">
+            <span className="flex items-center gap-2.5 text-[12px] text-white/65">
               <GitBranch className="h-3.5 w-3.5" />
               {changes.length} {changes.length === 1 ? "versión" : "versiones"} desde el {oldestDate}
             </span>
-            <span className="text-[11px] text-[#A6AAB2]">
+            <span className="text-[11px] text-white/50">
               Las versiones anteriores no se borran: quedan como registro de lo acordado
             </span>
           </footer>
@@ -343,7 +343,7 @@ const Historyofsplits = ({
 
 /** Envoltura de tarjeta para los estados de carga, error y vacío. */
 const Card = ({ children }: { children: React.ReactNode }) => (
-  <div className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
+  <div className="glass overflow-hidden rounded-[28px]">
     {children}
   </div>
 );

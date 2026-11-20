@@ -9,7 +9,8 @@ interface FilterSegmentProps {
 
 /**
  * Selector de 3 opciones (Todos / Excepto / Solo) reutilizable para
- * filtros de países y plataformas en formularios de splits.
+ * filtros de países y plataformas en formularios de splits. Vive en los
+ * modales de split, que van en vidrio: la opción elegida va en crema.
  */
 export function FilterSegment({ value, onChange, labels, name }: FilterSegmentProps) {
   const options: { val: FilterType; label: string }[] = [
@@ -19,16 +20,17 @@ export function FilterSegment({ value, onChange, labels, name }: FilterSegmentPr
   ];
 
   return (
-    <div className="flex gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+    <div className="flex gap-0.5 rounded-full bg-black/[0.22] p-1">
       {options.map((opt) => (
         <button
           key={opt.val}
           type="button"
           onClick={() => onChange(opt.val)}
-          className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+          aria-pressed={value === opt.val}
+          className={`flex-1 rounded-full px-3 py-1.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
             value === opt.val
-              ? "border border-gray-200 bg-white text-gray-900"
-              : "text-gray-500 hover:text-gray-700"
+              ? "bg-[#F7EDE6]/[0.92] font-semibold text-[#1C1D22]"
+              : "font-medium text-white/80 hover:text-white"
           }`}
           aria-label={`${name} ${opt.label}`}
         >

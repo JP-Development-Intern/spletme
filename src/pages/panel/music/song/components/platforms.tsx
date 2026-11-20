@@ -3,7 +3,11 @@ import ReactApexChart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import { BarChart2, PieChart, BarChartHorizontal, TrendingUp, ChevronRight } from "lucide-react";
 import { formatCurrency, formatStreams, formatCompactCurrency } from "@/utils/format.utils";
-import { PLATFORM_BRAND as platformConfig, luminance } from "@/const/platformBrand";
+import {
+  PLATFORM_BRAND as platformConfig,
+  luminance,
+  platformColorOnDark,
+} from "@/const/platformBrand";
 
 interface ReproductionData {
   totalStreams: number;
@@ -49,6 +53,7 @@ const chartButtons: { view: ChartView; icon: JSX.Element; label: string }[] = [
 ];
 
 const CHART_FONT = "Poppins, sans-serif";
+const AXIS_COLOR = "rgba(255,255,255,0.5)";
 
 const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProps) => {
   const [chartView, setChartView] = useState<ChartView>("donut");
@@ -68,7 +73,7 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
           percentage: totalStreams > 0 ? Math.round((item.totalStreams / totalStreams) * 100) : 0,
           incomePercentage:
             totalIncome > 0 ? Math.round((item.totalIncome / totalIncome) * 100) : 0,
-          color: config.color,
+          color: platformColorOnDark(name),
           letter: config.letter,
           logo: config.logo,
           streams: item.totalStreams,
@@ -133,15 +138,31 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
       colors,
       dataLabels: { enabled: false },
       legend: { show: false },
-      grid: { borderColor: "#E8E8EC", strokeDashArray: 4 },
+      grid: { borderColor: "rgba(255,255,255,0.09)", strokeDashArray: 4 },
       states: { active: { filter: { type: "none" } } },
-      tooltip: {
-        theme: "light",
-        style: { fontSize: "11px", fontFamily: CHART_FONT },
-        y: { formatter: (val: number) => formatValue(val) },
+    }),
+    [colors],
+  );
+
+  /**
+   * ApexCharts pinta su propia caja de tooltip; se vacía con `chart-glass` y el
+   * contenido va en vidrio, como en el gráfico del inicio. En la dona el punto
+   * es la serie; en las barras, el dato dentro de la única serie.
+   */
+  const glassTooltip = useCallback(
+    (pick: "series" | "dataPoint"): ApexOptions["tooltip"] => ({
+      custom: ({ seriesIndex, dataPointIndex }: { seriesIndex: number; dataPointIndex: number }) => {
+        const platform = data[pick === "series" ? seriesIndex : dataPointIndex];
+        if (!platform) return "";
+        return `<div class="glass-menu rounded-xl px-3 pb-2 pt-1.5">
+          <div class="text-[11px] text-white/65">${platform.name}</div>
+          <div class="font-mono text-[15px] font-medium text-white">${formatValue(
+            isIncome ? platform.income : platform.streams,
+          )}</div>
+        </div>`;
       },
     }),
-    [colors, formatValue],
+    [data, formatValue, isIncome],
   );
 
   const donutOptions: ApexOptions = useMemo(
@@ -149,11 +170,12 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
       ...baseOptions,
       labels: data.map((p) => p.name),
       // Apple Music y YouTube son casi el mismo rojo: sin una separación clara
-      // sus porciones se leen como una sola.
-      stroke: { width: 3, colors: ["#FFFFFF"] },
+      // sus porciones se leen como una sola. El corte va en el tono de la noche.
+      stroke: { width: 3, colors: ["#2B1E17"] },
       plotOptions: { pie: { donut: { size: "72%", labels: { show: false } }, expandOnClick: false } },
+      tooltip: glassTooltip("series"),
     }),
-    [baseOptions, data],
+    [baseOptions, data, glassTooltip],
   );
 
   const barOptions: ApexOptions = useMemo(
@@ -169,19 +191,20 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
       },
       xaxis: {
         categories: data.map((p) => p.name.split(" ")[0]),
-        labels: { style: { fontSize: "10px", colors: "#A6AAB2", fontFamily: CHART_FONT } },
+        labels: { style: { fontSize: "10px", colors: AXIS_COLOR, fontFamily: CHART_FONT } },
         axisBorder: { show: false },
         axisTicks: { show: false },
       },
       yaxis: {
         labels: {
-          style: { colors: "#A6AAB2", fontSize: "10px", fontFamily: CHART_FONT },
+          style: { colors: AXIS_COLOR, fontSize: "10px", fontFamily: CHART_FONT },
           formatter: formatAxis,
         },
       },
       grid: { ...baseOptions.grid, yaxis: { lines: { show: true } }, xaxis: { lines: { show: false } } },
+      tooltip: glassTooltip("dataPoint"),
     }),
-    [baseOptions, data, formatAxis],
+    [baseOptions, data, formatAxis, glassTooltip],
   );
 
   const horizontalOptions: ApexOptions = useMemo(
@@ -198,16 +221,19 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
       },
       xaxis: {
         labels: {
-          style: { fontSize: "10px", colors: "#A6AAB2", fontFamily: CHART_FONT },
+          style: { fontSize: "10px", colors: AXIS_COLOR, fontFamily: CHART_FONT },
           formatter: (val: string) => formatAxis(Number(val)),
         },
         axisBorder: { show: false },
         axisTicks: { show: false },
       },
-      yaxis: { labels: { style: { colors: "#71757E", fontSize: "10px", fontFamily: CHART_FONT } } },
+      yaxis: {
+        labels: { style: { colors: "rgba(255,255,255,0.65)", fontSize: "10px", fontFamily: CHART_FONT } },
+      },
       grid: { ...baseOptions.grid, xaxis: { lines: { show: true } }, yaxis: { lines: { show: false } } },
+      tooltip: glassTooltip("dataPoint"),
     }),
-    [baseOptions, formatAxis],
+    [baseOptions, formatAxis, glassTooltip],
   );
 
   const seriesName = isIncome ? "Ingresos" : "Streams";
@@ -215,7 +241,7 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
   const trendChip = trend !== undefined && (
     <span
       className={`flex items-center gap-1.5 text-[11px] font-medium ${
-        trend >= 0 ? "text-[#2FB37E]" : "text-[#E5484D]"
+        trend >= 0 ? "text-[#45D39A]" : "text-[#FF8F92]"
       }`}
     >
       <TrendingUp className={`h-[13px] w-[13px] ${trend < 0 ? "rotate-180" : ""}`} />
@@ -234,33 +260,37 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
   const renderSummary = (layout: "column" | "inline") =>
     layout === "column" ? (
       <div className="flex min-w-0 flex-1 flex-col gap-2.5">
-        <span className="text-[9.5px] font-semibold tracking-[0.9px] text-[#A6AAB2]">
+        <span className="text-[9.5px] font-semibold tracking-[0.9px] text-white/50">
           {metricLabel}
         </span>
         <span className="flex flex-col gap-[3px]">
-          <span className="font-display text-2xl font-semibold text-[#1C1D22]">{metricTotal}</span>
-          <span className="text-[11px] text-[#71757E]">{metricSub}</span>
+          <span className="font-mono text-[26px] font-light leading-[1.1] tracking-[-0.015em] text-white">
+            {metricTotal}
+          </span>
+          <span className="text-[11px] text-white/65">{metricSub}</span>
         </span>
         {trendChip && (
           <>
-            <span className="h-px w-full bg-[#E8E8EC]" />
+            <span className="h-px w-full bg-white/[0.09]" />
             {trendChip}
           </>
         )}
       </div>
     ) : (
       <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-        <span className="font-display text-2xl font-semibold text-[#1C1D22]">{metricTotal}</span>
-        <span className="text-[11px] text-[#71757E]">{metricSub}</span>
+        <span className="font-mono text-[26px] font-light leading-[1.1] tracking-[-0.015em] text-white">
+          {metricTotal}
+        </span>
+        <span className="text-[11px] text-white/65">{metricSub}</span>
         {trendChip}
       </div>
     );
 
   return (
-    <section className="col-span-12 flex h-full min-w-0 flex-col gap-4 rounded-[26px] border border-[#E8E8EC] bg-white p-[26px] shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)] xl:col-span-4">
+    <section className="glass col-span-12 flex h-full min-w-0 flex-col gap-4 rounded-[28px] px-6 py-5 xl:col-span-4">
       <div className="flex flex-col gap-0.5">
-        <h2 className="font-display text-lg font-semibold text-[#1C1D22]">De dónde vienen</h2>
-        <p className="text-[12.5px] text-[#71757E]">
+        <h2 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">De dónde vienen</h2>
+        <p className="text-[12.5px] text-white/65">
           {isIncome ? "Reparto del ingreso neto por plataforma" : "Reparto de los streams por plataforma"}
         </p>
       </div>
@@ -270,7 +300,7 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
         <div
           role="tablist"
           aria-label="Métrica"
-          className="flex items-center gap-0.5 rounded-[20px] bg-[#F4F5F7] p-[3px]"
+          className="flex items-center gap-0.5 rounded-full bg-black/[0.22] p-1"
         >
           {([
             ["income", "Ingresos"],
@@ -281,10 +311,10 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
               role="tab"
               aria-selected={metric === value}
               onClick={() => setMetric(value)}
-              className={`rounded-[16px] px-[13px] py-1.5 font-mono text-[11px] font-semibold transition-colors ${
+              className={`rounded-full px-[13px] py-1.5 text-[11.5px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
                 metric === value
-                  ? "bg-[#FF5C00] text-white"
-                  : "text-[#71757E] hover:text-[#1C1D22]"
+                  ? "bg-[#F7EDE6]/[0.92] font-semibold text-[#1C1D22]"
+                  : "font-medium text-white/80 hover:text-white"
               }`}
             >
               {label}
@@ -295,7 +325,7 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
         <div
           role="tablist"
           aria-label="Tipo de gráfico"
-          className="flex items-center gap-0.5 rounded-[20px] bg-[#F4F5F7] p-[3px]"
+          className="flex items-center gap-0.5 rounded-full bg-black/[0.22] p-1"
         >
           {chartButtons.map(({ view, icon, label }) => (
             <button
@@ -305,10 +335,10 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
               aria-label={label}
               aria-selected={chartView === view}
               onClick={() => setChartView(view)}
-              className={`flex h-[26px] w-8 items-center justify-center rounded-[14px] transition-colors ${
+              className={`flex h-7 w-8 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
                 chartView === view
-                  ? "bg-white text-[#1C1D22] shadow-[0_1px_3px_rgba(28,29,34,0.08)]"
-                  : "text-[#A6AAB2] hover:text-[#71757E]"
+                  ? "bg-[#F7EDE6]/[0.92] text-[#1C1D22]"
+                  : "text-white/60 hover:text-white"
               }`}
             >
               {icon}
@@ -319,10 +349,10 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
 
       {data.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-1 py-10 text-center">
-          <p className="text-[12.5px] font-medium text-[#1C1D22]">
+          <p className="text-[12.5px] font-medium text-white">
             Todavía no hay datos por plataforma
           </p>
-          <p className="text-[11px] text-[#A6AAB2]">
+          <p className="text-[11px] text-white/50">
             Aparecerán en cuanto llegue el primer reporte del distribuidor.
           </p>
         </div>
@@ -330,7 +360,7 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
         <>
           {chartView === "donut" ? (
             <div className="flex items-center gap-[18px]">
-              <div className="relative h-[148px] w-[148px] flex-shrink-0">
+              <div className="chart-glass relative h-[148px] w-[148px] flex-shrink-0">
                 <ReactApexChart
                   options={donutOptions}
                   series={values}
@@ -340,10 +370,10 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
                 />
                 {leader && (
                   <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="font-display text-[22px] font-semibold leading-none text-[#1C1D22]">
+                    <span className="font-mono text-[24px] font-light leading-none tracking-[-0.015em] text-white">
                       {leaderPct}%
                     </span>
-                    <span className="mt-1 max-w-[92px] truncate text-[10.5px] font-medium text-[#71757E]">
+                    <span className="mt-1 max-w-[92px] truncate text-[10.5px] font-medium text-white/65">
                       {leader.name}
                     </span>
                   </div>
@@ -354,7 +384,7 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
           ) : (
             <div className="flex flex-col gap-3">
               {renderSummary("inline")}
-              <div className="h-[190px]">
+              <div className="chart-glass h-[190px]">
                 <ReactApexChart
                   options={chartView === "bar" ? barOptions : horizontalOptions}
                   series={
@@ -408,22 +438,22 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
                   </span>
 
                   <span className="flex min-w-0 flex-1 flex-col gap-px">
-                    <span className="truncate text-[12px] font-medium text-[#1C1D22]">
+                    <span className="truncate text-[12px] font-medium text-white">
                       {platform.name}
                     </span>
-                    <span className="text-[10px] text-[#A6AAB2]">
+                    <span className="text-[10px] text-white/50">
                       {isIncome
                         ? `${formatStreams(platform.streams)} streams`
                         : formatCurrency(platform.income)}
                     </span>
                   </span>
 
-                  <span className="flex-shrink-0 font-mono text-[12px] font-semibold text-[#1C1D22]">
+                  <span className="flex-shrink-0 font-mono text-[12.5px] text-white">
                     {isIncome ? formatCurrency(platform.income) : formatStreams(platform.streams)}
                   </span>
 
                   <span className="flex w-11 flex-shrink-0 justify-end">
-                    <span className="rounded-[9px] bg-[#F4F5F7] px-[7px] py-[3px] font-mono text-[11px] font-semibold text-[#1C1D22]">
+                    <span className="rounded-full bg-white/[0.08] px-[7px] py-[3px] font-mono text-[11px] font-semibold text-white">
                       {isIncome ? platform.incomePercentage : platform.percentage}%
                     </span>
                   </span>
@@ -433,9 +463,9 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
           </ul>
 
           <div className="mt-auto flex flex-col gap-4">
-            <div className="h-px bg-[#E8E8EC]" />
+            <div className="h-px bg-white/[0.09]" />
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[11.5px] text-[#71757E]">
+              <span className="text-[11.5px] text-white/65">
                 {platformData.length === 1
                   ? "1 plataforma con datos"
                   : `${platformData.length} plataformas con datos`}
@@ -443,7 +473,7 @@ const Platforms = ({ reproductions = [], trend, onViewBreakdown }: PlatformsProp
               {onViewBreakdown && (
                 <button
                   onClick={onViewBreakdown}
-                  className="flex items-center gap-0.5 text-[11.5px] font-semibold text-[#FF5C00] transition-colors hover:text-[#EA580C]"
+                  className="flex items-center gap-0.5 text-[11.5px] font-semibold text-[#FF8A3D] transition-colors hover:text-[#FFB48A]"
                 >
                   Ver desglose
                   <ChevronRight className="h-[13px] w-[13px]" />

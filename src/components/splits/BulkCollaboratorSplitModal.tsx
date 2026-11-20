@@ -35,7 +35,98 @@ interface Props {
   showOwnerContext?: boolean;
   /** Abre la invitación, para sumar a alguien a las canciones que le faltan. */
   onInvite?: () => void;
+  /**
+   * Panel de vidrio cálido, para las páginas ya migradas. Por defecto sigue en
+   * claro: así se ve igual desde las que aún no lo están.
+   */
+  onGlass?: boolean;
 }
+
+/** Los mismos papeles de color en la hoja clara y sobre el vidrio. */
+const TONES = {
+  light: {
+    note: "text-[#A6AAB2]",
+    column: "md:border-[#E8E8EC]",
+    personActive: "border-[1.5px] border-[#FF5C00] bg-[#FFEADD]",
+    personIdle: "border border-[#E8E8EC] bg-white hover:border-[#D9DAE0]",
+    initialActive: "bg-[#FF5C00] text-white",
+    initialIdle: "bg-[#F4F5F7] text-[#71757E]",
+    name: "text-[#1C1D22]",
+    countActive: "text-[#EA580C]",
+    countIdle: "text-[#A6AAB2]",
+    check: "text-[#FF5C00]",
+    fieldOk: "border-[1.5px] border-[#FF5C00]",
+    fieldIdle: "border border-[#E8E8EC]",
+    fieldInput: "text-[#1C1D22]",
+    unit: "text-[#A6AAB2]",
+    hint: "text-[#A6AAB2]",
+    error: "text-[#E5484D]",
+    blockerDangerIcon: "text-[#E5484D]",
+    blockerNeutralIcon: "text-[#71757E]",
+    blockerDanger: "bg-[#FDECEC]",
+    blockerNeutral: "bg-[#F4F5F7]",
+    blockerMark: "bg-white",
+    blockerDangerText: "text-[#E5484D]",
+    blockerNeutralTitle: "text-[#1C1D22]",
+    blockerNeutralText: "text-[#71757E]",
+    blockerDangerButton: "rounded-[14px] bg-[#E5484D] text-white hover:bg-[#C93B40]",
+    blockerNeutralButton: "rounded-[14px] border border-[#E8E8EC] bg-white text-[#1C1D22] hover:bg-[#F4F5F7]",
+    pick: "border-[#E8E8EC]",
+    pickMark: "bg-[#F4F5F7]",
+    pickIcon: "text-[#A6AAB2]",
+    pickTitle: "text-[#1C1D22]",
+    pickText: "text-[#71757E]",
+    empty: "bg-[#F4F5F7]",
+    emptyMark: "bg-white",
+    emptyIcon: "text-[#A6AAB2]",
+    emptyTitle: "text-[#1C1D22]",
+    emptyText: "text-[#71757E]",
+    emptyButton: "rounded-[18px] bg-[#FF5C00] text-white hover:bg-[#EA580C]",
+    emptyLink: "text-[#71757E] hover:text-[#1C1D22]",
+  },
+  glass: {
+    note: "text-white/50",
+    column: "md:border-white/[0.09]",
+    personActive: "border-[1.5px] border-[#FF8A3D] bg-[#FF5C00]/[0.16]",
+    personIdle: "border border-white/[0.12] bg-white/[0.06] hover:bg-white/[0.10]",
+    initialActive: "bg-[#FF5C00] text-white",
+    initialIdle: "bg-white/[0.10] text-white/70",
+    name: "text-white",
+    countActive: "text-[#FFB48A]",
+    countIdle: "text-white/50",
+    check: "text-[#FF8A3D]",
+    fieldOk: "border-[1.5px] border-[#FF8A3D] bg-white/[0.06]",
+    fieldIdle: "border border-white/[0.14] bg-white/[0.06]",
+    fieldInput: "text-white placeholder:text-white/40",
+    unit: "text-white/50",
+    hint: "text-white/50",
+    error: "text-[#FF8F92]",
+    blockerDangerIcon: "text-[#FF8F92]",
+    blockerNeutralIcon: "text-white/70",
+    blockerDanger: "border border-[#E5484D]/30 bg-[#E5484D]/[0.12]",
+    blockerNeutral: "bg-white/[0.06]",
+    blockerMark: "bg-black/[0.18]",
+    blockerDangerText: "text-[#FF8F92]",
+    blockerNeutralTitle: "text-white",
+    blockerNeutralText: "text-white/65",
+    blockerDangerButton: `rounded-full bg-[#E5484D] text-white hover:bg-[#CF3F44] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70`,
+    blockerNeutralButton: `rounded-full border border-white/[0.16] bg-white/[0.07] text-white hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70`,
+    pick: "border-white/[0.14]",
+    pickMark: "bg-white/[0.08]",
+    pickIcon: "text-white/50",
+    pickTitle: "text-white",
+    pickText: "text-white/65",
+    empty: "bg-white/[0.06]",
+    emptyMark: "bg-white/[0.08]",
+    emptyIcon: "text-white/50",
+    emptyTitle: "text-white",
+    emptyText: "text-white/65",
+    emptyButton: `rounded-full bg-[#FF5C00] text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70`,
+    emptyLink: "text-white/65 hover:text-white",
+  },
+};
+
+type Tones = (typeof TONES)["light"];
 
 /**
  * Reparte a UN colaborador su porcentaje en todas las canciones de un conjunto
@@ -60,7 +151,9 @@ export default function BulkCollaboratorSplitModal({
   onAssignOwnerSplit,
   onInvite,
   showOwnerContext = false,
+  onGlass = false,
 }: Props) {
+  const t = onGlass ? TONES.glass : TONES.light;
   const {
     mounted,
     collaborators,
@@ -107,13 +200,14 @@ export default function BulkCollaboratorSplitModal({
       title={title}
       subtitle={`${name}${context ? ` · ${context}` : ""}`}
       width="xl"
+      onGlass={onGlass}
       locked={running}
       onClose={closeWithReset}
       logo={logo}
       footer={
         showResults ? (
           <>
-            <span className="flex-1 text-[11px] text-[#A6AAB2]">
+            <span className={`flex-1 text-[11px] ${t.note}`}>
               {autoCloseCountdown !== null
                 ? `Se cierra solo en ${autoCloseCountdown}s`
                 : "El reparto ya está actualizado"}
@@ -124,7 +218,7 @@ export default function BulkCollaboratorSplitModal({
             <PrimaryButton onClick={closeWithReset}>Hecho</PrimaryButton>
           </>
         ) : running ? (
-          <span className="flex-1 text-[11px] text-[#A6AAB2]">
+          <span className={`flex-1 text-[11px] ${t.note}`}>
             No cierres la ventana hasta que termine.
           </span>
         ) : (
@@ -153,7 +247,7 @@ export default function BulkCollaboratorSplitModal({
       ) : running && progress ? (
         <Progress progress={progress} percentage={percentage} />
       ) : collaborators.length === 0 ? (
-        <EmptyState onInvite={onInvite} scopeNoun={scopeNoun} />
+        <EmptyState onInvite={onInvite} scopeNoun={scopeNoun} t={t} />
       ) : (
         /* Dos columnas: a la izquierda a quién se reparte, a la derecha cuánto y
            dónde. La lista se queda fija mientras se configura, así que se puede
@@ -161,7 +255,7 @@ export default function BulkCollaboratorSplitModal({
            vista. En pantallas estrechas vuelven a apilarse. */
         <div className="grid gap-5 md:grid-cols-[minmax(0,260px)_minmax(0,1fr)] md:gap-6">
           {/* A quién */}
-          <div className="flex min-w-0 flex-col gap-2.5 md:border-r md:border-[#E8E8EC] md:pr-6">
+          <div className={`flex min-w-0 flex-col gap-2.5 md:border-r md:pr-6 ${t.column}`}>
             <FieldLabel>COLABORADOR *</FieldLabel>
             <div className="flex max-h-[360px] flex-col gap-1.5 overflow-y-auto">
               {collaborators.map((person) => {
@@ -174,17 +268,15 @@ export default function BulkCollaboratorSplitModal({
                     aria-checked={active}
                     onClick={() => selectCollaborator(person.id)}
                     className={`flex items-center gap-2.5 rounded-2xl px-3 py-2.5 text-left transition-colors ${
-                      active
-                        ? "border-[1.5px] border-[#FF5C00] bg-[#FFEADD]"
-                        : "border border-[#E8E8EC] bg-white hover:border-[#D9DAE0]"
-                    }`}
+                      onGlass ? "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70" : ""
+                    } ${active ? t.personActive : t.personIdle}`}
                   >
                     {person.placeholderId ? (
-                      <PlaceholderAvatar name={person.name} size={32} />
+                      <PlaceholderAvatar name={person.name} size={32} onGlass={onGlass} />
                     ) : (
                       <span
                         className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[12px] font-semibold ${
-                          active ? "bg-[#FF5C00] text-white" : "bg-[#F4F5F7] text-[#71757E]"
+                          active ? t.initialActive : t.initialIdle
                         }`}
                       >
                         {person.name.charAt(0).toUpperCase()}
@@ -192,21 +284,21 @@ export default function BulkCollaboratorSplitModal({
                     )}
                     <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <span className="flex min-w-0 items-center gap-1.5">
-                        <span className="truncate text-[12.5px] font-semibold text-[#1C1D22]">
+                        <span className={`truncate text-[12.5px] font-semibold ${t.name}`}>
                           {person.name}
                         </span>
-                        {person.placeholderId && <PlaceholderChip />}
+                        {person.placeholderId && <PlaceholderChip onGlass={onGlass} />}
                       </span>
                       {/* En cuántas está: es el alcance real de su reparto. */}
                       <span
                         className={`font-mono text-[10.5px] ${
-                          active ? "text-[#EA580C]" : "text-[#A6AAB2]"
+                          active ? t.countActive : t.countIdle
                         }`}
                       >
                         {person.tracks.length} de {totalTracks} {unit.many}
                       </span>
                     </span>
-                    {active && <Check className="h-[15px] w-[15px] flex-shrink-0 text-[#FF5C00]" />}
+                    {active && <Check className={`h-[15px] w-[15px] flex-shrink-0 ${t.check}`} />}
                   </button>
                 );
               })}
@@ -216,14 +308,15 @@ export default function BulkCollaboratorSplitModal({
           {/* Cuánto y dónde */}
           <div className="flex min-w-0 flex-col gap-5">
             {!selected ? (
-              <PickSomeone />
+              <PickSomeone t={t} />
             ) : (
               <>
                 {/* Lo que el reparto no puede cubrir, dicho antes de empezar. */}
                 {showOwnerContext && blocked > 0 && (
                   <Blocker
+                    t={t}
                     tone="danger"
-                    icon={<Crown className="h-[17px] w-[17px] text-[#E5484D]" />}
+                    icon={<Crown className={`h-[17px] w-[17px] ${t.blockerDangerIcon}`} />}
                     title={`${blocked} ${
                       blocked === 1
                         ? `${unit.one} suya no reparte`
@@ -237,8 +330,9 @@ export default function BulkCollaboratorSplitModal({
 
                 {missing > 0 && (
                   <Blocker
+                    t={t}
                     tone="neutral"
-                    icon={<UserPlus className="h-[17px] w-[17px] text-[#71757E]" />}
+                    icon={<UserPlus className={`h-[17px] w-[17px] ${t.blockerNeutralIcon}`} />}
                     title={`No colabora en ${missing} ${
                       missing === 1 ? unit.one : unit.many
                     } del ${scopeNoun}`}
@@ -254,10 +348,8 @@ export default function BulkCollaboratorSplitModal({
                   <div className="flex items-center gap-3">
                     <span
                       className={`flex w-[136px] flex-shrink-0 items-center gap-1.5 rounded-2xl px-4 py-2.5 ${
-                        validPercentage
-                          ? "border-[1.5px] border-[#FF5C00]"
-                          : "border border-[#E8E8EC]"
-                      }`}
+                        validPercentage ? t.fieldOk : t.fieldIdle
+                      } ${onGlass ? "focus-within:ring-2 focus-within:ring-[#FF5C00]/70" : ""}`}
                     >
                       <input
                         type="number"
@@ -268,9 +360,9 @@ export default function BulkCollaboratorSplitModal({
                         onChange={(e) => updateForm("percentage", e.target.value)}
                         placeholder="0.00"
                         aria-label="Porcentaje del colaborador"
-                        className="w-full bg-transparent font-mono text-[20px] font-semibold text-[#1C1D22] focus:outline-none"
+                        className={`w-full border-none bg-transparent p-0 font-mono text-[20px] font-semibold focus:outline-none focus:ring-0 ${t.fieldInput}`}
                       />
-                      <span className="font-mono text-[15px] font-semibold text-[#A6AAB2]">%</span>
+                      <span className={`font-mono text-[15px] font-semibold ${t.unit}`}>%</span>
                     </span>
 
                     <span className="flex min-w-0 flex-1 flex-col gap-2">
@@ -284,14 +376,14 @@ export default function BulkCollaboratorSplitModal({
                         aria-label="Ajustar porcentaje"
                         className="w-full accent-[#FF5C00]"
                       />
-                      <span className="flex justify-between font-mono text-[9.5px] text-[#A6AAB2]">
+                      <span className={`flex justify-between font-mono text-[9.5px] ${t.hint}`}>
                         {["0%", "25%", "50%", "75%", "100%"].map((mark) => (
                           <span key={mark}>{mark}</span>
                         ))}
                       </span>
                     </span>
                   </div>
-                  <p className="text-[11px] leading-relaxed text-[#A6AAB2]">
+                  <p className={`text-[11px] leading-relaxed ${t.hint}`}>
                     {showOwnerContext
                       ? "Es la parte de cada "
                       : "Es el mismo en cada "}
@@ -308,10 +400,8 @@ export default function BulkCollaboratorSplitModal({
                     <div className="flex items-center gap-3">
                       <span
                         className={`flex w-[136px] flex-shrink-0 items-center gap-1.5 rounded-2xl px-4 py-2.5 ${
-                          ownerRate.trim() === ""
-                            ? "border border-[#E8E8EC]"
-                            : "border-[1.5px] border-[#FF5C00]"
-                        }`}
+                          ownerRate.trim() === "" ? t.fieldIdle : t.fieldOk
+                        } ${onGlass ? "focus-within:ring-2 focus-within:ring-[#FF5C00]/70" : ""}`}
                       >
                         <input
                           type="number"
@@ -322,13 +412,13 @@ export default function BulkCollaboratorSplitModal({
                           onChange={(e) => setOwnerRate(e.target.value)}
                           placeholder="La tuya"
                           aria-label="Retención del owner para este colaborador"
-                          className="w-full bg-transparent font-mono text-[20px] font-semibold text-[#1C1D22] focus:outline-none"
+                          className={`w-full border-none bg-transparent p-0 font-mono text-[20px] font-semibold focus:outline-none focus:ring-0 ${t.fieldInput}`}
                         />
-                        <span className="font-mono text-[15px] font-semibold text-[#A6AAB2]">
+                        <span className={`font-mono text-[15px] font-semibold ${t.unit}`}>
                           %
                         </span>
                       </span>
-                      <p className="min-w-0 flex-1 text-[11px] leading-relaxed text-[#A6AAB2]">
+                      <p className={`min-w-0 flex-1 text-[11px] leading-relaxed ${t.hint}`}>
                         {ownerRate.trim() === ""
                           ? "Vacío = le aplicas tu porcentaje de owner, el mismo que a todos. Rellénalo solo si con esta persona pactaste otro."
                           : "De la parte que le toque en cada " +
@@ -364,7 +454,7 @@ export default function BulkCollaboratorSplitModal({
                 />
 
                 {error && (
-                  <p className="flex items-center gap-1.5 text-[12px] font-medium text-[#E5484D]">
+                  <p className={`flex items-center gap-1.5 text-[12px] font-medium ${t.error}`}>
                     <TriangleAlert className="h-3.5 w-3.5 flex-shrink-0" />
                     {error}
                   </p>
@@ -383,6 +473,7 @@ export default function BulkCollaboratorSplitModal({
  * cosas» sin ofrecer el camino obliga a cerrar el modal y buscarlo.
  */
 function Blocker({
+  t,
   tone,
   icon,
   title,
@@ -390,6 +481,7 @@ function Blocker({
   actionLabel,
   onAction,
 }: {
+  t: Tones;
   tone: "danger" | "neutral";
   icon: React.ReactNode;
   title: string;
@@ -401,20 +493,20 @@ function Blocker({
   return (
     <div
       className={`flex flex-wrap items-center gap-3 rounded-[18px] p-4 ${
-        danger ? "bg-[#FDECEC]" : "bg-[#F4F5F7]"
+        danger ? t.blockerDanger : t.blockerNeutral
       }`}
     >
-      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-white">
+      <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${t.blockerMark}`}>
         {icon}
       </span>
       <span className="flex min-w-[180px] flex-1 flex-col gap-0.5">
         <span
-          className={`text-[12.5px] font-semibold ${danger ? "text-[#E5484D]" : "text-[#1C1D22]"}`}
+          className={`text-[12.5px] font-semibold ${danger ? t.blockerDangerText : t.blockerNeutralTitle}`}
         >
           {title}
         </span>
         <span
-          className={`text-[11px] leading-relaxed ${danger ? "text-[#E5484D]" : "text-[#71757E]"}`}
+          className={`text-[11px] leading-relaxed ${danger ? t.blockerDangerText : t.blockerNeutralText}`}
         >
           {detail}
         </span>
@@ -423,10 +515,8 @@ function Blocker({
         <button
           type="button"
           onClick={onAction}
-          className={`flex-shrink-0 rounded-[14px] px-3.5 py-2 text-[11.5px] font-semibold transition-colors ${
-            danger
-              ? "bg-[#E5484D] text-white hover:bg-[#C93B40]"
-              : "border border-[#E8E8EC] bg-white text-[#1C1D22] hover:bg-[#F4F5F7]"
+          className={`flex-shrink-0 px-3.5 py-2 text-[11.5px] font-semibold transition-colors ${
+            danger ? t.blockerDangerButton : t.blockerNeutralButton
           }`}
         >
           {actionLabel}
@@ -441,16 +531,16 @@ function Blocker({
  * dice de dónde sale lo que va a aparecer, en vez de mostrar un formulario
  * apagado que no se sabe a quién aplicaría.
  */
-function PickSomeone() {
+function PickSomeone({ t }: { t: Tones }) {
   return (
-    <div className="flex h-full min-h-[220px] flex-col items-center justify-center gap-2.5 rounded-[18px] border border-dashed border-[#E8E8EC] px-5 py-8 text-center">
-      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#F4F5F7]">
-        <Users className="h-5 w-5 text-[#A6AAB2]" />
+    <div className={`flex h-full min-h-[220px] flex-col items-center justify-center gap-2.5 rounded-[18px] border border-dashed px-5 py-8 text-center ${t.pick}`}>
+      <span className={`flex h-11 w-11 items-center justify-center rounded-full ${t.pickMark}`}>
+        <Users className={`h-5 w-5 ${t.pickIcon}`} />
       </span>
-      <span className="text-[12.5px] font-semibold text-[#1C1D22]">
+      <span className={`text-[12.5px] font-semibold ${t.pickTitle}`}>
         Elige a alguien de la lista
       </span>
-      <span className="max-w-[280px] text-[11.5px] leading-relaxed text-[#71757E]">
+      <span className={`max-w-[280px] text-[11.5px] leading-relaxed ${t.pickText}`}>
         Aquí aparecerá su porcentaje y en qué países y plataformas lo cobra.
       </span>
     </div>
@@ -458,17 +548,25 @@ function PickSomeone() {
 }
 
 /** Sin colaboradores no hay nada que repartir: el camino es invitar a alguien. */
-function EmptyState({ onInvite, scopeNoun }: { onInvite?: () => void; scopeNoun: string }) {
+function EmptyState({
+  onInvite,
+  scopeNoun,
+  t,
+}: {
+  onInvite?: () => void;
+  scopeNoun: string;
+  t: Tones;
+}) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-[18px] bg-[#F4F5F7] px-5 py-8 text-center">
-      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white">
-        <Users className="h-[22px] w-[22px] text-[#A6AAB2]" />
+    <div className={`flex flex-col items-center gap-3 rounded-[18px] px-5 py-8 text-center ${t.empty}`}>
+      <span className={`flex h-12 w-12 items-center justify-center rounded-full ${t.emptyMark}`}>
+        <Users className={`h-[22px] w-[22px] ${t.emptyIcon}`} />
       </span>
       <span className="flex flex-col gap-1">
-        <span className="text-[13px] font-semibold text-[#1C1D22]">
+        <span className={`text-[13px] font-semibold ${t.emptyTitle}`}>
           Nadie colabora todavía en este {scopeNoun}
         </span>
-        <span className="text-[11.5px] leading-relaxed text-[#71757E]">
+        <span className={`text-[11.5px] leading-relaxed ${t.emptyText}`}>
           Invita a alguien y podrás repartirle su porcentaje desde esta ventana.
         </span>
       </span>
@@ -476,7 +574,7 @@ function EmptyState({ onInvite, scopeNoun }: { onInvite?: () => void; scopeNoun:
         <button
           type="button"
           onClick={onInvite}
-          className="flex items-center gap-2 rounded-[18px] bg-[#FF5C00] px-4 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#EA580C]"
+          className={`flex items-center gap-2 px-4 py-2.5 text-[12px] font-semibold transition-colors ${t.emptyButton}`}
         >
           <UserPlus className="h-[15px] w-[15px]" />
           Invitar al {scopeNoun}
@@ -486,7 +584,7 @@ function EmptyState({ onInvite, scopeNoun }: { onInvite?: () => void; scopeNoun:
           persona todavía no está en Splitme y no se la puede invitar. */}
       <Link
         to="/panel/placeholder-profiles"
-        className="text-[11.5px] font-semibold text-[#71757E] underline decoration-dashed underline-offset-4 transition-colors hover:text-[#1C1D22]"
+        className={`text-[11.5px] font-semibold underline decoration-dashed underline-offset-4 transition-colors ${t.emptyLink}`}
       >
         O crea a alguien sin cuenta
       </Link>

@@ -1,12 +1,16 @@
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { ChevronRight, Music, Play } from "lucide-react";
 import { formatStreams, formatCurrency } from "@/utils/format.utils";
 import type { TopSong } from "@/types";
+import { EASE_OUT, remainingDelay, useDashboardIntro, useReveal } from "./dashboardIntro";
 
 interface TopSongsShowcaseProps {
   songs: TopSong[];
   /** Ingreso histórico total, para decir qué parte aporta la #1. */
   historicalIncome: number;
+  /** Segundos desde el montaje en los que entra el panel. */
+  at?: number;
 }
 
 /** Degradados cálidos para las canciones sin portada de Spotify. */
@@ -43,11 +47,16 @@ function Cover({ song, size, index }: { song: TopSong; size: string; index: numb
  * Canciones principales como tracklist: la #1 destacada y el resto en filas
  * numeradas con sus streams e ingresos. El orden lo marca el ingreso histórico.
  */
-export function TopSongsShowcase({ songs, historicalIncome }: TopSongsShowcaseProps) {
+export function TopSongsShowcase({ songs, historicalIncome, at = 0 }: TopSongsShowcaseProps) {
   const [featured, ...rest] = songs;
+  const reveal = useReveal(at);
+  const intro = useDashboardIntro();
+  const animated = intro.full && !intro.reduced;
+  // La #1 primero y la lista detrás, de arriba abajo, como se lee.
+  const listStart = animated ? remainingDelay(intro.startedAt, at + 0.15) : 0;
 
   return (
-    <section className="glass flex flex-col gap-[18px] rounded-[32px] px-7 py-6" data-tour="top-songs">
+    <motion.section {...reveal} className="glass flex flex-col gap-[18px] rounded-[32px] px-7 py-6" data-tour="top-songs">
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5">
           <h2 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">
@@ -83,22 +92,39 @@ export function TopSongsShowcase({ songs, historicalIncome }: TopSongsShowcasePr
         </div>
       ) : (
         <div className="flex flex-col gap-6 min-[1360px]:flex-row">
-          <FeaturedSong song={featured} historicalIncome={historicalIncome} />
+          <FeaturedSong song={featured} historicalIncome={historicalIncome} barDelay={listStart + 0.2} />
           {rest.length > 0 && (
             <div className="flex min-w-0 flex-1 flex-col divide-y divide-white/[0.09]">
               {rest.slice(0, 4).map((song, i) => (
-                <SongRow key={song._id} song={song} rank={i + 2} />
+                <motion.div
+                  key={song._id}
+                  initial={animated ? { opacity: 0, x: -8 } : false}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: listStart + 0.1 + i * 0.06, ease: EASE_OUT }}
+                >
+                  <SongRow song={song} rank={i + 2} />
+                </motion.div>
               ))}
             </div>
           )}
         </div>
       )}
-    </section>
+    </motion.section>
   );
 }
 
 /** La canción #1: portada grande, lo que aporta al total y acceso a su detalle. */
-function FeaturedSong({ song, historicalIncome }: { song: TopSong; historicalIncome: number }) {
+function FeaturedSong({
+  song,
+  historicalIncome,
+  barDelay,
+}: {
+  song: TopSong;
+  historicalIncome: number;
+  /** Cuándo crece la barra de su parte, en la entrada. */
+  barDelay: number;
+}) {
+  const intro = useDashboardIntro();
   const income = song.totalNetIncome ?? 0;
   const share = historicalIncome > 0 ? income / historicalIncome : 0;
   // Una canción en la que se colabora puede no sumar en el total propio: si el
@@ -134,7 +160,14 @@ function FeaturedSong({ song, historicalIncome }: { song: TopSong; historicalInc
         </div>
         {showShare && (
           <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.12]">
-            <div className="h-full rounded-full bg-[#FF5C00]" style={{ width: `${share * 100}%` }} />
+            {/* La barra crece hasta su parte: es la cifra de al lado, dicha con longitud */}
+            <motion.div
+              className="h-full origin-left rounded-full bg-[#FF5C00]"
+              style={{ width: `${share * 100}%` }}
+              initial={intro.reduced ? false : { scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: intro.full ? 0.9 : 0.4, delay: intro.full ? barDelay : 0, ease: EASE_OUT }}
+            />
           </div>
         )}
       </div>

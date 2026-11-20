@@ -194,7 +194,7 @@ export default function GlobalSearch() {
                     goTo(
                       label.type === "custom"
                         ? `/panel/labels/custom/${encodeURIComponent(label.name)}`
-                        : `/panel/labels/${encodeURIComponent(label.name)}`,
+                        : `/panel/labels/${encodeURIComponent(label._id ?? label.name)}`,
                     )
                   }
                 />

@@ -13,10 +13,10 @@ const STATUS: Record<
   RoyaltyPayment["status"],
   { label: string; color: string; bg: string; icon: typeof CheckCircle2 }
 > = {
-  succeeded: { label: "Recibido", color: "#2FB37E", bg: "#E4F5EC", icon: CheckCircle2 },
-  processing: { label: "En camino", color: "#EA580C", bg: "#FFEADD", icon: Send },
-  pending: { label: "En camino", color: "#EA580C", bg: "#FFEADD", icon: Clock3 },
-  failed: { label: "Falló", color: "#E5484D", bg: "#FDECEC", icon: AlertCircle },
+  succeeded: { label: "Recibido", color: "#45D39A", bg: "rgba(69, 211, 154, 0.12)", icon: CheckCircle2 },
+  processing: { label: "En camino", color: "#FF9A5C", bg: "rgba(255, 92, 0, 0.16)", icon: Send },
+  pending: { label: "En camino", color: "#FF9A5C", bg: "rgba(255, 92, 0, 0.16)", icon: Clock3 },
+  failed: { label: "Falló", color: "#FF8F92", bg: "rgba(229, 72, 77, 0.14)", icon: AlertCircle },
 };
 
 const money = (n: number) =>
@@ -110,12 +110,12 @@ export default function SongPaymentsHistory({ songId, refreshTrigger, pendingAmo
   const pending = pendingAmount ?? 0;
 
   return (
-    <section className="flex flex-col overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
+    <section className="glass flex flex-col overflow-hidden rounded-[28px]">
       <header className="flex flex-col gap-0.5 px-5 py-[18px]">
-        <h3 className="font-display text-[18px] font-semibold text-[#1C1D22]">
+        <h3 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">
           Lo que ya se ha pagado
         </h3>
-        <p className="text-[12.5px] font-medium text-[#71757E]">
+        <p className="text-[12.5px] text-white/65">
           {loading
             ? "Trayendo el historial…"
             : rows.length === 0
@@ -124,20 +124,20 @@ export default function SongPaymentsHistory({ songId, refreshTrigger, pendingAmo
         </p>
       </header>
 
-      <div className="h-px bg-[#E8E8EC]" />
+      <div className="h-px bg-white/[0.09]" />
 
       {loading ? (
         <div className="flex flex-col items-center gap-2.5 py-14 text-center">
-          <Clock3 className="h-6 w-6 animate-pulse text-[#A6AAB2]" />
-          <p className="text-sm text-[#71757E]">Trayendo el historial…</p>
+          <Clock3 className="h-6 w-6 animate-pulse text-white/50" />
+          <p className="text-sm text-white/65">Trayendo el historial…</p>
         </div>
       ) : rows.length === 0 ? (
         <div className="flex flex-col items-center gap-2.5 px-6 py-14 text-center">
-          <span className="grid h-[58px] w-[58px] place-items-center rounded-[20px] bg-[#FFEADD]">
-            <Receipt className="h-6 w-6 text-[#FF5C00]" />
+          <span className="grid h-[58px] w-[58px] place-items-center rounded-[20px] bg-[#FF5C00]/15">
+            <Receipt className="h-6 w-6 text-[#FF8A3D]" />
           </span>
-          <p className="text-[15px] font-semibold text-[#1C1D22]">Aún no se ha pagado nada</p>
-          <p className="max-w-[300px] text-[13px] text-[#71757E]">
+          <p className="text-[15px] font-semibold text-white">Aún no se ha pagado nada</p>
+          <p className="max-w-[300px] text-[13px] text-white/65">
             Cuando pagues a los colaboradores, cada envío quedará apuntado aquí con su fecha.
           </p>
         </div>
@@ -148,20 +148,20 @@ export default function SongPaymentsHistory({ songId, refreshTrigger, pendingAmo
             const Icon = cfg.icon;
             return (
               <li key={row.key}>
-                {index > 0 && <div className="h-px bg-[#E8E8EC]" />}
+                {index > 0 && <div className="h-px bg-white/[0.09]" />}
                 <div className="flex items-center gap-[11px] px-5 py-3">
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#1C1D22] text-[10px] font-semibold text-white">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-white/25 bg-[#1C1D22] text-[10px] font-semibold text-white">
                     {getInitials(row.name)}
                   </span>
                   <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="truncate text-[12.5px] font-semibold text-[#1C1D22]">
+                    <span className="truncate text-[12.5px] font-semibold text-white">
                       {row.name}
                     </span>
-                    <span className="truncate text-[11px] text-[#A6AAB2]">
+                    <span className="truncate text-[11px] text-white/50">
                       {formatDate(row.date)} · {row.method}
                     </span>
                   </div>
-                  <span className="shrink-0 font-mono text-[13px] font-semibold text-[#1C1D22]">
+                  <span className="shrink-0 font-mono text-[13.5px] text-white">
                     {money(row.amount)}
                   </span>
                   <span
@@ -178,20 +178,20 @@ export default function SongPaymentsHistory({ songId, refreshTrigger, pendingAmo
         </ul>
       )}
 
-      <div className="h-px bg-[#E8E8EC]" />
+      <div className="h-px bg-white/[0.09]" />
 
       <footer className="flex items-center gap-2 px-5 py-3.5">
         {pending > 0 ? (
           <>
-            <Clock3 className="h-3.5 w-3.5 shrink-0 text-[#EA580C]" />
-            <span className="text-[11.5px] font-semibold text-[#EA580C]">
+            <Clock3 className="h-3.5 w-3.5 shrink-0 text-[#FF8A3D]" />
+            <span className="text-[11.5px] font-semibold text-[#FF8A3D]">
               Quedan {money(pending)} por pagar
             </span>
           </>
         ) : (
           <>
-            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#2FB37E]" />
-            <span className="text-[11.5px] font-semibold text-[#2FB37E]">
+            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#45D39A]" />
+            <span className="text-[11.5px] font-semibold text-[#45D39A]">
               No queda nada pendiente
             </span>
           </>

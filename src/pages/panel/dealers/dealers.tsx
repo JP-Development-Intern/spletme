@@ -33,6 +33,7 @@ import CreateDistributorModal from "@/components/ui/CreateDistributorModal";
 import EditDistributorModal from "@/components/ui/EditDistributorModal";
 import UploadSongsModal from "@/components/ui/UploadSongsModal";
 import { formatGaps } from "@/utils/coverage.utils";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function Dealers() {
   const library = useDistributorsLibrary();
@@ -71,24 +72,26 @@ export default function Dealers() {
   };
 
   return (
-    <div className="min-h-full bg-[#F7F7F9]">
-      <div className="flex flex-col gap-5 px-4 py-6 lg:px-8">
-        {/* Encabezado */}
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="flex flex-col gap-0.5">
-            <h1 className="font-display text-2xl font-semibold text-[#1C1D22]">Distribuidores</h1>
-            <p className="flex flex-wrap items-center gap-2 text-[13px] text-[#71757E]">
+    <>
+      <div className="flex flex-col gap-6 px-4 lg:pl-4 lg:pr-8">
+        {/* Encabezado, en la barra superior como el resto del panel */}
+        <PageHeader>
+          <div className="flex flex-col gap-1">
+            <h1 className="truncate font-display text-[32px] font-light leading-[38px] tracking-[-0.015em] text-white sm:text-[40px] sm:leading-[46px]">
+              Distribuidores
+            </h1>
+            <p className="flex flex-wrap items-center gap-2 text-sm text-white/65">
               <span>
                 {allItems.length} {allItems.length === 1 ? "distribuidor" : "distribuidores"}
               </span>
-              <span className="text-[#A6AAB2]">·</span>
+              <span className="text-white/50">·</span>
               <span>{totals.uploadCount} cargas</span>
               {missingMonths > 0 && (
                 <>
-                  <span className="text-[#A6AAB2]">·</span>
+                  <span className="text-white/50">·</span>
                   <button
                     onClick={showOnlyGaps}
-                    className="font-semibold text-[#FF5C00] transition-colors hover:text-[#EA580C]"
+                    className="font-semibold text-[#FF8A3D] underline-offset-2 transition-colors hover:text-[#FFB48A] hover:underline"
                   >
                     {missingMonths} {missingMonths === 1 ? "mes" : "meses"} sin cubrir
                   </button>
@@ -96,38 +99,36 @@ export default function Dealers() {
               )}
             </p>
           </div>
+        </PageHeader>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative w-full sm:w-[290px]">
-              <Search
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A6AAB2]"
-                size={16}
-              />
-              <input
-                type="text"
-                placeholder="Buscar distribuidor o proveedor…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-[22px] border border-[#E8E8EC] bg-white py-2.5 pl-11 pr-4 text-[12.5px] text-[#1C1D22] placeholder:text-[#A6AAB2] focus:border-[#FF5C00] focus:outline-none focus:ring-[3px] focus:ring-[#FF5C00]/15"
-              />
-            </div>
-            <button
-              onClick={() => setShowCreate(true)}
-              className="flex flex-shrink-0 items-center gap-2 rounded-[22px] bg-[#FF5C00] px-[18px] py-2.5 text-[12.5px] font-semibold text-white shadow-[0_6px_16px_-4px_rgba(255,92,0,0.4)] transition-colors hover:bg-[#EA580C]"
-            >
-              <Plus className="h-[15px] w-[15px]" />
-              Nuevo distribuidor
-            </button>
-          </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="glass-control relative flex w-full items-center gap-2.5 rounded-full px-[18px] py-[11px] focus-within:ring-2 focus-within:ring-[#FF5C00]/70 sm:w-[320px]">
+            <Search className="h-4 w-4 flex-shrink-0 text-white/50" />
+            <input
+              type="text"
+              placeholder="Buscar distribuidor o proveedor…"
+              aria-label="Buscar distribuidor o proveedor"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full border-none bg-transparent p-0 text-[12.5px] text-white placeholder:text-white/50 focus:outline-none focus:ring-0"
+            />
+          </label>
+          <button
+            onClick={() => setShowCreate(true)}
+            className="flex flex-shrink-0 items-center gap-2 px-[18px] py-[11px] rounded-full bg-[#FF5C00] text-[12.5px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+          >
+            <Plus className="h-[15px] w-[15px]" />
+            Nuevo distribuidor
+          </button>
         </div>
 
         {error && (
-          <div className="flex items-center gap-2.5 rounded-2xl border border-[#F5C2C4] bg-[#FDECEC] px-4 py-3">
-            <TriangleAlert className="h-4 w-4 flex-shrink-0 text-[#E5484D]" />
-            <span className="flex-1 text-[12.5px] text-[#E5484D]">{error}</span>
+          <div className="glass flex items-center gap-2.5 rounded-2xl px-4 py-3">
+            <TriangleAlert className="h-4 w-4 flex-shrink-0 text-[#FF8F92]" />
+            <span className="flex-1 text-[12.5px] text-white/80">{error}</span>
             <button
               onClick={reload}
-              className="rounded-full bg-white px-3.5 py-1.5 text-[11.5px] font-semibold text-[#E5484D]"
+              className="glass-control rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold text-white hover:bg-white/[0.12]"
             >
               Reintentar
             </button>
@@ -196,10 +197,10 @@ export default function Dealers() {
                 onClearSearch={() => setSearch("")}
               />
             ) : (
-              <div className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
+              <div className="glass overflow-hidden rounded-[28px]">
                 <TableHeader sortBy={sortBy} onSortChange={setSortBy} />
-                <div className="h-px bg-[#E8E8EC]" />
-                <div className="flex flex-col divide-y divide-[#E8E8EC]">
+                <div className="h-px bg-white/[0.09]" />
+                <div className="flex flex-col divide-y divide-white/[0.09]">
                   {items.map((item) => (
                     <DistributorRow
                       key={item.distributor._id}
@@ -212,9 +213,9 @@ export default function Dealers() {
                     />
                   ))}
                 </div>
-                <div className="h-px bg-[#E8E8EC]" />
+                <div className="h-px bg-white/[0.09]" />
                 <div className="flex flex-col items-start justify-between gap-3 px-5 py-3.5 sm:flex-row sm:items-center">
-                  <span className="text-[12px] text-[#71757E]">
+                  <span className="text-[12px] text-white/65">
                     {items.length}
                     {items.length === allItems.length ? "" : ` de ${allItems.length}`}{" "}
                     {items.length === 1 ? "distribuidor" : "distribuidores"} ·{" "}
@@ -297,7 +298,7 @@ export default function Dealers() {
           }}
         />
       )}
-    </div>
+    </>
   );
 }
 
@@ -356,7 +357,7 @@ function ColumnButton({
     <button
       onClick={onClick}
       className={`flex items-center gap-1 transition-colors ${
-        active ? "text-[#FF5C00]" : "text-[#A6AAB2] hover:text-[#71757E]"
+        active ? "text-[#FF8A3D]" : "text-white/50 hover:text-white/80"
       }`}
     >
       <span className="font-mono text-[9.5px] font-medium tracking-[1.2px]">{label}</span>
@@ -367,7 +368,7 @@ function ColumnButton({
 
 function ColumnLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+    <span className="font-mono text-[9.5px] font-medium tracking-[1.2px] text-white/50">
       {children}
     </span>
   );
@@ -377,7 +378,7 @@ function ColumnLabel({ children }: { children: React.ReactNode }) {
 function TableSkeleton() {
   const widths = ["w-[148px]", "w-[112px]", "w-[168px]", "w-[130px]"];
   return (
-    <div className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white">
+    <div className="glass overflow-hidden rounded-[28px]" aria-busy="true" aria-label="Cargando distribuidores">
       <div className={`${DISTRIBUTORS_GRID} px-5 py-3`}>
         <div className="min-w-0">
           <ColumnLabel>DISTRIBUIDOR</ColumnLabel>
@@ -389,16 +390,16 @@ function TableSkeleton() {
         ))}
         <div />
       </div>
-      <div className="h-px bg-[#E8E8EC]" />
-      <div className="flex flex-col divide-y divide-[#E8E8EC]">
+      <div className="h-px bg-white/[0.09]" />
+      <div className="flex flex-col divide-y divide-white/[0.09]">
         {widths.map((width, index) => (
           <div key={width} className={`${DISTRIBUTORS_GRID} px-5 py-3.5`}>
             <div className="flex min-w-0 items-center gap-3">
-              <div className="h-[42px] w-[42px] flex-shrink-0 animate-pulse rounded-[14px] bg-[#F4F5F7]" />
+              <div className="h-[42px] w-[42px] flex-shrink-0 animate-pulse rounded-[14px] bg-white/[0.08]" />
               <div className="flex flex-1 flex-col gap-2">
-                <div className={`h-2.5 animate-pulse rounded-full bg-[#F4F5F7] ${width}`} />
+                <div className={`h-2.5 animate-pulse rounded-full bg-white/[0.08] ${width}`} />
                 <div
-                  className={`h-2 animate-pulse rounded-full bg-[#F4F5F7]/70 ${
+                  className={`h-2 animate-pulse rounded-full bg-white/[0.05] ${
                     index % 2 ? "w-[84px]" : "w-[108px]"
                   }`}
                 />
@@ -406,12 +407,12 @@ function TableSkeleton() {
             </div>
             {DISTRIBUTOR_COLUMNS.map((column) => (
               <div key={column.key} className={column.visibility}>
-                <div className="h-2.5 w-[70%] animate-pulse rounded-full bg-[#F4F5F7]" />
+                <div className="h-2.5 w-[70%] animate-pulse rounded-full bg-white/[0.08]" />
               </div>
             ))}
             <div className="flex justify-end gap-1.5">
-              <div className="h-8 w-8 animate-pulse rounded-full bg-[#F4F5F7]" />
-              <div className="h-8 w-8 animate-pulse rounded-full bg-[#F4F5F7]" />
+              <div className="h-8 w-8 animate-pulse rounded-full bg-white/[0.08]" />
+              <div className="h-8 w-8 animate-pulse rounded-full bg-white/[0.08]" />
             </div>
           </div>
         ))}
@@ -422,17 +423,17 @@ function TableSkeleton() {
 
 const ONBOARDING_STEPS = [
   {
-    icon: <CirclePlus className="h-3.5 w-3.5 text-[#FF5C00]" />,
+    icon: <CirclePlus className="h-3.5 w-3.5 text-[#FF8A3D]" />,
     title: "Conecta la cuenta",
     detail: "DistroKid, TuneCore, CD Baby…",
   },
   {
-    icon: <FileUp className="h-3.5 w-3.5 text-[#FF5C00]" />,
+    icon: <FileUp className="h-3.5 w-3.5 text-[#FF8A3D]" />,
     title: "Sube el reporte",
     detail: "CSV o Excel, tal cual lo descargas",
   },
   {
-    icon: <ChartPie className="h-3.5 w-3.5 text-[#FF5C00]" />,
+    icon: <ChartPie className="h-3.5 w-3.5 text-[#FF8A3D]" />,
     title: "Ve el reparto",
     detail: "Ingresos por canción y colaborador",
   },
@@ -441,15 +442,15 @@ const ONBOARDING_STEPS = [
 /** Pantalla vacía: explica el modelo completo, no solo ofrece un botón. */
 function FirstDistributorState({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-5 rounded-[26px] border border-[#E8E8EC] bg-white px-6 py-[46px] sm:px-10">
-      <div className="flex h-[60px] w-[60px] items-center justify-center rounded-[22px] bg-[#FFEADD]">
-        <Handshake className="h-[26px] w-[26px] text-[#FF5C00]" />
+    <section className="glass flex flex-col items-center gap-5 rounded-[32px] px-6 py-[46px] sm:px-10">
+      <div className="flex h-[60px] w-[60px] items-center justify-center rounded-[22px] bg-[#FF5C00]/15">
+        <Handshake className="h-[26px] w-[26px] text-[#FF8A3D]" />
       </div>
       <div className="flex flex-col items-center gap-1.5">
-        <h2 className="font-display text-[19px] font-semibold text-[#1C1D22]">
+        <h2 className="font-display text-[19px] font-medium text-white">
           Conecta tu primer distribuidor
         </h2>
-        <p className="max-w-[520px] text-center text-[12.5px] leading-relaxed text-[#71757E]">
+        <p className="max-w-[520px] text-center text-[12.5px] leading-relaxed text-white/65">
           Splitme lee los reportes de regalías que ya descargas y reparte los ingresos entre tus
           colaboradores.
         </p>
@@ -457,29 +458,29 @@ function FirstDistributorState({ onCreate }: { onCreate: () => void }) {
 
       <ol className="grid w-full max-w-[740px] grid-cols-1 gap-3 pt-2 sm:grid-cols-3">
         {ONBOARDING_STEPS.map((step, index) => (
-          <li key={step.title} className="flex flex-col gap-2 rounded-[18px] bg-[#F4F5F7] p-4">
+          <li key={step.title} className="flex flex-col gap-2 rounded-[18px] bg-white/[0.06] p-4">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-[26px] w-[26px] items-center justify-center rounded-[9px] bg-white">
+              <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-[#FF5C00]/[0.16]">
                 {step.icon}
               </span>
-              <span className="font-mono text-[10px] font-semibold tracking-[1px] text-[#A6AAB2]">
+              <span className="font-mono text-[10px] font-semibold tracking-[1px] text-white/50">
                 0{index + 1}
               </span>
             </div>
-            <span className="text-[12.5px] font-semibold text-[#1C1D22]">{step.title}</span>
-            <span className="text-[11px] leading-snug text-[#A6AAB2]">{step.detail}</span>
+            <span className="text-[12.5px] font-semibold text-white">{step.title}</span>
+            <span className="text-[11px] leading-snug text-white/50">{step.detail}</span>
           </li>
         ))}
       </ol>
 
       <button
         onClick={onCreate}
-        className="mt-2 flex items-center gap-2 rounded-[20px] bg-[#FF5C00] px-5 py-3 text-[13px] font-semibold text-white shadow-[0_6px_16px_-4px_rgba(255,92,0,0.4)] transition-colors hover:bg-[#EA580C]"
+        className="mt-2 flex items-center gap-2 px-5 py-3 rounded-full bg-[#FF5C00] text-[12.5px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
       >
         <Plus className="h-[15px] w-[15px]" />
         Conectar distribuidor
       </button>
-    </div>
+    </section>
   );
 }
 
@@ -497,14 +498,14 @@ function NoResultsState({
 }) {
   const searching = search.trim() !== "";
   return (
-    <div className="flex flex-col items-center gap-3 rounded-[26px] border border-[#E8E8EC] bg-white px-6 py-[50px]">
-      <div className="flex h-[52px] w-[52px] items-center justify-center rounded-[18px] bg-[#F4F5F7]">
-        <SearchX className="h-[22px] w-[22px] text-[#71757E]" />
+    <section className="glass flex flex-col items-center gap-3 rounded-[32px] px-6 py-[50px]">
+      <div className="flex h-[52px] w-[52px] items-center justify-center rounded-[18px] bg-white/[0.08]">
+        <SearchX className="h-[22px] w-[22px] text-white/65" />
       </div>
-      <h3 className="font-display text-base font-semibold text-[#1C1D22]">
+      <h3 className="font-display text-base font-medium text-white">
         {searching ? `Sin resultados para «${search}»` : "Ningún distribuidor coincide"}
       </h3>
-      <p className="text-center text-[12.5px] text-[#71757E]">
+      <p className="text-center text-[12.5px] text-white/65">
         {hasFilters
           ? "Hay filtros puestos que pueden estar dejando fuera lo que buscas."
           : "Prueba con otro nombre o proveedor."}
@@ -513,7 +514,7 @@ function NoResultsState({
         {hasFilters && (
           <button
             onClick={onClearFilters}
-            className="flex items-center gap-1.5 rounded-2xl bg-[#FF5C00] px-4 py-2.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-[#EA580C]"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-[#FF5C00] text-[12.5px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
           >
             <FunnelX className="h-3.5 w-3.5" />
             Limpiar filtros
@@ -522,12 +523,12 @@ function NoResultsState({
         {searching && (
           <button
             onClick={onClearSearch}
-            className="rounded-2xl border border-[#E8E8EC] bg-white px-4 py-2.5 text-[12.5px] font-semibold text-[#1C1D22] transition-colors hover:bg-[#F4F5F7]"
+            className="px-4 py-2.5 glass-control rounded-full text-[12.5px] font-semibold text-white transition-colors hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
           >
             Borrar búsqueda
           </button>
         )}
       </div>
-    </div>
+    </section>
   );
 }

@@ -45,9 +45,9 @@ const STATUS_LABELS: Record<AccountingStatus, string> = {
 };
 
 const STATUS_CLASSES: Record<AccountingStatus, string> = {
-  pending: "bg-[#FFEADD] text-[#EA580C]",
-  paid: "bg-[#E4F5EC] text-[#2FB37E]",
-  cancelled: "bg-[#F4F5F7] text-[#71757E]",
+  pending: "bg-[#FF5C00]/[0.16] text-[#FF9A5C]",
+  paid: "bg-[#45D39A]/[0.12] text-[#45D39A]",
+  cancelled: "bg-white/[0.08] text-white/65",
 };
 
 const CONCEPT_LABELS: Record<string, string> = {
@@ -200,50 +200,50 @@ const ExtraordinaryCosts = ({ songId, distributable = 0, songTitle }: Extraordin
 
   return (
     <>
-      <section className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
+      <section className="glass overflow-hidden rounded-[28px]">
         <header className="flex flex-wrap items-center justify-between gap-3.5 px-5 py-[18px]">
           <div className="flex flex-col gap-0.5">
-            <h3 className="font-display text-[18px] font-semibold text-[#1C1D22]">
+            <h3 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">
               Lo que entra y sale por fuera
             </h3>
-            <p className="text-[12.5px] font-medium text-[#71757E]">
+            <p className="text-[12.5px] text-white/65">
               Mezcla, máster, promoción: se restan antes de repartir
             </p>
           </div>
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-[7px] rounded-[20px] bg-[#FF5C00] px-4 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#EA580C] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00] focus-visible:ring-offset-2"
+            className="inline-flex items-center gap-[7px] rounded-full bg-[#FF5C00] px-4 py-2.5 text-[12px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
           >
             <Plus className="h-3.5 w-3.5" />
             Apuntar un costo
           </button>
         </header>
 
-        <div className="h-px bg-[#E8E8EC]" />
+        <div className="h-px bg-white/[0.09]" />
 
         <div className="flex flex-wrap items-stretch">
-          <Figure label="INGRESOS EXTRA" value={money(ingresos)} tone="text-[#2FB37E]" />
-          <div className="w-px self-stretch bg-[#E8E8EC]" />
-          <Figure label="COSTOS" value={money(egresos)} tone="text-[#E5484D]" />
-          <div className="w-px self-stretch bg-[#E8E8EC]" />
+          <Figure label="INGRESOS EXTRA" value={money(ingresos)} tone="text-[#45D39A]" />
+          <div className="w-px self-stretch bg-white/[0.09]" />
+          <Figure label="COSTOS" value={money(egresos)} tone="text-[#FF8F92]" />
+          <div className="w-px self-stretch bg-white/[0.09]" />
           <Figure
             label="EFECTO EN EL REPARTIBLE"
             value={`${balance < 0 ? "−" : "+"}${money(Math.abs(balance))}`}
-            tone={balance < 0 ? "text-[#E5484D]" : "text-[#1C1D22]"}
+            tone={balance < 0 ? "text-[#FF8F92]" : "text-white"}
           />
         </div>
 
-        <div className="h-px bg-[#E8E8EC]" />
+        <div className="h-px bg-white/[0.09]" />
 
         {error && !showForm && (
-          <div className="flex items-center gap-2.5 bg-[#FDECEC] px-5 py-3">
-            <AlertCircle className="h-3.5 w-3.5 shrink-0 text-[#E5484D]" />
-            <span className="flex-1 text-[12px] font-medium text-[#E5484D]">{error}</span>
+          <div className="flex items-center gap-2.5 bg-[#E5484D]/[0.14] px-5 py-3">
+            <AlertCircle className="h-3.5 w-3.5 shrink-0 text-[#FF8F92]" />
+            <span className="flex-1 text-[12px] font-medium text-[#FF8F92]">{error}</span>
             <button
               type="button"
               onClick={() => setError(null)}
-              className="text-[11px] font-semibold text-[#E5484D] underline"
+              className="text-[11px] font-semibold text-[#FF8F92] underline hover:text-white"
             >
               Descartar
             </button>
@@ -251,16 +251,16 @@ const ExtraordinaryCosts = ({ songId, distributable = 0, songTitle }: Extraordin
         )}
 
         {loading ? (
-          <p className="py-14 text-center text-sm text-[#71757E]">Trayendo los costos…</p>
+          <p className="py-14 text-center text-sm text-white/65">Trayendo los costos…</p>
         ) : costs.length === 0 ? (
           <div className="flex flex-col items-center gap-2.5 py-14 text-center">
-            <span className="grid h-[58px] w-[58px] place-items-center rounded-[20px] bg-[#FFEADD]">
-              <Coins className="h-6 w-6 text-[#FF5C00]" />
+            <span className="grid h-[58px] w-[58px] place-items-center rounded-[20px] bg-[#FF5C00]/15">
+              <Coins className="h-6 w-6 text-[#FF8A3D]" />
             </span>
-            <p className="text-[15px] font-semibold text-[#1C1D22]">
+            <p className="text-[15px] font-semibold text-white">
               No hay costos apuntados en esta canción
             </p>
-            <p className="max-w-[400px] text-[13px] text-[#71757E]">
+            <p className="max-w-[400px] text-[13px] text-white/65">
               Todo lo que entra se reparte tal cual. Apunta un costo si hubo gastos que descontar
               antes.
             </p>
@@ -271,26 +271,26 @@ const ExtraordinaryCosts = ({ songId, distributable = 0, songTitle }: Extraordin
               const income = isIncome(item.concept);
               return (
                 <li key={item._id}>
-                  {index > 0 && <div className="h-px bg-[#E8E8EC]" />}
+                  {index > 0 && <div className="h-px bg-white/[0.09]" />}
                   <div className="flex flex-wrap items-center gap-3.5 px-5 py-3">
-                    <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[12px] bg-[#F4F5F7]">
+                    <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[12px] bg-white/[0.06]">
                       {income ? (
-                        <ArrowUpCircle className="h-[18px] w-[18px] text-[#2FB37E]" />
+                        <ArrowUpCircle className="h-[18px] w-[18px] text-[#45D39A]" />
                       ) : (
-                        <ArrowDownCircle className="h-[18px] w-[18px] text-[#E5484D]" />
+                        <ArrowDownCircle className="h-[18px] w-[18px] text-[#FF8F92]" />
                       )}
                     </span>
                     <div className="min-w-[180px] flex-1">
-                      <p className="truncate text-[13px] font-semibold text-[#1C1D22]">
+                      <p className="truncate text-[13px] font-semibold text-white">
                         {item.description || conceptLabel(item.concept)}
                       </p>
-                      <p className="truncate text-[11px] text-[#A6AAB2]">
+                      <p className="truncate text-[11px] text-white/50">
                         {conceptLabel(item.concept)} · {formatDate(item.date || item.createdAt)}
                       </p>
                     </div>
                     <p
                       className={`w-[130px] shrink-0 whitespace-nowrap font-mono text-[13px] font-semibold ${
-                        income ? "text-[#2FB37E]" : "text-[#E5484D]"
+                        income ? "text-[#45D39A]" : "text-[#FF8F92]"
                       }`}
                     >
                       {income ? "+" : "−"}
@@ -306,7 +306,7 @@ const ExtraordinaryCosts = ({ songId, distributable = 0, songTitle }: Extraordin
                       onClick={() => handleDelete(item._id)}
                       aria-label="Eliminar este costo"
                       title="Eliminar este costo"
-                      className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-full border border-[#E8E8EC] bg-white text-[#E5484D] transition-colors hover:bg-[#F4F5F7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]"
+                      className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-full bg-white/[0.06] text-[#FF8F92] transition-colors hover:bg-white/[0.12] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -319,13 +319,13 @@ const ExtraordinaryCosts = ({ songId, distributable = 0, songTitle }: Extraordin
 
         {costs.length > 0 && (
           <>
-            <div className="h-px bg-[#E8E8EC]" />
+            <div className="h-px bg-white/[0.09]" />
             <footer className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5">
-              <span className="flex items-center gap-2.5 text-[12px] text-[#71757E]">
+              <span className="flex items-center gap-2.5 text-[12px] text-white/65">
                 <Coins className="h-3.5 w-3.5" />
                 {costs.length} {costs.length === 1 ? "apunte" : "apuntes"}
               </span>
-              <span className="text-[11px] text-[#A6AAB2]">
+              <span className="text-[11px] text-white/50">
                 Estos importes ya están descontados en la cascada del resumen
               </span>
             </footer>
@@ -461,10 +461,10 @@ const ExtraordinaryCosts = ({ songId, distributable = 0, songTitle }: Extraordin
 
 const Figure = ({ label, value, tone }: { label: string; value: string; tone: string }) => (
   <div className="flex min-w-[180px] flex-1 flex-col gap-1.5 px-5 py-4">
-    <span className="font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+    <span className="font-mono text-[9.5px] font-medium tracking-[1.2px] text-white/50">
       {label}
     </span>
-    <span className={`font-mono text-[20px] font-semibold ${tone}`}>{value}</span>
+    <span className={`font-mono text-[22px] font-light tracking-[-0.015em] ${tone}`}>{value}</span>
   </div>
 );
 

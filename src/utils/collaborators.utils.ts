@@ -159,3 +159,7 @@ export const describeRole = (role: string): { role: string; isLabel: boolean; sh
 
 /** Los roles de un colaborador, ya traducidos y sin repetir. */
 export const describeRoles = (roles: string[] = []) => roles.map(describeRole);
+
+/** Nombre de una persona para pintarlo: el backend no siempre trae `name`. */
+export const personName = (person: { name?: string; username?: string; email?: string }): string =>
+  person.name?.trim() || person.username?.trim() || person.email?.trim() || "Sin nombre";

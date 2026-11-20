@@ -1,69 +1,72 @@
-import type { PlatformCountryRow } from "../../../../types/analytics.types";
+import { formatCurrency, formatStreams } from "@/utils/format.utils";
+import type { PlatformCountryRow } from "@/types/analytics.types";
+import { AnalyticsPanel, CountryCode, PanelState } from "./AnalyticsPanel";
+import { countryLabel, displayName, formatPerThousand, perThousand, platformColor } from "../analytics.utils";
 
 interface Props {
   data: PlatformCountryRow[];
   loading: boolean;
+  error: boolean;
+  onRetry: () => void;
+  filtered: boolean;
+  onClearFilters: () => void;
 }
 
-export default function PlatformCountrySummary({ data, loading }: Props) {
-  const maxIncome = data.length > 0 ? Math.max(...data.map((r) => r.netIncome)) : 1;
+/**
+ * Las diez combinaciones de plataforma y país que más ingresan. Responde a
+ * «dónde y en qué tienda» a la vez; el valor por 1.000 streams deja ver qué
+ * mercado paga mejor aunque tenga menos volumen.
+ */
+export default function PlatformCountrySummary({ data, loading, error, onRetry, filtered, onClearFilters }: Props) {
+  const max = data.length > 0 ? Math.max(...data.map((r) => r.netIncome)) : 1;
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-6">
-      <div>
-        <h2 className="text-sm font-semibold text-[#111827]">TOP 10 — Plataforma × País</h2>
-        <p className="mt-0.5 text-xs text-[#6B7280]">
-          Ingresos y streams por combinación plataforma/país
-        </p>
-      </div>
-
-      {loading ? (
-        <div className="flex h-[200px] items-center justify-center text-sm text-[#9CA3AF]">
-          Cargando...
-        </div>
-      ) : data.length === 0 ? (
-        <div className="flex h-[200px] items-center justify-center text-sm text-[#9CA3AF]">
-          Sin datos disponibles
-        </div>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {data.map((row, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <span className="w-5 flex-shrink-0 text-[11px] font-bold text-[#9CA3AF]">
-                {i + 1}
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="mb-1 flex items-center gap-2">
-                  <span className="truncate text-[12px] font-semibold text-[#111827]">
-                    {row.platform}
-                  </span>
-                  <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-[#6B7280]">
-                    {row.country}
-                  </span>
+    <AnalyticsPanel title="Plataforma × país" subtitle="Las 10 combinaciones que más ingresan">
+      <PanelState
+        loading={loading}
+        error={error}
+        empty={data.length === 0}
+        onRetry={onRetry}
+        filtered={filtered}
+        onClearFilters={onClearFilters}
+        height="h-[260px]"
+      >
+        {/* A lo ancho de la página, en dos columnas que se leen de arriba abajo: 1–5 y 6–10. */}
+        <ol className="gap-x-10 lg:columns-2 [&>li]:mb-3 [&>li]:break-inside-avoid">
+          {data.map((row, i) => {
+            const { code, name } = countryLabel(row.country);
+            const color = platformColor(row.platform, i);
+            return (
+              <li key={`${row.platform}-${row.country}`} className="flex items-center gap-3">
+                <span className="w-5 flex-shrink-0 text-right font-mono text-[12px] text-white/55">{i + 1}</span>
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ backgroundColor: color }} />
+                    <span className="truncate text-[13px] text-white">{displayName(row.platform)}</span>
+                    <span className="text-white/30">·</span>
+                    <span className="truncate text-[12.5px] text-white/65">{name}</span>
+                    {code !== name && <CountryCode code={code} />}
+                    <span className="ml-auto flex-shrink-0 font-mono text-[12.5px] text-white">
+                      {formatCurrency(row.netIncome)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.08]">
+                      <div
+                        className="h-full rounded-full transition-[width] duration-500"
+                        style={{ width: `${(row.netIncome / max) * 100}%`, backgroundColor: color }}
+                      />
+                    </div>
+                    <span className="w-[120px] flex-shrink-0 text-right text-[11px] text-white/50">
+                      {formatStreams(row.streams)} · {formatPerThousand(perThousand(row.netIncome, row.streams))}/1K
+                    </span>
+                  </div>
                 </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
-                  <div
-                    className="h-full rounded-full bg-[#F97316] transition-all duration-500"
-                    style={{ width: `${(row.netIncome / maxIncome) * 100}%` }}
-                  />
-                </div>
-              </div>
-              <div className="flex flex-shrink-0 flex-col items-end gap-0.5">
-                <span className="text-[12px] font-bold text-green-500">
-                  $
-                  {row.netIncome >= 1000
-                    ? `${(row.netIncome / 1000).toFixed(1)}K`
-                    : row.netIncome.toFixed(2)}
-                </span>
-                <span className="text-[10px] text-[#9CA3AF]">
-                  {row.streams >= 1_000 ? `${(row.streams / 1_000).toFixed(0)}K` : row.streams}{" "}
-                  streams
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+              </li>
+            );
+          })}
+        </ol>
+      </PanelState>
+    </AnalyticsPanel>
   );
 }

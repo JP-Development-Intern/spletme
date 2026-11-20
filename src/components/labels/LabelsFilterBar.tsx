@@ -73,7 +73,7 @@ export function LabelsFilterBar({
       <div
         role="tablist"
         aria-label="Filtrar por tipo de sello"
-        className="flex items-center gap-0.5 rounded-[22px] bg-[#F4F5F7] p-[3px]"
+        className="flex items-center gap-0.5 rounded-full bg-black/[0.22] p-1"
       >
         {segments.map((segment) => {
           const active = typeFilter === segment.value;
@@ -83,17 +83,17 @@ export function LabelsFilterBar({
               role="tab"
               aria-selected={active}
               onClick={() => onTypeFilterChange(segment.value)}
-              className={`flex items-center gap-1.5 rounded-[19px] px-3 py-1.5 text-[12.5px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5C00] ${
+              className={`flex min-h-[36px] items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
                 active
-                  ? "bg-white font-semibold text-[#1C1D22] shadow-[0_1px_3px_rgba(28,29,34,0.08)]"
-                  : "font-medium text-[#71757E] hover:text-[#1C1D22]"
+                  ? "bg-[#F7EDE6]/[0.92] font-semibold text-[#1C1D22]"
+                  : "font-medium text-white/80 hover:text-white"
               }`}
             >
-              <span className={active ? "text-[#1C1D22]" : "text-[#A6AAB2]"}>{segment.icon}</span>
+              <span className={active ? "text-[#1C1D22]" : "text-white/60"}>{segment.icon}</span>
               {segment.label}
               <span
-                className={`rounded-[10px] px-1.5 py-px font-mono text-[10px] font-semibold text-[#A6AAB2] ${
-                  active ? "bg-[#F4F5F7]" : "bg-white"
+                className={`rounded-full px-1.5 py-px font-mono text-[10px] font-semibold ${
+                  active ? "bg-[#1C1D22]/10 text-[#1C1D22]/70" : "bg-white/[0.10] text-white/65"
                 }`}
               >
                 {segment.count}
@@ -104,6 +104,7 @@ export function LabelsFilterBar({
       </div>
 
       <FilterFacet
+        onGlass
         label="Cobertura"
         value={COVERAGE_LABELS[coverageFilter]}
         highlighted={coverageFilter !== "all"}
@@ -122,7 +123,7 @@ export function LabelsFilterBar({
       {hasFilters && (
         <button
           onClick={onClearAll}
-          className="flex items-center gap-1.5 rounded-full px-2 py-1 text-[11.5px] font-semibold text-[#FF5C00] transition-colors hover:text-[#EA580C]"
+          className="flex items-center gap-1.5 rounded-full px-2 py-1 text-[11.5px] font-semibold text-[#FF8A3D] transition-colors hover:text-[#FFB48A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
         >
           <CircleX className="h-3.5 w-3.5" />
           Limpiar filtros
@@ -131,6 +132,7 @@ export function LabelsFilterBar({
 
       <div className="ml-auto">
         <FilterFacet
+          onGlass
           label=""
           value={SORT_LABELS[sortBy]}
           icon={<ArrowUpDown className="h-3.5 w-3.5" />}

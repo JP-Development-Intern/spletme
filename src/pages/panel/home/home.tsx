@@ -1,5 +1,6 @@
 import "./home.css";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { DashboardStatsStrip } from "@/components/home/DashboardStatsStrip";
 import { PlatformsCard } from "@/components/home/PlatformsCard";
@@ -10,6 +11,7 @@ import { useHomeDashboard } from "@/hooks/useHomeDashboard";
 import { usePlatformBreakdown } from "@/hooks/usePlatformBreakdown";
 import { useWalletAccountsStatus } from "@/hooks/useWalletAccountsStatus";
 import LocalStorageService from "@/services/localstorage";
+import { DashboardIntro, useReveal } from "@/components/home/dashboardIntro";
 
 /** Periodos del selector, con cómo se leen dentro de una frase. */
 const PERIODS = [
@@ -20,6 +22,29 @@ const PERIODS = [
 ];
 
 export default function Home() {
+  return (
+    <DashboardIntro>
+      <HomeContent />
+    </DashboardIntro>
+  );
+}
+
+/**
+ * Orden de la entrada, en segundos desde el montaje: de arriba abajo y de lo
+ * general a lo particular. La franja de cifras va primero porque es lo que se
+ * viene a mirar; la columna derecha entra a la vez que la izquierda.
+ */
+const AT = {
+  greeting: 0,
+  periods: 0.06,
+  stats: 0.12,
+  chart: 0.22,
+  wallet: 0.26,
+  songs: 0.32,
+  platforms: 0.36,
+};
+
+function HomeContent() {
   const {
     user,
     selectedTimeframe,
@@ -29,7 +54,10 @@ export default function Home() {
     totalAmount,
     netBalance,
     points,
+    loading,
   } = useHomeDashboard();
+  const greetingReveal = useReveal(AT.greeting);
+  const periodsReveal = useReveal(AT.periods);
 
   const { platforms, totalIncome: historicalIncome, loading: platformsLoading } = usePlatformBreakdown();
   const { loading: walletAccountsLoading, sendActive, receiveActive } = useWalletAccountsStatus();
@@ -41,12 +69,12 @@ export default function Home() {
   return (
     <div className="flex flex-col gap-6 px-4 lg:pl-4 lg:pr-8">
       <PageHeader>
-        <div className="flex flex-col gap-1">
+        <motion.div {...greetingReveal} className="flex flex-col gap-1">
           <h1 className="truncate font-display text-[32px] font-light leading-[38px] tracking-[-0.015em] text-white sm:text-[40px] sm:leading-[46px]">
             {firstName ? `Hola, ${firstName}` : "Hola"}
           </h1>
           <p className="text-sm text-white/65">Así va tu catálogo en {periodPhrase}</p>
-        </div>
+        </motion.div>
       </PageHeader>
 
       {/* El periodo gobierna toda la página, no solo el gráfico */}
@@ -54,7 +82,8 @@ export default function Home() {
         {PERIODS.map((period) => {
           const selected = selectedTimeframe === period.value;
           return (
-            <button
+            <motion.button
+              {...periodsReveal}
               key={period.value}
               aria-pressed={selected}
               onClick={() => setSelectedTimeframe(period.value)}
@@ -65,7 +94,7 @@ export default function Home() {
               }`}
             >
               {period.label}
-            </button>
+            </motion.button>
           );
         })}
       </div>
@@ -76,12 +105,13 @@ export default function Home() {
         songsCount={summary.songsWithMatches}
         netBalance={netBalance}
         totalAmount={totalAmount}
+        at={AT.stats}
       />
 
       <div className="flex flex-col gap-5 xl:flex-row">
         <div className="flex min-w-0 flex-1 flex-col gap-5">
-          <PerformanceChart points={points} timeframe={selectedTimeframe} />
-          <TopSongsShowcase songs={topSongs} historicalIncome={historicalIncome} />
+          <PerformanceChart points={points} timeframe={selectedTimeframe} loading={loading} at={AT.chart} />
+          <TopSongsShowcase songs={topSongs} historicalIncome={historicalIncome} at={AT.songs} />
         </div>
 
         <div className="flex w-full flex-col gap-5 xl:w-[360px] xl:flex-shrink-0">
@@ -90,8 +120,14 @@ export default function Home() {
             sendActive={sendActive}
             receiveActive={receiveActive}
             onGoToBank={() => navigate("/panel/wallet")}
+            at={AT.wallet}
           />
-          <PlatformsCard platforms={platforms} totalIncome={historicalIncome} loading={platformsLoading} />
+          <PlatformsCard
+            platforms={platforms}
+            totalIncome={historicalIncome}
+            loading={platformsLoading}
+            at={AT.platforms}
+          />
         </div>
       </div>
     </div>

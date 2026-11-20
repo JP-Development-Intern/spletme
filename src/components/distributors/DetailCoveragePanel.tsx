@@ -29,22 +29,22 @@ export function DetailCoveragePanel({
   const [firstGap] = gaps;
 
   return (
-    <div className="flex flex-col gap-4 rounded-[26px] border border-[#E8E8EC] bg-white p-6 shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
+    <div className="glass flex flex-col gap-4 rounded-[28px] px-6 py-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-0.5">
-          <h2 className="font-display text-base font-semibold text-[#1C1D22]">
+          <h2 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">
             Cobertura {year}
           </h2>
-          <p className="text-[11.5px] text-[#71757E]">Meses ya cubiertos por un reporte</p>
+          <p className="text-[11.5px] text-white/65">Meses ya cubiertos por un reporte</p>
         </div>
         <select
           aria-label="Año de cobertura"
           value={year}
           onChange={(e) => onYearChange(Number(e.target.value))}
-          className="flex-shrink-0 appearance-none rounded-2xl bg-[#F4F5F7] px-3 py-1.5 font-mono text-[11.5px] font-semibold text-[#1C1D22] focus:outline-none focus:ring-[3px] focus:ring-[#FF5C00]/15"
+          className="glass-control flex-shrink-0 appearance-none rounded-full px-3 py-1.5 font-mono text-[11.5px] font-semibold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
         >
           {years.map((y) => (
-            <option key={y} value={y}>
+            <option key={y} value={y} className="bg-[#2B1E17] text-white">
               {y}
             </option>
           ))}
@@ -55,31 +55,31 @@ export function DetailCoveragePanel({
 
       <CoverageLegend />
 
-      <div className="h-px bg-[#E8E8EC]" />
+      <div className="h-px bg-white/[0.09]" />
 
       {gaps.length === 0 ? (
-        <div className="flex items-center gap-2.5 rounded-2xl bg-[#E4F5EC] px-3.5 py-3">
-          <CircleCheck className="h-3.5 w-3.5 flex-shrink-0 text-[#2FB37E]" />
-          <span className="text-[11.5px] font-semibold text-[#1F7D58]">
+        <div className="flex items-center gap-2.5 rounded-2xl bg-[#45D39A]/[0.12] px-3.5 py-3">
+          <CircleCheck className="h-3.5 w-3.5 flex-shrink-0 text-[#45D39A]" />
+          <span className="text-[11.5px] font-semibold text-[#45D39A]">
             Sin huecos: {year} está al día
           </span>
         </div>
       ) : (
-        <div className="flex flex-col gap-2.5 rounded-2xl bg-[#FFEADD] p-3.5">
+        <div className="flex flex-col gap-2.5 rounded-2xl border border-[#FF8A3D]/30 bg-[#FF5C00]/[0.14] p-3.5">
           <span className="flex items-center gap-2">
-            <CalendarOff className="h-3.5 w-3.5 flex-shrink-0 text-[#FF5C00]" />
-            <span className="text-[12px] font-semibold text-[#EA580C]">
+            <CalendarOff className="h-3.5 w-3.5 flex-shrink-0 text-[#FF8A3D]" />
+            <span className="text-[12px] font-semibold text-[#FFB48A]">
               {gaps.map(formatMonthRange).join(" · ")} sin reporte
             </span>
           </span>
-          <span className="text-[11px] leading-relaxed text-[#EA580C]">
+          <span className="text-[11px] leading-relaxed text-white/65">
             {gaps.length === 1
               ? "Ese tramo del año no tiene ingresos registrados para este distribuidor."
               : "Esos tramos del año no tienen ingresos registrados para este distribuidor."}
           </span>
           <button
             onClick={() => onFillGap(firstGap)}
-            className="flex items-center justify-center gap-2 rounded-[14px] bg-[#FF5C00] px-3.5 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#EA580C]"
+            className="flex min-h-[40px] items-center justify-center gap-2 rounded-full bg-[#FF5C00] px-3.5 py-2.5 text-[12px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
           >
             <Upload className="h-3.5 w-3.5" />
             Cargar {formatMonthRange(firstGap)} {year}

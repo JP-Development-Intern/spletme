@@ -4,8 +4,8 @@ export interface AnalyticsFilters {
   startDate?: string;
   endDate?: string;
   artistName?: string;
-  labelName?: string;
-  period?: "month" | "year";
+  /** Id del sello artístico (`artistic_labels`); el filtro va por id, no por nombre. */
+  labelId?: string;
 }
 
 export interface AnalyticsKpis {
@@ -70,7 +70,8 @@ export interface TopArtist {
 }
 
 export interface TopLabel {
-  labelName: string;
+  labelId: string;
+  labelName: string | null;
   netIncome: number;
   streams: number;
   songCount: number;
@@ -114,5 +115,6 @@ export interface FilterOptions {
   platforms: string[];
   countries: string[];
   artists: string[];
-  labels: string[];
+  /** Sellos con canciones: id para filtrar, nombre para mostrar. */
+  labels: { id: string; name: string }[];
 }

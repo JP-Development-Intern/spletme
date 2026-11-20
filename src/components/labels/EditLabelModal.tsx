@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { Pencil, Check, Trash2, TriangleAlert, Loader2 } from "lucide-react";
 import LabelsService, { type Label } from "@/services/labels";
-import { ModalShell, FieldLabel, PrimaryButton, SecondaryButton } from "@/components/ui/ModalShell";
+import {
+  ModalShell,
+  FieldLabel,
+  PrimaryButton,
+  SecondaryButton,
+  DangerButton,
+} from "@/components/ui/ModalShell";
 import { ArtisticLabelPicker } from "./ArtisticLabelPicker";
 
 interface EditLabelModalProps {
@@ -9,7 +15,8 @@ interface EditLabelModalProps {
   onClose: () => void;
   labelId: string;
   currentName: string;
-  currentArtisticLabels: string[];
+  /** Ids de los sellos artísticos que agrupa ahora. */
+  currentArtisticLabelIds: string[];
   availableLabels: Label[];
   onSuccess: () => void;
   onDelete?: () => void;
@@ -29,14 +36,14 @@ export default function EditLabelModal({
   onClose,
   labelId,
   currentName,
-  currentArtisticLabels,
+  currentArtisticLabelIds,
   availableLabels,
   onSuccess,
   onDelete,
   initialMode = "edit",
 }: EditLabelModalProps) {
   const [name, setName] = useState(currentName);
-  const [selected, setSelected] = useState<string[]>(currentArtisticLabels);
+  const [selected, setSelected] = useState<string[]>(currentArtisticLabelIds);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
@@ -46,11 +53,11 @@ export default function EditLabelModal({
   useEffect(() => {
     if (!isOpen) return;
     setName(currentName);
-    setSelected(currentArtisticLabels);
+    setSelected(currentArtisticLabelIds);
     setError("");
     setSaved(false);
     setConfirmingDelete(initialMode === "delete");
-  }, [isOpen, currentName, currentArtisticLabels, initialMode]);
+  }, [isOpen, currentName, currentArtisticLabelIds, initialMode]);
 
   if (!isOpen) return null;
 
@@ -60,7 +67,7 @@ export default function EditLabelModal({
 
   const nameChanged = trimmed !== currentName;
   const labelsChanged =
-    [...selected].sort().join(" ") !== [...currentArtisticLabels].sort().join(" ");
+    [...selected].sort().join(" ") !== [...currentArtisticLabelIds].sort().join(" ");
   const hasChanges = nameChanged || labelsChanged;
 
   const closeDeleteView = () => {
@@ -88,9 +95,9 @@ export default function EditLabelModal({
     setError("");
 
     try {
-      const payload: { name?: string; artisticLabels?: string[] } = {};
+      const payload: { name?: string; artisticLabelIds?: string[] } = {};
       if (nameChanged) payload.name = trimmed;
-      if (labelsChanged) payload.artisticLabels = selected;
+      if (labelsChanged) payload.artisticLabelIds = selected;
 
       const response = await LabelsService.updateLabel(labelId, payload);
 
@@ -133,13 +140,13 @@ export default function EditLabelModal({
 
   if (saved) {
     return (
-      <ModalShell title="Cambios guardados" width="lg" locked onClose={onClose}>
+      <ModalShell title="Cambios guardados" width="lg" onGlass locked onClose={onClose}>
         <div className="flex flex-col items-center gap-3 py-8 text-center">
-          <span className="flex h-[52px] w-[52px] items-center justify-center rounded-[18px] bg-[#E4F5EC]">
-            <Check className="h-[22px] w-[22px] text-[#2FB37E]" />
+          <span className="flex h-[52px] w-[52px] items-center justify-center rounded-[18px] bg-[#45D39A]/[0.14]">
+            <Check className="h-[22px] w-[22px] text-[#45D39A]" />
           </span>
-          <h3 className="font-display text-[17px] font-semibold text-[#1C1D22]">{trimmed}</h3>
-          <p className="text-[12.5px] text-[#71757E]">
+          <h3 className="font-display text-[17px] font-medium text-white">{trimmed}</h3>
+          <p className="text-[12.5px] text-white/65">
             Agrupa {selected.length} {selected.length === 1 ? "sello" : "sellos"}.
           </p>
         </div>
@@ -152,6 +159,7 @@ export default function EditLabelModal({
       <ModalShell
         title="Eliminar sello"
         width="lg"
+        onGlass
         locked={deleting}
         onClose={closeDeleteView}
         footer={
@@ -160,32 +168,32 @@ export default function EditLabelModal({
             <SecondaryButton onClick={closeDeleteView} disabled={deleting}>
               Conservar sello
             </SecondaryButton>
-            <button
-              type="button"
+            <DangerButton
               onClick={handleDelete}
               disabled={deleting}
-              className="flex items-center gap-2 rounded-[22px] bg-[#E5484D] px-[18px] py-2.5 text-[12.5px] font-semibold text-white transition-colors enabled:hover:bg-[#C93B3F] disabled:opacity-60"
+              icon={
+                deleting ? (
+                  <Loader2 className="h-[14px] w-[14px] animate-spin" />
+                ) : (
+                  <Trash2 className="h-[14px] w-[14px]" />
+                )
+              }
             >
-              {deleting ? (
-                <Loader2 className="h-[14px] w-[14px] animate-spin" />
-              ) : (
-                <Trash2 className="h-[14px] w-[14px]" />
-              )}
               {deleting ? "Eliminando…" : "Eliminar sello"}
-            </button>
+            </DangerButton>
           </>
         }
       >
         <div className="flex flex-col items-center gap-3 py-6 text-center">
-          <span className="flex h-[52px] w-[52px] items-center justify-center rounded-[18px] bg-[#FDECEC]">
-            <Trash2 className="h-[22px] w-[22px] text-[#E5484D]" />
+          <span className="flex h-[52px] w-[52px] items-center justify-center rounded-[18px] bg-[#E5484D]/[0.16]">
+            <Trash2 className="h-[22px] w-[22px] text-[#FF8F92]" />
           </span>
-          <h3 className="font-display text-[17px] font-semibold text-[#1C1D22]">
+          <h3 className="font-display text-[17px] font-medium text-white">
             ¿Eliminar «{currentName}»?
           </h3>
-          <p className="max-w-[380px] text-[12.5px] leading-relaxed text-[#71757E]">
-            Se deshace la agrupación. Los {currentArtisticLabels.length}{" "}
-            {currentArtisticLabels.length === 1 ? "sello artístico" : "sellos artísticos"} que
+          <p className="max-w-[380px] text-[12.5px] leading-relaxed text-white/65">
+            Se deshace la agrupación. Los {currentArtisticLabelIds.length}{" "}
+            {currentArtisticLabelIds.length === 1 ? "sello artístico" : "sellos artísticos"} que
             reúne, sus canciones y sus splits siguen intactos.
           </p>
         </div>
@@ -193,10 +201,10 @@ export default function EditLabelModal({
         {error && (
           <div
             role="alert"
-            className="flex items-start gap-2.5 rounded-2xl border border-[#F5C2C4] bg-[#FDECEC] px-4 py-3"
+            className="flex items-start gap-2.5 rounded-2xl border border-[#E5484D]/30 bg-[#E5484D]/[0.12] px-4 py-3"
           >
-            <TriangleAlert className="mt-px h-4 w-4 flex-shrink-0 text-[#E5484D]" />
-            <span className="text-[12.5px] text-[#E5484D]">{error}</span>
+            <TriangleAlert className="mt-px h-4 w-4 flex-shrink-0 text-[#FF8F92]" />
+            <span className="text-[12.5px] text-[#FF8F92]">{error}</span>
           </div>
         )}
       </ModalShell>
@@ -206,15 +214,16 @@ export default function EditLabelModal({
   return (
     <ModalShell
       title="Editar sello"
-      subtitle={`${currentArtisticLabels.length} ${
-        currentArtisticLabels.length === 1 ? "sello agrupado" : "sellos agrupados"
+      subtitle={`${currentArtisticLabelIds.length} ${
+        currentArtisticLabelIds.length === 1 ? "sello agrupado" : "sellos agrupados"
       }`}
       width="lg"
+      onGlass
       locked={busy}
       onClose={onClose}
       logo={
-        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[14px] bg-[#FFEADD]">
-          <Pencil className="h-[18px] w-[18px] text-[#FF5C00]" />
+        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[14px] bg-[#FF5C00]/[0.16]">
+          <Pencil className="h-[18px] w-[18px] text-[#FF8A3D]" />
         </span>
       }
       footer={
@@ -223,7 +232,7 @@ export default function EditLabelModal({
             type="button"
             onClick={() => setConfirmingDelete(true)}
             disabled={busy}
-            className="flex min-w-0 flex-1 items-center gap-1.5 text-left text-[12.5px] font-semibold text-[#E5484D] transition-colors enabled:hover:text-[#C93B3F] disabled:opacity-50"
+            className="flex min-w-0 flex-1 items-center gap-1.5 rounded-full text-left text-[12.5px] font-semibold text-[#FF8F92] transition-colors enabled:hover:text-[#FFB3B5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8F92]/70 disabled:opacity-50"
           >
             <Trash2 className="h-[14px] w-[14px] flex-shrink-0" />
             Eliminar sello
@@ -260,10 +269,10 @@ export default function EditLabelModal({
           }}
           disabled={busy}
           placeholder="Mis Éxitos 2024"
-          className={`w-full rounded-2xl border bg-white px-4 py-3 text-[13.5px] font-medium text-[#1C1D22] placeholder:font-normal placeholder:text-[#A6AAB2] focus:outline-none focus:ring-[3px] disabled:opacity-50 ${
+          className={`w-full rounded-2xl border px-4 py-3 text-[13.5px] font-medium text-white placeholder:font-normal placeholder:text-white/40 transition-colors focus:outline-none focus:ring-[3px] disabled:opacity-50 ${
             nameInvalid
-              ? "border-[#E5484D] focus:border-[#E5484D] focus:ring-[#E5484D]/15"
-              : "border-[#E8E8EC] focus:border-[#FF5C00] focus:ring-[#FF5C00]/15"
+              ? "border-[1.5px] border-[#FF8F92] bg-[#E5484D]/[0.12] focus:border-[#FF8F92] focus:ring-[#E5484D]/25"
+              : "border-white/[0.14] bg-white/[0.06] focus:border-[#FF8A3D] focus:ring-[#FF5C00]/25"
           }`}
         />
       </label>
@@ -281,10 +290,10 @@ export default function EditLabelModal({
       {error && (
         <div
           role="alert"
-          className="flex items-start gap-2.5 rounded-2xl border border-[#F5C2C4] bg-[#FDECEC] px-4 py-3"
+          className="flex items-start gap-2.5 rounded-2xl border border-[#E5484D]/30 bg-[#E5484D]/[0.12] px-4 py-3"
         >
-          <TriangleAlert className="mt-px h-4 w-4 flex-shrink-0 text-[#E5484D]" />
-          <span className="text-[12.5px] text-[#E5484D]">{error}</span>
+          <TriangleAlert className="mt-px h-4 w-4 flex-shrink-0 text-[#FF8F92]" />
+          <span className="text-[12.5px] text-[#FF8F92]">{error}</span>
         </div>
       )}
     </ModalShell>

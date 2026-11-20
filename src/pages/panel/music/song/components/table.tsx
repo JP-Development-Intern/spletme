@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import SplitsModal from "../../../../../components/modal/SplitsModal";
-import OwnerSplitModal from "./ownerfrom";
+import {
+  SongSplitsPanel,
+  type SplitsPanelSection,
+} from "@/components/splits/SongSplitsPanel";
 import PaymentConfirmationModal from "../../../../../components/modal/PaymentConfirmationModal";
 import CollaboratorPaymentHistoryModal from "../../../../../components/modal/CollaboratorPaymentHistoryModal";
 import { CollaboratorDetailModal } from "../../../../../components/collaborators/CollaboratorDetailModal";
@@ -17,7 +19,6 @@ import {
   Plus,
   History,
   Users,
-  Music,
   Globe,
   Radio,
   CalendarRange,
@@ -27,7 +28,6 @@ import {
   CircleCheck,
   Clock3,
   AlertCircle,
-  UserPlus,
 } from "lucide-react";
 import { User as UserType } from "../../../../../models/user";
 import PaymentsService from "@/services/payments";
@@ -47,7 +47,6 @@ import ValidationToastQueue, {
 import type { Collaborator } from "@/types";
 import { describeSplitScope } from "@/utils/music.utils";
 // FUNCIONALIDAD TEMPORAL — perfiles sin cuenta. Ver docs/PERFILES_TEMPORALES.md.
-import { PlaceholderProfileModal } from "@/components/collaborators/PlaceholderProfileModal";
 import { PlaceholderAvatar, PlaceholderChip } from "@/components/collaborators/PlaceholderAvatar";
 import { isPlaceholderUser } from "@/services/placeholders";
 
@@ -174,10 +173,10 @@ export default function Table({
   isOwner = false,
   headerAction,
 }: TableProps) {
-  const [isSplitsModalOpen, setIsSplitsModalOpen] = useState(false);
+  // Tu parte, el reparto, invitar y las personas sin cuenta viven en un mismo
+  // panel; esto dice con qué sección se abre, o null si está cerrado.
+  const [panelSection, setPanelSection] = useState<SplitsPanelSection | null>(null);
   // FUNCIONALIDAD TEMPORAL — perfiles sin cuenta.
-  const [isPlaceholderModalOpen, setIsPlaceholderModalOpen] = useState(false);
-  const [isOwnerSplitModalOpen, setIsOwnerSplitModalOpen] = useState(false);
   const [isPaymentConfirmationOpen, setIsPaymentConfirmationOpen] = useState(false);
   const [distribution, setDistribution] = useState<SongSplitDistribution | null>(null);
   const [historyModal, setHistoryModal] = useState<{
@@ -248,12 +247,7 @@ export default function Table({
       addToast("error", "Todavía no se pueden repartir splits en esta canción.");
       return;
     }
-    setIsSplitsModalOpen(true);
-  };
-
-  const handleSplitSaved = () => {
-    // El backend recalcula la distribución al guardar; la página se relee entera.
-    setTimeout(() => window.location.reload(), 500);
+    setPanelSection("split");
   };
 
   /**
@@ -301,7 +295,7 @@ export default function Table({
   };
 
   const handleOwnerSplitCreated = () => {
-    setIsOwnerSplitModalOpen(false);
+    setPanelSection(null);
     window.location.reload();
   };
 
@@ -478,32 +472,35 @@ export default function Table({
         />
       )}
 
-      <PlaceholderProfileModal
-        isOpen={isPlaceholderModalOpen}
+      <SongSplitsPanel
+        isOpen={panelSection !== null}
+        initialSection={panelSection ?? "split"}
+        onClose={() => setPanelSection(null)}
         songId={songId || ""}
-        songTitle={song?.trackTitle}
-        onClose={() => setIsPlaceholderModalOpen(false)}
-        onAttached={() => {
-          setIsPlaceholderModalOpen(false);
+        song={song || { trackTitle: "" }}
+        collaborators={collaborators}
+        releaseMonth={distribution?.releaseAnchorMonth ?? null}
+        showOwnerContext={isOwner}
+        canEditOwnerSplit={Boolean(isOwner && song?.requesterRole === "admin")}
+        canManageSplits={canManageSplits}
+        splitsBlockedReason={
+          isLabelUser && !hasOwnerSplit
+            ? "Todavía no se pueden repartir splits en esta canción."
+            : null
+        }
+        canInvite={Boolean(isOwner)}
+        canAddPlaceholders={Boolean(isOwner && song?.requesterRole === "admin")}
+        onOwnerSplitCreated={handleOwnerSplitCreated}
+        onPlaceholderAttached={() => {
+          setPanelSection(null);
           window.location.reload();
         }}
-      />
-
-      <SplitsModal
-        collaborators={collaborators}
-        isOpen={isSplitsModalOpen}
-        onClose={() => setIsSplitsModalOpen(false)}
-        songId={songId || ""}
-        showOwnerContext={isOwner}
-        releaseMonth={distribution?.releaseAnchorMonth ?? null}
-        onSplitSaved={handleSplitSaved}
-      />
-      <OwnerSplitModal
-        isOpen={isOwnerSplitModalOpen}
-        onClose={() => setIsOwnerSplitModalOpen(false)}
-        songId={songId || ""}
-        song={song || { id: songId || "", trackTitle: "" }}
-        onSplitCreated={handleOwnerSplitCreated}
+        onCollaboratorAdded={() => {
+          // Como el resto del panel: la página se relee para que la persona
+          // aparezca en la tabla y en el reparto.
+          setPanelSection(null);
+          window.location.reload();
+        }}
       />
       <CollaboratorPaymentHistoryModal
         isOpen={historyModal.open}
@@ -528,15 +525,15 @@ export default function Table({
         songTitle={song?.trackTitle}
       />
 
-      <section className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
-        <header className="flex flex-wrap items-center justify-between gap-3.5 px-5 py-[18px]">
+      <section className="glass overflow-hidden rounded-[28px]">
+        <header className="flex flex-wrap items-center justify-between gap-3.5 px-6 py-5">
           <div className="flex flex-col gap-0.5">
-            <h3 className="font-display text-[18px] font-semibold text-[#1C1D22]">
+            <h3 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">
               Quién cobra de esta canción
             </h3>
             <p
               className={`text-[12.5px] font-medium ${
-                hasPeriods ? "text-[#71757E]" : balanced ? "text-[#2FB37E]" : "text-[#EA580C]"
+                hasPeriods ? "text-white/65" : balanced ? "text-[#45D39A]" : "text-[#FF8A3D]"
               }`}
             >
               {rows.length === 0
@@ -554,56 +551,38 @@ export default function Table({
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            {isOwner && song?.requesterRole === "owner" && (
-              <button
-                type="button"
-                onClick={() => setIsOwnerSplitModalOpen(true)}
-                className="inline-flex items-center gap-[7px] rounded-[20px] border border-[#E8E8EC] bg-white px-4 py-2.5 text-[12px] font-semibold text-[#71757E] transition-colors hover:text-[#1C1D22]"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Mi split
-              </button>
-            )}
-            {isOwner && song?.requesterRole === "owner" && (
-              <button
-                type="button"
-                onClick={() => setIsPlaceholderModalOpen(true)}
-                className="inline-flex items-center gap-[7px] rounded-[20px] border border-dashed border-[#C9CCD2] bg-white px-4 py-2.5 text-[12px] font-semibold text-[#71757E] transition-colors hover:text-[#1C1D22]"
-              >
-                <UserPlus className="h-3.5 w-3.5" />
-                Sin cuenta
-              </button>
-            )}
-            {canManageSplits && (
+            {/* Un solo acceso: tu parte, el reparto, invitar y las personas sin
+                cuenta están en el mismo panel, cada una en su sección. */}
+            {(canManageSplits || isOwner) && (
               <button
                 type="button"
                 onClick={handleOpenSplitsModal}
-                className="inline-flex items-center gap-[7px] rounded-[20px] border border-[#E8E8EC] bg-white px-4 py-2.5 text-[12px] font-semibold text-[#71757E] transition-colors hover:text-[#1C1D22]"
+                className="inline-flex items-center gap-[7px] rounded-full bg-[#FF5C00] px-4 py-2.5 text-[12px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
               >
-                <Music className="h-3.5 w-3.5" />
-                Repartir splits
+                <Users className="h-3.5 w-3.5" />
+                Splits y personas
               </button>
             )}
             {headerAction}
           </div>
         </header>
 
-        <div className="h-px bg-[#E8E8EC]" />
+        <div className="h-px bg-white/[0.09]" />
 
         {rows.length === 0 ? (
           <div className="flex flex-col items-center gap-2.5 py-16 text-center">
-            <span className="grid h-[58px] w-[58px] place-items-center rounded-[20px] bg-[#FFEADD]">
-              <Users className="h-6 w-6 text-[#FF5C00]" />
+            <span className="grid h-[58px] w-[58px] place-items-center rounded-[20px] bg-[#FF5C00]/15">
+              <Users className="h-6 w-6 text-[#FF8A3D]" />
             </span>
-            <p className="text-[15px] font-semibold text-[#1C1D22]">Nadie cobra de esta canción</p>
-            <p className="max-w-[400px] text-[13px] text-[#71757E]">
+            <p className="text-[15px] font-semibold text-white">Nadie cobra de esta canción</p>
+            <p className="max-w-[400px] text-[13px] text-white/65">
               Reparte los splits para decidir quién cobra y cuánto le toca de lo que entra.
             </p>
             {canManageSplits && (
               <button
                 type="button"
                 onClick={handleOpenSplitsModal}
-                className="mt-1 inline-flex items-center gap-[7px] rounded-[20px] bg-[#FF5C00] px-4 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#EA580C]"
+                className="mt-1 inline-flex items-center gap-[7px] rounded-full bg-[#FF5C00] px-4 py-2.5 text-[12px] font-semibold text-white shadow-[0_8px_20px_-6px_rgba(255,92,0,0.35)] transition-colors hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
               >
                 <Plus className="h-3.5 w-3.5" />
                 Repartir splits
@@ -612,34 +591,34 @@ export default function Table({
           </div>
         ) : (
           <>
-            <div className="hidden items-center gap-3.5 px-5 py-[13px] lg:flex">
-              <span className="flex-1 font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+            <div className="hidden items-center gap-3.5 px-6 py-[13px] lg:flex">
+              <span className="flex-1 font-mono text-[9.5px] font-medium tracking-[1.2px] text-white/50">
                 COLABORADOR
               </span>
-              <span className="w-[152px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+              <span className="w-[152px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-white/50">
                 ALCANCE
               </span>
-              <span className="w-[70px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+              <span className="w-[70px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-white/50">
                 {ownerPct > 0 ? "% SOBRE" : "%"}
               </span>
-              <span className="w-[130px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+              <span className="w-[130px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-white/50">
                 LE CORRESPONDE
               </span>
-              <span className="w-[148px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-[#A6AAB2]">
+              <span className="w-[148px] font-mono text-[9.5px] font-medium tracking-[1.2px] text-white/50">
                 ESTADO
               </span>
               <span className="w-[186px]" />
             </div>
 
-            <div className="h-px bg-[#E8E8EC]" />
+            <div className="h-px bg-white/[0.09]" />
 
             <ul>
               {rows.map((row, index) => (
                 <li key={row.key}>
-                  {index > 0 && <div className="h-px bg-[#E8E8EC]" />}
+                  {index > 0 && <div className="h-px bg-white/[0.09]" />}
                   <div
-                    className={`flex flex-wrap items-center gap-3.5 px-5 py-3 ${
-                      row.isOwnerRow ? "bg-[#FF5C00]/[0.04]" : ""
+                    className={`flex flex-wrap items-center gap-3.5 px-6 py-3 transition-colors ${
+                      row.isOwnerRow ? "bg-[#FF5C00]/[0.08]" : "hover:bg-white/[0.04]"
                     }`}
                   >
                     <button
@@ -648,14 +627,14 @@ export default function Table({
                         !row.isOwnerRow && row.raw && openCollaboratorDetail(row.raw, row.index)
                       }
                       disabled={row.isOwnerRow}
-                      className="flex min-w-[200px] flex-1 items-center gap-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00] disabled:cursor-default"
+                      className="flex min-w-[200px] flex-1 items-center gap-3 text-left rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 disabled:cursor-default"
                     >
                       {row.isPlaceholder ? (
-                        <PlaceholderAvatar name={row.name} />
+                        <PlaceholderAvatar name={row.name} onGlass />
                       ) : (
                         <span
                           className={`grid h-[38px] w-[38px] shrink-0 place-items-center rounded-full text-[11.5px] font-semibold text-white ${
-                            row.isOwnerRow ? "bg-[#FF5C00]" : "bg-[#1C1D22]"
+                            row.isOwnerRow ? "bg-[#FF5C00]" : "border-2 border-white/25 bg-[#1C1D22]"
                           }`}
                         >
                           {getInitials(row.name)}
@@ -663,12 +642,12 @@ export default function Table({
                       )}
                       <span className="flex min-w-0 flex-col gap-0.5">
                         <span className="flex min-w-0 items-center gap-2">
-                          <span className="truncate text-[13px] font-semibold text-[#1C1D22]">
+                          <span className="truncate text-[13px] font-semibold text-white">
                             {row.name}
                           </span>
-                          {row.isPlaceholder && <PlaceholderChip />}
+                          {row.isPlaceholder && <PlaceholderChip onGlass />}
                         </span>
-                        <span className="truncate text-[11px] text-[#A6AAB2]">
+                        <span className="truncate text-[11px] text-white/50">
                           {row.isPlaceholder ? "Todavía no se ha registrado" : row.email || "—"}
                         </span>
                       </span>
@@ -679,16 +658,16 @@ export default function Table({
                         {row.scope ? (
                           <>
                             {row.scope.worldwide ? (
-                              <Globe className="h-3 w-3 shrink-0 text-[#A6AAB2]" />
+                              <Globe className="h-3 w-3 shrink-0 text-white/50" />
                             ) : (
-                              <Radio className="h-3 w-3 shrink-0 text-[#A6AAB2]" />
+                              <Radio className="h-3 w-3 shrink-0 text-white/50" />
                             )}
-                            <span className="truncate text-[11px] text-[#71757E]">
+                            <span className="truncate text-[11px] text-white/65">
                               {row.scope.label}
                             </span>
                           </>
                         ) : (
-                          <span className="text-[11px] text-[#A6AAB2]">Sin split</span>
+                          <span className="text-[11px] text-white/50">Sin split</span>
                         )}
                       </span>
                       {row.periods.length > 0 && (
@@ -696,8 +675,8 @@ export default function Table({
                           title={periodsTitle(row.periods, row.percentage)}
                           className="flex cursor-help items-center gap-1.5"
                         >
-                          <CalendarRange className="h-3 w-3 shrink-0 text-[#FF5C00]" />
-                          <span className="truncate text-[10.5px] text-[#FF5C00]">
+                          <CalendarRange className="h-3 w-3 shrink-0 text-[#FF8A3D]" />
+                          <span className="truncate text-[10.5px] text-[#FF8A3D]">
                             {row.periods.length === 1
                               ? formatPeriodRange(row.periods[0])
                               : `${row.periods.length} tramos por fechas`}
@@ -708,7 +687,7 @@ export default function Table({
 
                     <span className="flex w-[70px] flex-col">
                       <span
-                        className="font-mono text-[14px] font-semibold text-[#1C1D22]"
+                        className="font-mono text-[14px] font-semibold text-white"
                         title={
                           row.periods.length > 0
                             ? periodsTitle(row.periods, row.percentage)
@@ -716,7 +695,7 @@ export default function Table({
                         }
                       >
                         {row.periods.length > 0 ? (
-                          <span className="cursor-help text-[12px] text-[#FF5C00]">varía</span>
+                          <span className="cursor-help text-[12px] text-[#FF8A3D]">varía</span>
                         ) : row.percentage != null ? (
                           `${row.percentage}%`
                         ) : (
@@ -724,7 +703,7 @@ export default function Table({
                         )}
                       </span>
                       {row.percentage != null && (row.periods.length > 0 || ownerPct > 0) && (
-                        <span className="font-mono text-[9.5px] leading-tight text-[#A6AAB2]">
+                        <span className="font-mono text-[9.5px] leading-tight text-white/50">
                           {row.periods.length > 0
                             ? "según el mes"
                             : row.isOwnerRow
@@ -736,7 +715,7 @@ export default function Table({
                       )}
                     </span>
 
-                    <span className="w-[130px] font-mono text-[13px] font-semibold text-[#2FB37E]">
+                    <span className="w-[130px] font-mono text-[13px] font-semibold text-[#45D39A]">
                       {row.amount != null ? formatMoney(row.amount) : "—"}
                     </span>
 
@@ -808,7 +787,7 @@ export default function Table({
                         <>
                           <IconButton
                             label="Editar mi split"
-                            onClick={() => setIsOwnerSplitModalOpen(true)}
+                            onClick={() => setPanelSection("owner")}
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </IconButton>
@@ -834,41 +813,41 @@ export default function Table({
               ))}
             </ul>
 
-            <div className="h-px bg-[#E8E8EC]" />
+            <div className="h-px bg-white/[0.09]" />
 
-            <footer className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5">
+            <footer className="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5">
               <span className="flex items-center gap-2.5">
                 {hasPeriods ? (
-                  <CalendarRange className="h-3.5 w-3.5 text-[#FF5C00]" />
+                  <CalendarRange className="h-3.5 w-3.5 text-[#FF8A3D]" />
                 ) : balanced ? (
-                  <CircleCheck className="h-3.5 w-3.5 text-[#2FB37E]" />
+                  <CircleCheck className="h-3.5 w-3.5 text-[#45D39A]" />
                 ) : (
-                  <AlertCircle className="h-3.5 w-3.5 text-[#EA580C]" />
+                  <AlertCircle className="h-3.5 w-3.5 text-[#FF8A3D]" />
                 )}
                 <span
                   className={`text-[12px] font-semibold ${
-                    hasPeriods ? "text-[#71757E]" : balanced ? "text-[#2FB37E]" : "text-[#EA580C]"
+                    hasPeriods ? "text-white/65" : balanced ? "text-[#45D39A]" : "text-[#FF8A3D]"
                   }`}
                 >
                   {hasPeriods
                     ? "El reparto varía por mes"
                     : `${Math.round(assigned)}% repartido entre colaboradores`}
                 </span>
-                <span className="text-[12px] text-[#A6AAB2]">·</span>
-                <span className="text-[12px] text-[#71757E]">
+                <span className="text-[12px] text-white/50">·</span>
+                <span className="text-[12px] text-white/65">
                   {rows.length} {rows.length === 1 ? "participante" : "participantes"}
                   {isOwner && distributable > 0
                     ? ` sobre ${formatMoney(distributable)} repartibles`
                     : ""}
                 </span>
               </span>
-              <span className="text-[11px] text-[#A6AAB2]">
+              <span className="text-[11px] text-white/50">
                 El alcance limita en qué países o plataformas aplica cada split
               </span>
             </footer>
 
             {ownerPct > 0 && (
-              <p className="px-5 pb-3.5 text-[11px] leading-relaxed text-[#A6AAB2]">
+              <p className="px-6 pb-3.5 text-[11px] leading-relaxed text-white/50">
                 Tu {ownerPct}% de owner se retiene de la parte de cada uno y no ocupa sitio en el
                 reparto: el 100% que se mide arriba es el de la canción entera
                 {distributable > 0 ? `, y a repartir quedan ${formatMoney(distributable)}` : ""}.
@@ -888,28 +867,28 @@ export default function Table({
 const StatusChip = ({ row }: { row: Row }) => {
   if (row.percentage == null) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-[14px] bg-[#F4F5F7] px-2.5 py-[5px] text-[10.5px] font-semibold text-[#71757E]">
+      <span className="inline-flex items-center gap-1.5 rounded-[14px] bg-white/[0.08] px-2.5 py-[5px] text-[10.5px] font-semibold text-white/70">
         Sin split
       </span>
     );
   }
   if (row.isOwnerRow) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-[14px] bg-[#FFEADD] px-2.5 py-[5px] text-[10.5px] font-semibold text-[#FF5C00]">
+      <span className="inline-flex items-center gap-1.5 rounded-[14px] bg-[#FF5C00]/[0.16] px-2.5 py-[5px] text-[10.5px] font-semibold text-[#FF9A5C]">
         Es tu parte
       </span>
     );
   }
   if (row.pending > 0) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-[14px] bg-[#FFEADD] px-2.5 py-[5px] text-[10.5px] font-semibold text-[#EA580C]">
+      <span className="inline-flex items-center gap-1.5 rounded-[14px] bg-[#FF5C00]/[0.16] px-2.5 py-[5px] text-[10.5px] font-semibold text-[#FF8A3D]">
         <Clock3 className="h-[11px] w-[11px]" />
         Por pagar
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-[14px] bg-[#E4F5EC] px-2.5 py-[5px] text-[10.5px] font-semibold text-[#2FB37E]">
+    <span className="inline-flex items-center gap-1.5 rounded-[14px] bg-[#45D39A]/[0.12] px-2.5 py-[5px] text-[10.5px] font-semibold text-[#45D39A]">
       <CircleCheck className="h-[11px] w-[11px]" />
       Al día
     </span>
@@ -938,12 +917,12 @@ const IconButton = ({
     disabled={disabled}
     title={label}
     aria-label={label}
-    className={`grid h-[30px] w-[30px] place-items-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00] disabled:opacity-40 ${
+    className={`grid h-[30px] w-[30px] place-items-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 disabled:opacity-40 ${
       accent
-        ? "border-[#2FB37E] bg-[#2FB37E] text-white hover:brightness-95"
+        ? "border-[#45D39A]/40 bg-[#45D39A]/[0.18] text-[#45D39A] hover:bg-[#45D39A]/[0.28]"
         : danger
-          ? "border-[#E8E8EC] bg-white text-[#71757E] enabled:hover:border-[#E5484D] enabled:hover:bg-[#FDECEC] enabled:hover:text-[#E5484D]"
-          : "border-[#E8E8EC] bg-white text-[#71757E] hover:bg-[#F4F5F7]"
+          ? "border-transparent bg-white/[0.06] text-white/70 enabled:hover:border-[#E5484D]/30 enabled:hover:bg-[#E5484D]/[0.14] enabled:hover:text-[#FF8F92]"
+          : "border-transparent bg-white/[0.06] text-white/70 enabled:hover:bg-white/[0.12] enabled:hover:text-white"
     }`}
   >
     {children}
