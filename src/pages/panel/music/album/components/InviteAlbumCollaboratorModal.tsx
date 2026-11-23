@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import type { PermissionGrants } from "@/types/permissions.types";
 import {
   ArrowRight,
   Check,
@@ -6,6 +7,7 @@ import {
   Disc3,
   Hash,
   Mail,
+  Music,
   Send,
   TriangleAlert,
   UserPlus,
@@ -15,10 +17,23 @@ import { ModalShell, FieldLabel, PrimaryButton, SecondaryButton } from "@/compon
 
 type Method = "email" | "code";
 
+const DEFAULT_ALBUM_GRANTS: Partial<PermissionGrants> = {
+  viewIncome: false,
+  viewStreams: false,
+  viewCollaborators: false,
+  viewDocuments: false,
+};
+
 /** Lo mínimo que el modal necesita saber de cada pista del álbum. */
 export interface InviteTrack {
   _id: string;
   trackTitle?: string;
+  isrc?: string;
+  spotifyData?: {
+    album?: {
+      images?: Array<{ url: string; width?: number; height?: number }>;
+    };
+  };
   collaborators?: { _id?: string; name?: string }[];
 }
 
@@ -59,8 +74,24 @@ export function InviteAlbumCollaboratorModal({
   const [error, setError] = useState("");
   const [result, setResult] = useState<AlbumInvitationResult | null>(null);
 
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(tracks.map((t) => t._id).filter(Boolean)),
+  );
+
+  const allIds = useMemo(() => tracks.map((t) => t._id).filter(Boolean), [tracks]);
+  const allSelected = allIds.length > 0 && selected.size === allIds.length;
+
+  const toggleTrack = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const toggleAll = () => setSelected(allSelected ? new Set() : new Set(allIds));
+
   const value = method === "email" ? email : code;
-  const canSubmit = value.trim().length > 0 && !sending;
+  const canSubmit = value.trim().length > 0 && selected.size > 0 && !sending;
 
   const titles = useMemo(
     () => tracks.map((track, index) => track.trackTitle || `Pista ${index + 1}`),
@@ -78,6 +109,8 @@ export function InviteAlbumCollaboratorModal({
       ...(method === "email"
         ? { collaboratorEmail: email.trim() }
         : { collaboratorId: code.trim() }),
+      songIds: allIds.filter((id) => selected.has(id)),
+      grants: DEFAULT_ALBUM_GRANTS,
     });
 
     setSending(false);
@@ -173,7 +206,7 @@ export function InviteAlbumCollaboratorModal({
         footer={
           <>
             <span className="flex-1 text-[11px] text-[#A6AAB2]">
-              Recibirá un solo correo por todo el álbum
+              Recibirá un solo correo
             </span>
             <SecondaryButton onClick={onClose} disabled={sending}>
               Cancelar
@@ -185,7 +218,7 @@ export function InviteAlbumCollaboratorModal({
             >
               {sending
                 ? "Enviando…"
-                : `Invitar a ${tracks.length} ${tracks.length === 1 ? "pista" : "pistas"}`}
+                : `Invitar a ${selected.size} ${selected.size === 1 ? "pista" : "pistas"}`}
             </PrimaryButton>
           </>
         }
@@ -252,8 +285,18 @@ export function InviteAlbumCollaboratorModal({
         <div className="flex flex-col gap-2.5">
           <div className="flex items-center justify-between gap-3">
             <FieldLabel>ENTRARÁ EN ESTAS PISTAS</FieldLabel>
-            <span className="font-mono text-[10.5px] font-semibold text-[#FF5C00]">
-              {tracks.length}
+            <span className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={toggleAll}
+                disabled={allIds.length === 0}
+                className="text-[11px] font-semibold text-[#FF5C00] hover:underline disabled:opacity-40"
+              >
+                {allSelected ? "Quitar todas" : "Seleccionar todas"}
+              </button>
+              <span className="font-mono text-[10.5px] font-semibold text-[#FF5C00]">
+                {selected.size}/{tracks.length}
+              </span>
             </span>
           </div>
 
@@ -264,25 +307,53 @@ export function InviteAlbumCollaboratorModal({
             </p>
           ) : (
             <div className="relative">
-              <ol className="flex max-h-[164px] flex-col gap-px overflow-y-auto rounded-[16px] bg-[#F4F5F7] p-1.5">
-                {titles.map((title, index) => (
-                  <li
-                    key={tracks[index]._id ?? index}
-                    className="flex items-center gap-2.5 rounded-[11px] px-2.5 py-1.5"
-                  >
-                    <span className="w-5 flex-shrink-0 text-right font-mono text-[10px] text-[#A6AAB2]">
-                      {index + 1}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-[11.5px] text-[#1C1D22]">
-                      {title}
-                    </span>
-                  </li>
-                ))}
+              <ol className="flex max-h-[210px] flex-col gap-1 overflow-y-auto rounded-[16px] bg-[#F4F5F7] p-1.5">
+                {titles.map((title, index) => {
+                  const track = tracks[index];
+                  const thumb = track.spotifyData?.album?.images?.[0]?.url ?? cover;
+                  const meta = [
+                    track.isrc ? `ISRC ${track.isrc}` : null,
+                    upc ? `UPC ${upc}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ");
+
+                  return (
+                    <li key={track._id ?? index}>
+                      <label className="flex cursor-pointer items-center gap-2.5 rounded-[12px] px-2.5 py-1.5 transition-colors hover:bg-white/70">
+                        <input
+                          type="checkbox"
+                          checked={selected.has(track._id)}
+                          onChange={() => toggleTrack(track._id)}
+                          aria-label={`Incluir ${title}`}
+                          className="h-3.5 w-3.5 flex-shrink-0 accent-[#FF5C00]"
+                        />
+                        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-white">
+                          {thumb ? (
+                            <img src={thumb} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <Music className="h-4 w-4 text-[#A6AAB2]" />
+                          )}
+                        </span>
+                        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                          <span className="truncate text-[12px] font-semibold text-[#1C1D22]">
+                            {title}
+                          </span>
+                          {meta && (
+                            <span className="truncate font-mono text-[10.5px] text-[#71757E]">
+                              {meta}
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    </li>
+                  );
+                })}
               </ol>
               {/* Con más pistas de las que caben, la última fila se corta por la
                   mitad y parece un defecto. El degradado la convierte en lo que
                   es: la señal de que la lista sigue. */}
-              {tracks.length > 5 && (
+              {tracks.length > 4 && (
                 <span
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-x-1 bottom-0 h-8 rounded-b-[16px] bg-gradient-to-t from-[#F4F5F7] to-transparent"
@@ -294,7 +365,7 @@ export function InviteAlbumCollaboratorModal({
 
         <p className="flex items-start gap-2.5 rounded-[14px] bg-[#F4F5F7] px-3.5 py-3 text-[11px] leading-relaxed text-[#71757E]">
           <UserPlus className="mt-px h-3.5 w-3.5 flex-shrink-0 text-[#A6AAB2]" />
-          Se le invita a las pistas que el álbum tiene hoy. Las que lleguen en próximos reportes no
+          Se le invita solo a las pistas marcadas. Las que lleguen en próximos reportes no
           se incluyen solas: habrá que invitarle otra vez.
         </p>
 

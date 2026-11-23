@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   UserPlus,
   Mail,
+  Music,
   Send,
   Check,
   Info,
@@ -10,7 +11,8 @@ import {
   Tag,
   Layers,
 } from "lucide-react";
-import LabelsService from "@/services/labels";
+import LabelsService, { type LabelSong } from "@/services/labels";
+import type { PermissionGrants } from "@/types/permissions.types";
 import { ModalShell, FieldLabel, PrimaryButton, SecondaryButton } from "@/components/ui/ModalShell";
 
 interface InviteCollaboratorToLabelModalProps {
@@ -31,6 +33,15 @@ interface InvitationResult {
   totalSongs: number;
   needsAccount: boolean;
 }
+
+const DEFAULT_LABEL_GRANTS: Partial<PermissionGrants> = {
+  viewIncome: false,
+  viewStreams: false,
+  viewCollaborators: false,
+  viewDocuments: false,
+  canEditSplits: false,
+  canInviteCollaborators: false,
+};
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -54,18 +65,61 @@ export default function InviteCollaboratorToLabelModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<InvitationResult | null>(null);
+  const [songs, setSongs] = useState<LabelSong[]>([]);
+  const [loadingSongs, setLoadingSongs] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!isOpen) return;
     setEmail("");
     setError("");
     setResult(null);
+    setSongs([]);
+    setSelected(new Set());
+    setLoadingSongs(true);
+    let alive = true;
+    const load = async () => {
+      try {
+        let list: LabelSong[] = [];
+        if (labelType === "custom") {
+          const res = await LabelsService.getSongsByCustomLabel(labelName);
+          list = res.data?.songs ?? [];
+        } else {
+          const res = await LabelsService.getSongsByLabel(labelIdentifier);
+          list = res.data ?? [];
+        }
+        if (alive) {
+          setSongs(list);
+          setSelected(new Set(list.map((x) => x._id)));
+        }
+      } catch {
+        if (alive) setError("No se pudieron cargar las canciones del sello.");
+      } finally {
+        if (alive) setLoadingSongs(false);
+      }
+    };
+    load();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   if (!isOpen) return null;
 
   const trimmed = email.trim();
   const isCustom = labelType === "custom";
+
+  const allIds = songs.map((x) => x._id);
+  const allSelected = allIds.length > 0 && selected.size === allIds.length;
+  const toggleSong = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const toggleAll = () => setSelected(allSelected ? new Set() : new Set(allIds));
 
   const handleClose = () => {
     setEmail("");
@@ -84,6 +138,11 @@ export default function InviteCollaboratorToLabelModal({
       return;
     }
 
+    if (selected.size === 0) {
+      setError("Elige al menos una canción.");
+      return;
+    }
+
     setSubmitting(true);
     setError("");
 
@@ -92,6 +151,8 @@ export default function InviteCollaboratorToLabelModal({
         labelType,
         labelIdentifier,
         collaboratorEmail: trimmed.toLowerCase(),
+        songIds: allIds.filter((id) => selected.has(id)),
+        grants: DEFAULT_LABEL_GRANTS,
       });
 
       if (response.error || !response.data) {
@@ -194,7 +255,7 @@ export default function InviteCollaboratorToLabelModal({
           </SecondaryButton>
           <PrimaryButton
             onClick={handleSubmit}
-            disabled={submitting}
+            disabled={submitting || loadingSongs || selected.size === 0}
             icon={
               submitting ? (
                 <Loader2 className="h-[14px] w-[14px] animate-spin" />
@@ -242,11 +303,75 @@ export default function InviteCollaboratorToLabelModal({
         </span>
       </label>
 
+      <div className="flex flex-col gap-2.5">
+        <div className="flex items-center justify-between gap-3">
+          <FieldLabel required>CANCIONES</FieldLabel>
+          <span className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={toggleAll}
+              disabled={submitting || allIds.length === 0}
+              className="text-[11px] font-semibold text-[#FF5C00] hover:underline disabled:opacity-40"
+            >
+              {allSelected ? "Quitar todas" : "Seleccionar todas"}
+            </button>
+            <span className="font-mono text-[10.5px] font-semibold text-[#FF5C00]">
+              {selected.size}/{songs.length}
+            </span>
+          </span>
+        </div>
+        {loadingSongs ? (
+          <div className="h-[80px] animate-pulse rounded-[16px] bg-[#F4F5F7]" />
+        ) : (
+          <ul className="flex max-h-[210px] flex-col gap-1 overflow-y-auto rounded-[16px] bg-[#F4F5F7] p-1.5">
+            {songs.map((song) => {
+              const thumb = song.spotifyData?.album?.images?.[0]?.url;
+              const meta = [
+                song.isrc ? `ISRC ${song.isrc}` : null,
+                song.upc ? `UPC ${song.upc}` : null,
+              ]
+                .filter(Boolean)
+                .join(" · ");
+
+              return (
+                <li key={song._id}>
+                  <label className="flex cursor-pointer items-center gap-2.5 rounded-[12px] px-2.5 py-1.5 transition-colors hover:bg-white/70">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(song._id)}
+                      onChange={() => toggleSong(song._id)}
+                      disabled={submitting}
+                      className="h-3.5 w-3.5 flex-shrink-0 accent-[#FF5C00]"
+                    />
+                    <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-white">
+                      {thumb ? (
+                        <img src={thumb} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <Music className="h-4 w-4 text-[#A6AAB2]" />
+                      )}
+                    </span>
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="truncate text-[12px] font-semibold text-[#1C1D22]">
+                        {song.trackTitle}
+                      </span>
+                      {meta && (
+                        <span className="truncate font-mono text-[10.5px] text-[#71757E]">
+                          {meta}
+                        </span>
+                      )}
+                    </span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
       <div className="flex items-start gap-2.5 rounded-2xl bg-[#F4F5F7] px-4 py-3">
         <UserPlus className="mt-px h-4 w-4 flex-shrink-0 text-[#71757E]" />
         <span className="text-[11.5px] leading-relaxed text-[#71757E]">
-          Al aceptar, entra en las {songCount} {songCount === 1 ? "canción" : "canciones"} del sello
-          y puede ver sus métricas. Los splits de pago se configuran aparte, después.
+          Al aceptar, entra solo en las canciones marcadas ({selected.size} de {songCount || songs.length}). Los splits de pago se configuran aparte, después.
         </span>
       </div>
 
