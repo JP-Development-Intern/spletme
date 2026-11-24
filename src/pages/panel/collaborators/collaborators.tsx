@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
-import { Search, UserPlus, TriangleAlert, Users } from "lucide-react";
+import { Search, ShieldCheck, SlidersHorizontal, TriangleAlert, UserPlus, Users } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PermissionsModal } from "@/components/music/PermissionsModal";
+import { PermissionsDefaultsModal } from "@/components/music/PermissionsDefaultsModal";
 import { useCollaboratorsLibrary } from "@/hooks/useCollaboratorsLibrary";
 import { useCollaboratorSongs } from "@/hooks/useCollaboratorSongs";
 import { CollaboratorsSummaryStrip } from "@/components/collaborators/CollaboratorsSummaryStrip";
@@ -44,9 +46,13 @@ export default function Collaborators() {
   const [profileOf, setProfileOf] = useState<Collaborator | null>(null);
   const [payTargets, setPayTargets] = useState<PaymentTarget[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [globalPermissionsOpen, setGlobalPermissionsOpen] = useState(false);
+  const [defaultsOpen, setDefaultsOpen] = useState(false);
 
   const currentUser = LocalStorageService.getItem("user");
   const userRole = String(currentUser?.role ?? "").toLowerCase();
+  const isOwnerAccount =
+    !currentUser?.parentUserId && userRole !== "label" && userRole !== "collaborator";
   const canAddCollaborator = !currentUser?.parentUserId || userRole === "label";
 
   /** El color de cada persona es estable: se deriva de su sitio en el catálogo. */
@@ -120,6 +126,24 @@ export default function Collaborators() {
             <UserPlus className="h-[15px] w-[15px]" />
             Invitar a una canción
           </button>
+        )}
+        {isOwnerAccount && (
+          <>
+            <button
+              onClick={() => setGlobalPermissionsOpen(true)}
+              className="glass-control flex flex-shrink-0 items-center gap-2 rounded-full px-4 py-[11px] text-[12.5px] font-semibold text-white transition-colors hover:bg-white/[0.14]"
+            >
+              <ShieldCheck className="h-[15px] w-[15px] text-[#FF8A3D]" />
+              Permisos globales
+            </button>
+            <button
+              onClick={() => setDefaultsOpen(true)}
+              className="glass-control flex flex-shrink-0 items-center gap-2 rounded-full px-4 py-[11px] text-[12.5px] font-semibold text-white transition-colors hover:bg-white/[0.14]"
+            >
+              <SlidersHorizontal className="h-[15px] w-[15px] text-white/75" />
+              Plantilla por defecto
+            </button>
+          </>
         )}
       </div>
 
@@ -212,6 +236,17 @@ export default function Collaborators() {
       />
 
       <AddCollaboratorSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      {globalPermissionsOpen && (
+        <PermissionsModal
+          resourceType="all"
+          resourceId="*"
+          title="Permisos globales (todo tu catálogo)"
+          onClose={() => setGlobalPermissionsOpen(false)}
+        />
+      )}
+
+      {defaultsOpen && <PermissionsDefaultsModal onClose={() => setDefaultsOpen(false)} />}
     </div>
   );
 }

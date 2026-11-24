@@ -23,11 +23,12 @@ class DocumentManagerService {
       };
     } catch (error: unknown) {
       const axErr = error as {
-        response?: { data?: { message?: string; error?: string } };
+        response?: { status?: number; data?: { message?: string; error?: string } };
         message?: string;
       };
       return {
         success: false,
+        status: axErr.response?.status,
         message: axErr.response?.data?.message ?? "Error retrieving documents",
         error: axErr.response?.data?.error ?? axErr.message,
       };
@@ -71,11 +72,12 @@ class DocumentManagerService {
       };
     } catch (error: unknown) {
       const axErr = error as {
-        response?: { data?: { message?: string } };
+        response?: { status?: number; data?: { message?: string } };
         message?: string;
       };
       return {
         success: false,
+        status: axErr.response?.status,
         message: axErr.response?.data?.message ?? "Error downloading document",
         error: axErr.message,
       };

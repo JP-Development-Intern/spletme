@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -10,8 +10,11 @@ import {
   DollarSign,
   Crown,
   ChartPie,
+  ShieldCheck,
   TriangleAlert,
 } from "lucide-react";
+import LocalStorageService from "@/services/localstorage";
+import { PermissionsModal } from "@/components/music/PermissionsModal";
 import { useCustomLabelSongs } from "@/hooks/useLabels";
 import { useLabelsLibrary, toCoverage } from "@/hooks/useLabelsLibrary";
 import { formatCurrency, formatStreams } from "@/utils/format.utils";
@@ -29,6 +32,12 @@ export default function CustomLabelDetail() {
   const navigate = useNavigate();
   const decodedLabel = decodeURIComponent(label ?? "");
   const { songs, customLabel, loading, error, loadSongs } = useCustomLabelSongs(label ?? "");
+  const [permissionsOpen, setPermissionsOpen] = useState(false);
+
+  const currentUser = LocalStorageService.getItem("user");
+  const userRole = String(currentUser?.role ?? "").toLowerCase();
+  const isOwnerAccount =
+    !currentUser?.parentUserId && userRole !== "label" && userRole !== "collaborator";
 
   // La lista completa da las métricas de cada sello agrupado: son las mismas que
   // ya se ven en la tabla de Sellos, aquí puestas donde se decide.
@@ -91,29 +100,40 @@ export default function CustomLabelDetail() {
         </nav>
 
         {/* Identidad */}
-        <div className="flex items-center gap-4">
-          <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-[18px] bg-[#FF5C00]">
-            <Layers className="h-6 w-6 text-white" />
-          </span>
-          <div className="flex min-w-0 flex-col gap-1">
-            <h1 className="truncate font-display text-2xl font-semibold text-[#1C1D22]">
-              {decodedLabel || "Sin sello"}
-            </h1>
-            <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-[#71757E]">
-              <span className="flex items-center gap-1.5 rounded-[10px] bg-[#FFEADD] px-2 py-0.5 text-[11px] font-semibold text-[#FF5C00]">
-                <Layers className="h-[11px] w-[11px]" />
-                Personalizado
-              </span>
-              <span>
-                Agrupa {artisticLabels.length}{" "}
-                {artisticLabels.length === 1 ? "sello artístico" : "sellos artísticos"}
-              </span>
-              <span className="text-[#A6AAB2]">·</span>
-              <span>
-                {songs.length} {songs.length === 1 ? "canción" : "canciones"}
-              </span>
-            </p>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-[18px] bg-[#FF5C00]">
+              <Layers className="h-6 w-6 text-white" />
+            </span>
+            <div className="flex min-w-0 flex-col gap-1">
+              <h1 className="truncate font-display text-2xl font-semibold text-[#1C1D22]">
+                {decodedLabel || "Sin sello"}
+              </h1>
+              <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-[#71757E]">
+                <span className="flex items-center gap-1.5 rounded-[10px] bg-[#FFEADD] px-2 py-0.5 text-[11px] font-semibold text-[#FF5C00]">
+                  <Layers className="h-[11px] w-[11px]" />
+                  Personalizado
+                </span>
+                <span>
+                  Agrupa {artisticLabels.length}{" "}
+                  {artisticLabels.length === 1 ? "sello artístico" : "sellos artísticos"}
+                </span>
+                <span className="text-[#A6AAB2]">·</span>
+                <span>
+                  {songs.length} {songs.length === 1 ? "canción" : "canciones"}
+                </span>
+              </p>
+            </div>
           </div>
+          {isOwnerAccount && customLabel?._id && (
+            <button
+              onClick={() => setPermissionsOpen(true)}
+              className="flex items-center gap-2 rounded-[22px] border border-[#E8E8EC] bg-white px-[18px] py-3 text-[12.5px] font-semibold text-[#1C1D22] transition-colors hover:bg-[#F4F5F7]"
+            >
+              <ShieldCheck className="h-[15px] w-[15px] text-[#71757E]" />
+              Permisos
+            </button>
+          )}
         </div>
 
         {error && (
@@ -249,6 +269,15 @@ export default function CustomLabelDetail() {
           )}
         </div>
       </div>
+
+      {permissionsOpen && customLabel?._id && (
+        <PermissionsModal
+          resourceType="customLabel"
+          resourceId={customLabel._id}
+          title={customLabel.name || decodedLabel}
+          onClose={() => setPermissionsOpen(false)}
+        />
+      )}
     </div>
   );
 }

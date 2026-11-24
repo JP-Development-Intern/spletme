@@ -1,4 +1,4 @@
-export type PermissionResourceType = "song" | "album";
+export type PermissionResourceType = "song" | "album" | "label" | "customLabel" | "all";
 
 export type GranteeRole = "collaborator" | "label";
 
@@ -21,4 +21,6 @@ export interface PermissionGrantee {
   email: string;
   role: GranteeRole;
   grants: PermissionGrants;
+  /** Claves fijadas explícitamente en este nivel; las omitidas son heredadas. */
+  explicit?: Partial<PermissionGrants>;
 }

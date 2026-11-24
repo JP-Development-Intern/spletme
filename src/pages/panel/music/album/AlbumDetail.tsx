@@ -14,9 +14,11 @@ import {
   TriangleAlert,
   Funnel,
   ChevronRight,
+  ShieldCheck,
   UserPlus,
   Users,
 } from "lucide-react";
+import { PermissionsModal } from "@/components/music/PermissionsModal";
 import { useAlbums } from "@/hooks/useAlbums";
 import AlbumService from "@/services/albums";
 import SongService from "@/services/songs";
@@ -73,6 +75,7 @@ export default function AlbumDetail() {
   const [splitModalOpen, setSplitModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [collabSplitOpen, setCollabSplitOpen] = useState(false);
+  const [permissionsOpen, setPermissionsOpen] = useState(false);
 
   const currentUser = LocalStorageService.getItem("user");
   /**
@@ -386,6 +389,15 @@ export default function AlbumDetail() {
               )}
               {isOwnerUser && (
                 <button
+                  onClick={() => setPermissionsOpen(true)}
+                  className="flex items-center gap-2 rounded-[22px] border border-[#E8E8EC] bg-white px-[18px] py-3 text-[12.5px] font-semibold text-[#1C1D22] transition-colors hover:bg-[#F4F5F7]"
+                >
+                  <ShieldCheck className="h-[15px] w-[15px] text-[#71757E]" />
+                  Permisos
+                </button>
+              )}
+              {isOwnerUser && (
+                <button
                   onClick={() => setInviteModalOpen(true)}
                   disabled={coverage.total === 0}
                   className="flex items-center gap-2 rounded-[22px] border border-[#E8E8EC] bg-white px-[18px] py-3 text-[12.5px] font-semibold text-[#1C1D22] transition-colors enabled:hover:bg-[#F4F5F7] disabled:cursor-not-allowed disabled:text-[#A6AAB2]"
@@ -477,6 +489,15 @@ export default function AlbumDetail() {
           />
         )}
       </div>
+
+      {permissionsOpen && (
+        <PermissionsModal
+          resourceType="album"
+          resourceId={album.upc}
+          title={album.albumTitle}
+          onClose={() => setPermissionsOpen(false)}
+        />
+      )}
 
       {inviteModalOpen && (
         <InviteAlbumCollaboratorModal

@@ -91,6 +91,7 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ songId }) => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [forbidden, setForbidden] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [showUpload, setShowUpload] = useState(false);
@@ -99,10 +100,15 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ songId }) => {
 
   const loadDocuments = useCallback(async () => {
     setLoading(true);
+    setForbidden(false);
     setError(null);
     try {
       const response = await documentManagerService.getBySongId(songId);
       if (!response.success) {
+        if (response.status === 401) {
+          setForbidden(true);
+          return;
+        }
         setError(response.message || "No pudimos traer los documentos.");
         return;
       }
@@ -157,7 +163,11 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ songId }) => {
     try {
       const response = await documentManagerService.download(id);
       if (!response.success || !response.blob) {
-        setError(response.message || "No se pudo descargar el documento.");
+        setError(
+          response.status === 401
+            ? "Sin permiso para descargar documentos."
+            : response.message || "No se pudo descargar el documento.",
+        );
         return;
       }
       const blobUrl = URL.createObjectURL(response.blob);
@@ -178,6 +188,20 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ songId }) => {
   return (
     <>
       <section className="overflow-hidden rounded-[26px] border border-[#E8E8EC] bg-white shadow-[0_10px_28px_-12px_rgba(255,92,0,0.15)]">
+        {forbidden && !loading ? (
+          <div className="flex flex-col items-center gap-2.5 px-6 py-14 text-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-[#F4F5F7] text-[#71757E]">
+              <FolderOpen className="h-5 w-5" />
+            </span>
+            <h3 className="font-display text-[16px] font-semibold text-[#1C1D22]">
+              Sin permiso para ver documentos
+            </h3>
+            <p className="max-w-[340px] text-[12px] leading-relaxed text-[#71757E]">
+              El propietario de esta canción no ha habilitado el acceso a los documentos.
+            </p>
+          </div>
+        ) : (
+          <>
         <header className="flex flex-wrap items-center justify-between gap-3.5 px-5 py-[18px]">
           <div className="flex flex-col gap-0.5">
             <h3 className="font-display text-[18px] font-semibold text-[#1C1D22]">
@@ -331,6 +355,8 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ songId }) => {
                 Solo tú y los colaboradores de la canción pueden abrirlos
               </span>
             </footer>
+          </>
+        )}
           </>
         )}
       </section>

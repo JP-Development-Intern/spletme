@@ -18,6 +18,7 @@ export interface Document {
 
 export interface DocumentResponse {
   success: boolean;
+  status?: number;
   data?: Document[] | Document | null;
   message?: string;
   error?: string;
@@ -30,6 +31,7 @@ export interface DocumentResponse {
 
 export interface DownloadResponse {
   success: boolean;
+  status?: number;
   blob?: Blob;
   name?: string;
   contentType?: string;

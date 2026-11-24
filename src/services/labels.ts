@@ -1,4 +1,3 @@
-import type { PermissionGrants } from "@/types/permissions.types";
 import { apiClient } from "@/infrastructure/http/axiosClient";
 import axios from "axios";
 
@@ -273,18 +272,6 @@ class LabelsService {
     collaboratorEmail: string;
     /** Canciones del owner dentro del sello (al menos una). */
     songIds: string[];
-    /** Permisos del label: lectura + canEditSplits + canInviteCollaborators. */
-    grants: Partial<
-      Pick<
-        PermissionGrants,
-        | "viewIncome"
-        | "viewStreams"
-        | "viewCollaborators"
-        | "viewDocuments"
-        | "canEditSplits"
-        | "canInviteCollaborators"
-      >
-    >;
   }): Promise<{
     error: boolean;
     data?: {

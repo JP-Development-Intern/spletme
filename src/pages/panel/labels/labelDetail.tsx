@@ -14,9 +14,12 @@ import {
   TriangleAlert,
   ArrowUp,
   ArrowDown,
+  ShieldCheck,
   Users,
   UserPlus,
 } from "lucide-react";
+import LocalStorageService from "@/services/localstorage";
+import { PermissionsModal } from "@/components/music/PermissionsModal";
 import { useLabelSongs } from "@/hooks/useLabels";
 import { toCoverage } from "@/hooks/useLabelsLibrary";
 import { formatCurrency, formatStreams } from "@/utils/format.utils";
@@ -68,6 +71,12 @@ export default function LabelDetail() {
   const [ownerSplitOpen, setOwnerSplitOpen] = useState(false);
   const [collabSplitOpen, setCollabSplitOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [permissionsOpen, setPermissionsOpen] = useState(false);
+
+  const currentUser = LocalStorageService.getItem("user");
+  const userRole = String(currentUser?.role ?? "").toLowerCase();
+  const isOwnerAccount =
+    !currentUser?.parentUserId && userRole !== "label" && userRole !== "collaborator";
 
   const totals = useMemo(() => {
     let streams = 0;
@@ -193,6 +202,16 @@ export default function LabelDetail() {
               repartir a un colaborador son secundarias; la parte del owner es
               lo que hay que hacer primero y lo que más se repite. */}
           <div className="flex flex-wrap items-center gap-2.5 lg:ml-auto">
+            {isOwnerAccount && (
+              <button
+                onClick={() => setPermissionsOpen(true)}
+                disabled={songs.length === 0}
+                className="flex items-center gap-2 rounded-[22px] border border-[#E8E8EC] bg-white px-[18px] py-3 text-[12.5px] font-semibold text-[#1C1D22] transition-colors enabled:hover:bg-[#F4F5F7] disabled:cursor-not-allowed disabled:text-[#A6AAB2]"
+              >
+                <ShieldCheck className="h-[15px] w-[15px] text-[#71757E]" />
+                Permisos
+              </button>
+            )}
             <button
               onClick={() => setCollabSplitOpen(true)}
               disabled={songs.length === 0}
@@ -394,6 +413,15 @@ export default function LabelDetail() {
           label={decodedLabel}
           songCount={songs.length}
           alreadyWithSplit={totals.coverage.withSplits}
+        />
+      )}
+
+      {permissionsOpen && (
+        <PermissionsModal
+          resourceType="label"
+          resourceId={decodedLabel}
+          title={decodedLabel}
+          onClose={() => setPermissionsOpen(false)}
         />
       )}
 

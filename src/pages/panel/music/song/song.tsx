@@ -114,6 +114,11 @@ export default function Song() {
   const collaboratorCount = (song?.collaborators ?? []).length;
   const blocked = readiness !== null && !readiness.canPay;
 
+  const hasIncomeAccess =
+    isOwnerUser || song?.totalNetIncome !== undefined || song?.paymentInfo !== undefined;
+  const hasStreamsAccess = isOwnerUser || song?.reproductions !== undefined;
+  const hasCollaboratorsAccess = isOwnerUser || song?.collaborators !== undefined;
+
   async function handleRequestRoyalties() {
     if (!id) return;
     setRoyaltyLoading(true);
@@ -129,14 +134,26 @@ export default function Song() {
 
   const TABS: DetailTab<TabKey>[] = [
     { key: "resumen", label: "Resumen", icon: <LayoutDashboard className="h-[15px] w-[15px]" /> },
-    {
-      key: "colaboradores",
-      label: "Colaboradores",
-      icon: <Users className="h-[15px] w-[15px]" />,
-      count: collaboratorCount,
-    },
+    ...(hasCollaboratorsAccess
+      ? [
+          {
+            key: "colaboradores" as const,
+            label: "Colaboradores",
+            icon: <Users className="h-[15px] w-[15px]" />,
+            count: collaboratorCount,
+          },
+        ]
+      : []),
     { key: "pagos", label: "Pagos", icon: <Receipt className="h-[15px] w-[15px]" /> },
-    { key: "splits", label: "Splits", icon: <GitBranch className="h-[15px] w-[15px]" /> },
+    ...(hasCollaboratorsAccess
+      ? [
+          {
+            key: "splits" as const,
+            label: "Splits",
+            icon: <GitBranch className="h-[15px] w-[15px]" />,
+          },
+        ]
+      : []),
     { key: "documentos", label: "Documentos", icon: <FolderOpen className="h-[15px] w-[15px]" /> },
   ];
 
@@ -144,12 +161,16 @@ export default function Song() {
   // resta delataría que hay un descuento antes del reparto. Ver
   // `utils/ownerVisibility.ts`.
   const channels: MetricChannel[] = [
-    {
-      key: "streams",
-      label: "STREAMS",
-      icon: <Play className="h-[13px] w-[13px] text-[#71757E]" />,
-      value: formatStreams(song?.totalStreams ?? 0),
-    },
+    ...(hasStreamsAccess
+      ? [
+          {
+            key: "streams",
+            label: "STREAMS",
+            icon: <Play className="h-[13px] w-[13px] text-[#71757E]" />,
+            value: formatStreams(song?.totalStreams ?? 0),
+          } as MetricChannel,
+        ]
+      : []),
     ...(isOwnerUser
       ? [
           {
@@ -164,41 +185,51 @@ export default function Song() {
           } as MetricChannel,
         ]
       : []),
-    {
-      key: "share",
-      label: isOwnerUser ? "TU PARTE" : "TU SPLIT",
-      icon: <Crown className="h-[13px] w-[13px] text-[#71757E]" />,
-      value: `${myPercentage || 0}%`,
-      caption: formatCurrency(myAmount),
-    },
-    {
-      key: "collabs",
-      label: "COLABORADORES",
-      icon: <Users className="h-[13px] w-[13px] text-[#71757E]" />,
-      value: String(collaboratorCount),
-    },
-    isOwnerUser
-      ? {
-          key: "topay",
-          label: "POR PAGAR",
-          icon: <HandCoins className="h-[13px] w-[13px] text-[#FF5C00]" />,
-          value: formatCurrency(totalToPay),
-          highlight: true,
-          width: 260,
-          caption:
-            collaboratorCount > 0
-              ? `${collaboratorCount} ${collaboratorCount === 1 ? "persona" : "personas"}`
-              : "sin colaboradores",
-        }
-      : {
-          key: "mine",
-          label: "TU SALDO",
-          icon: <HandCoins className="h-[13px] w-[13px] text-[#FF5C00]" />,
-          value: formatCurrency(myAmount),
-          highlight: true,
-          width: 260,
-          caption: myRoyaltyRequest?.status === "pending" ? "solicitud enviada" : "por solicitar",
-        },
+    ...(hasCollaboratorsAccess
+      ? [
+          {
+            key: "share",
+            label: isOwnerUser ? "TU PARTE" : "TU SPLIT",
+            icon: <Crown className="h-[13px] w-[13px] text-[#71757E]" />,
+            value: `${myPercentage || 0}%`,
+            caption: hasIncomeAccess ? formatCurrency(myAmount) : undefined,
+          } as MetricChannel,
+          {
+            key: "collabs",
+            label: "COLABORADORES",
+            icon: <Users className="h-[13px] w-[13px] text-[#71757E]" />,
+            value: String(collaboratorCount),
+          } as MetricChannel,
+        ]
+      : []),
+    ...(isOwnerUser
+      ? [
+          {
+            key: "topay",
+            label: "POR PAGAR",
+            icon: <HandCoins className="h-[13px] w-[13px] text-[#FF5C00]" />,
+            value: formatCurrency(totalToPay),
+            highlight: true,
+            width: 260,
+            caption:
+              collaboratorCount > 0
+                ? `${collaboratorCount} ${collaboratorCount === 1 ? "persona" : "personas"}`
+                : "sin colaboradores",
+          } as MetricChannel,
+        ]
+      : hasIncomeAccess
+        ? [
+            {
+              key: "mine",
+              label: "TU SALDO",
+              icon: <HandCoins className="h-[13px] w-[13px] text-[#FF5C00]" />,
+              value: formatCurrency(myAmount),
+              highlight: true,
+              width: 260,
+              caption: myRoyaltyRequest?.status === "pending" ? "solicitud enviada" : "por solicitar",
+            } as MetricChannel,
+          ]
+        : []),
   ];
 
   return (
@@ -222,8 +253,14 @@ export default function Song() {
               <SongLabelsBadge labels={getSongLabels(song)} count={songLabelCount(song)} />
             </>
           }
-          highlightLabel={isOwnerUser ? "TOTAL A PAGAR" : "TU PARTE"}
-          highlightValue={formatCurrency(isOwnerUser ? totalToPay : myAmount)}
+          highlightLabel={isOwnerUser ? "TOTAL A PAGAR" : hasIncomeAccess ? "TU PARTE" : undefined}
+          highlightValue={
+            isOwnerUser
+              ? formatCurrency(totalToPay)
+              : hasIncomeAccess
+                ? formatCurrency(myAmount)
+                : undefined
+          }
           highlightColor={isOwnerUser ? "#1C1D22" : "#2FB37E"}
           actions={
             isOwnerUser ? (
@@ -267,7 +304,7 @@ export default function Song() {
                 subtitle="De lo que entra por esta canción hasta lo que le toca a cada uno"
                 onEditSplits={() => setActiveTab("colaboradores")}
               />
-            ) : (
+            ) : hasIncomeAccess && hasCollaboratorsAccess ? (
               <MyShareCard
                 percentage={myPercentage || 0}
                 amount={myAmount}
@@ -276,13 +313,17 @@ export default function Song() {
                 requestPending={myRoyaltyRequest?.status === "pending"}
                 onRequest={handleRequestRoyalties}
               />
+            ) : null}
+            {hasStreamsAccess && (
+              <>
+                <Platforms reproductions={song?.reproductions ?? []} />
+                <Performance songId={id} />
+              </>
             )}
-            <Platforms reproductions={song?.reproductions ?? []} />
-            <Performance songId={id} />
           </div>
         )}
 
-        {activeTab === "colaboradores" && (
+        {activeTab === "colaboradores" && hasCollaboratorsAccess && (
           <Table
             collaborators={song?.collaborators ?? []}
             songId={id}
@@ -314,7 +355,7 @@ export default function Song() {
           </div>
         )}
 
-        {activeTab === "splits" && (
+        {activeTab === "splits" && hasCollaboratorsAccess && (
           <Historyofsplits
             songId={id}
             isOwner={isOwnerUser}

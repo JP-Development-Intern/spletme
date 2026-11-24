@@ -75,7 +75,7 @@ interface Song {
   }>;
   createdAt?: string;
   updatedAt?: string;
-  requesterRole?: "admin" | "collaborator" | "label";
+  requesterRole?: "owner" | "collaborator" | "label";
   ownerEarnings?: number;
   collaboratorsEarnings?: number;
 }
@@ -447,7 +447,7 @@ export default function Table({
   const balanced = Math.round(assigned) === 100;
   const overflow = Math.round(assigned) > 100;
 
-  const canManageSplits = song?.requesterRole === "admin" || song?.requesterRole === "label";
+  const canManageSplits = song?.requesterRole === "owner" || song?.requesterRole === "label";
 
   return (
     <>
@@ -554,7 +554,7 @@ export default function Table({
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            {isOwner && song?.requesterRole === "admin" && (
+            {isOwner && song?.requesterRole === "owner" && (
               <button
                 type="button"
                 onClick={() => setIsOwnerSplitModalOpen(true)}
@@ -564,7 +564,7 @@ export default function Table({
                 Mi split
               </button>
             )}
-            {isOwner && song?.requesterRole === "admin" && (
+            {isOwner && song?.requesterRole === "owner" && (
               <button
                 type="button"
                 onClick={() => setIsPlaceholderModalOpen(true)}
@@ -804,7 +804,7 @@ export default function Table({
                           )}
                         </>
                       )}
-                      {row.isOwnerRow && isOwner && song?.requesterRole === "admin" && (
+                      {row.isOwnerRow && isOwner && song?.requesterRole === "owner" && (
                         <>
                           <IconButton
                             label="Editar mi split"

@@ -1,4 +1,3 @@
-import type { PermissionGrants } from "@/types/permissions.types";
 import { apiClient } from "@/infrastructure/http/axiosClient";
 import type {
   Album,
@@ -133,8 +132,6 @@ class AlbumService {
       collaboratorId?: string;
       /** Pistas elegidas (al menos una, todas del álbum y del owner). */
       songIds: string[];
-      /** Permisos globales que se aplicarán al aceptar. */
-      grants: Partial<PermissionGrants>;
     },
   ): Promise<{ success: true; data: AlbumInvitationResult } | { success: false; message: string }> {
     try {

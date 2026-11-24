@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import type { PermissionGrants } from "@/types/permissions.types";
 import {
   ArrowRight,
   Check,
@@ -16,13 +15,6 @@ import AlbumService, { type AlbumInvitationResult } from "@/services/albums";
 import { ModalShell, FieldLabel, PrimaryButton, SecondaryButton } from "@/components/ui/ModalShell";
 
 type Method = "email" | "code";
-
-const DEFAULT_ALBUM_GRANTS: Partial<PermissionGrants> = {
-  viewIncome: false,
-  viewStreams: false,
-  viewCollaborators: false,
-  viewDocuments: false,
-};
 
 /** Lo mínimo que el modal necesita saber de cada pista del álbum. */
 export interface InviteTrack {
@@ -110,7 +102,6 @@ export function InviteAlbumCollaboratorModal({
         ? { collaboratorEmail: email.trim() }
         : { collaboratorId: code.trim() }),
       songIds: allIds.filter((id) => selected.has(id)),
-      grants: DEFAULT_ALBUM_GRANTS,
     });
 
     setSending(false);
@@ -285,16 +276,16 @@ export function InviteAlbumCollaboratorModal({
         <div className="flex flex-col gap-2.5">
           <div className="flex items-center justify-between gap-3">
             <FieldLabel>ENTRARÁ EN ESTAS PISTAS</FieldLabel>
-            <span className="flex items-center gap-3">
+            <span className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={toggleAll}
                 disabled={allIds.length === 0}
-                className="text-[11px] font-semibold text-[#FF5C00] hover:underline disabled:opacity-40"
+                className="rounded-full bg-[#FFEADD] px-2.5 py-1 text-[11px] font-semibold text-[#FF5C00] transition-colors hover:bg-[#FFD9C2] disabled:opacity-40"
               >
                 {allSelected ? "Quitar todas" : "Seleccionar todas"}
               </button>
-              <span className="font-mono text-[10.5px] font-semibold text-[#FF5C00]">
+              <span className="rounded-full bg-[#F4F5F7] px-2 py-0.5 font-mono text-[10.5px] font-semibold text-[#71757E]">
                 {selected.size}/{tracks.length}
               </span>
             </span>
@@ -307,41 +298,65 @@ export function InviteAlbumCollaboratorModal({
             </p>
           ) : (
             <div className="relative">
-              <ol className="flex max-h-[210px] flex-col gap-1 overflow-y-auto rounded-[16px] bg-[#F4F5F7] p-1.5">
+              <ol className="flex max-h-[224px] flex-col gap-1.5 overflow-y-auto rounded-[18px] border border-[#E8E8EC] bg-[#F8F9FA] p-2">
                 {titles.map((title, index) => {
                   const track = tracks[index];
+                  const isChecked = selected.has(track._id);
                   const thumb = track.spotifyData?.album?.images?.[0]?.url ?? cover;
-                  const meta = [
-                    track.isrc ? `ISRC ${track.isrc}` : null,
-                    upc ? `UPC ${upc}` : null,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ");
 
                   return (
                     <li key={track._id ?? index}>
-                      <label className="flex cursor-pointer items-center gap-2.5 rounded-[12px] px-2.5 py-1.5 transition-colors hover:bg-white/70">
-                        <input
-                          type="checkbox"
-                          checked={selected.has(track._id)}
-                          onChange={() => toggleTrack(track._id)}
-                          aria-label={`Incluir ${title}`}
-                          className="h-3.5 w-3.5 flex-shrink-0 accent-[#FF5C00]"
-                        />
-                        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-white">
+                      <label
+                        className={`flex cursor-pointer items-center gap-3 rounded-[14px] border px-2.5 py-2 transition-all ${
+                          isChecked
+                            ? "border-[#FF5C00]/30 bg-white shadow-[0_2px_8px_-2px_rgba(16,17,20,0.06)]"
+                            : "border-transparent bg-white/50 opacity-65 hover:bg-white/90 hover:opacity-100"
+                        }`}
+                      >
+                        <span className="relative flex flex-shrink-0 items-center justify-center">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => toggleTrack(track._id)}
+                            aria-label={`Incluir ${title}`}
+                            className="sr-only"
+                          />
+                          <span
+                            aria-hidden="true"
+                            className={`flex h-[18px] w-[18px] items-center justify-center rounded-[6px] transition-colors ${
+                              isChecked
+                                ? "bg-[#FF5C00] text-white shadow-[0_2px_6px_-1px_rgba(255,92,0,0.45)]"
+                                : "border border-[#D9DAE0] bg-white"
+                            }`}
+                          >
+                            {isChecked && <Check className="h-3 w-3 stroke-[2.75]" />}
+                          </span>
+                        </span>
+
+                        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-[11px] bg-[#F4F5F7] ring-1 ring-black/5">
                           {thumb ? (
                             <img src={thumb} alt="" className="h-full w-full object-cover" />
                           ) : (
                             <Music className="h-4 w-4 text-[#A6AAB2]" />
                           )}
                         </span>
-                        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                          <span className="truncate text-[12px] font-semibold text-[#1C1D22]">
+
+                        <span className="flex min-w-0 flex-1 flex-col gap-1">
+                          <span className="truncate text-[12.5px] font-semibold text-[#1C1D22]">
                             {title}
                           </span>
-                          {meta && (
-                            <span className="truncate font-mono text-[10.5px] text-[#71757E]">
-                              {meta}
+                          {(track.isrc || upc) && (
+                            <span className="flex flex-wrap items-center gap-1.5">
+                              {track.isrc && (
+                                <span className="rounded-md bg-[#F4F5F7] px-1.5 py-0.5 font-mono text-[10px] text-[#71757E]">
+                                  ISRC {track.isrc}
+                                </span>
+                              )}
+                              {upc && (
+                                <span className="rounded-md bg-[#F4F5F7] px-1.5 py-0.5 font-mono text-[10px] text-[#71757E]">
+                                  UPC {upc}
+                                </span>
+                              )}
                             </span>
                           )}
                         </span>
@@ -356,7 +371,7 @@ export function InviteAlbumCollaboratorModal({
               {tracks.length > 4 && (
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-1 bottom-0 h-8 rounded-b-[16px] bg-gradient-to-t from-[#F4F5F7] to-transparent"
+                  className="pointer-events-none absolute inset-x-1 bottom-0 h-8 rounded-b-[18px] bg-gradient-to-t from-[#F8F9FA] to-transparent"
                 />
               )}
             </div>
