@@ -26,7 +26,7 @@ export const useSplitPayments = () => {
       if (response.error) {
         setError(response.message || "Error al obtener los pagos");
       } else {
-        setPayments(response.data || []);
+        setPayments(Array.isArray(response.data) ? response.data : []);
         setError(null);
       }
     } catch (err) {
@@ -37,7 +37,7 @@ export const useSplitPayments = () => {
   };
 
   const getTotalAmount = () => {
-    return payments.reduce((sum, payment) => sum + payment.amount, 0);
+    return payments.reduce((sum, payment) => sum + (Number(payment?.amount) || 0), 0);
   };
 
   return {

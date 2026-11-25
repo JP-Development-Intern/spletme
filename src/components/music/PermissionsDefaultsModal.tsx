@@ -35,9 +35,9 @@ const LABEL_OPTIONS: { key: PermissionGrantKey; label: string }[] = [
 ];
 
 const EMPTY_GRANTS: PermissionGrants = {
-  viewIncome: false,
-  viewStreams: false,
-  viewCollaborators: false,
+  viewIncome: true,
+  viewStreams: true,
+  viewCollaborators: true,
   viewDocuments: false,
   canEditSplits: false,
   canInviteCollaborators: false,
@@ -138,6 +138,7 @@ export function PermissionsDefaultsModal({ onClose }: PermissionsDefaultsModalPr
 
   return createPortal(
     <ModalShell
+      onGlass
       title="Plantilla de permisos"
       subtitle="Define qué podrán ver y hacer por defecto los nuevos invitados"
       width="lg"
@@ -170,13 +171,13 @@ export function PermissionsDefaultsModal({ onClose }: PermissionsDefaultsModalPr
           onClick={() => setRole("collaborator")}
           className={`flex items-center gap-2.5 rounded-2xl px-4 py-3 text-left transition-colors ${
             role === "collaborator"
-              ? "border-[1.5px] border-[#FF5C00] bg-[#FFEADD]"
-              : "border border-[#E8E8EC] bg-white hover:border-[#D9DAE0]"
+              ? "border-[1.5px] border-[#FF8A3D]/50 bg-[#FF5C00]/[0.14]"
+              : "border border-white/[0.10] bg-white/[0.04] hover:border-white/[0.18]"
           }`}
         >
           <span
             className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[9px] ${
-              role === "collaborator" ? "bg-[#FF5C00] text-white" : "bg-[#F4F5F7] text-[#71757E]"
+              role === "collaborator" ? "bg-[#FF5C00] text-white" : "bg-white/[0.08] text-white/65"
             }`}
           >
             <Users className="h-3.5 w-3.5" />
@@ -184,12 +185,12 @@ export function PermissionsDefaultsModal({ onClose }: PermissionsDefaultsModalPr
           <span className="flex min-w-0 flex-1 flex-col">
             <span
               className={`text-[12.5px] font-semibold ${
-                role === "collaborator" ? "text-[#EA580C]" : "text-[#1C1D22]"
+                role === "collaborator" ? "text-[#FFB48A]" : "text-white"
               }`}
             >
               Colaboradores
             </span>
-            <span className="text-[10.5px] text-[#71757E]">Solo permisos de lectura</span>
+            <span className="text-[10.5px] text-white/55">Solo permisos de lectura</span>
           </span>
         </button>
 
@@ -201,13 +202,13 @@ export function PermissionsDefaultsModal({ onClose }: PermissionsDefaultsModalPr
           onClick={() => setRole("label")}
           className={`flex items-center gap-2.5 rounded-2xl px-4 py-3 text-left transition-colors ${
             role === "label"
-              ? "border-[1.5px] border-[#FF5C00] bg-[#FFEADD]"
-              : "border border-[#E8E8EC] bg-white hover:border-[#D9DAE0]"
+              ? "border-[1.5px] border-[#FF8A3D]/50 bg-[#FF5C00]/[0.14]"
+              : "border border-white/[0.10] bg-white/[0.04] hover:border-white/[0.18]"
           }`}
         >
           <span
             className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[9px] ${
-              role === "label" ? "bg-[#FF5C00] text-white" : "bg-[#F4F5F7] text-[#71757E]"
+              role === "label" ? "bg-[#FF5C00] text-white" : "bg-white/[0.08] text-white/65"
             }`}
           >
             <Tag className="h-3.5 w-3.5" />
@@ -215,12 +216,12 @@ export function PermissionsDefaultsModal({ onClose }: PermissionsDefaultsModalPr
           <span className="flex min-w-0 flex-1 flex-col">
             <span
               className={`text-[12.5px] font-semibold ${
-                role === "label" ? "text-[#EA580C]" : "text-[#1C1D22]"
+                role === "label" ? "text-[#FFB48A]" : "text-white"
               }`}
             >
               Sellos
             </span>
-            <span className="text-[10.5px] text-[#71757E]">Lectura y gestión</span>
+            <span className="text-[10.5px] text-white/55">Lectura y gestión</span>
           </span>
         </button>
       </div>
@@ -228,7 +229,7 @@ export function PermissionsDefaultsModal({ onClose }: PermissionsDefaultsModalPr
       {error && (
         <div
           role="alert"
-          className="flex items-center gap-2.5 rounded-[14px] border border-[#F5C2C4] bg-[#FDECEC] px-3.5 py-2.5 text-[12px] font-medium text-[#E5484D]"
+          className="flex items-center gap-2.5 rounded-[14px] border border-[#E5484D]/30 bg-[#E5484D]/[0.14] px-3.5 py-2.5 text-[12px] font-medium text-[#FF8F92]"
         >
           <TriangleAlert className="h-4 w-4 flex-shrink-0" />
           <span>{error}</span>
@@ -236,18 +237,18 @@ export function PermissionsDefaultsModal({ onClose }: PermissionsDefaultsModalPr
       )}
 
       {feedback && (
-        <div className="flex items-center gap-2.5 rounded-[14px] bg-[#E4F5EC] px-3.5 py-2.5 text-[12px] font-medium text-[#1F7D58]">
-          <Check className="h-4 w-4 flex-shrink-0 text-[#2FB37E]" />
+        <div className="flex items-center gap-2.5 rounded-[14px] border border-[#45D39A]/25 bg-[#45D39A]/[0.12] px-3.5 py-2.5 text-[12px] font-medium text-[#45D39A]">
+          <Check className="h-4 w-4 flex-shrink-0" />
           <span>{feedback}</span>
         </div>
       )}
 
       {loading ? (
         <div className="flex flex-col gap-2">
-          <div className="h-[112px] animate-pulse rounded-[20px] bg-[#F4F5F7]" />
+          <div className="h-[112px] animate-pulse rounded-[20px] bg-white/[0.06]" />
         </div>
       ) : (
-        <div className="flex flex-col gap-4 rounded-[20px] border border-[#E8E8EC] bg-[#F8F9FA] p-4">
+        <div className="flex flex-col gap-4 rounded-[20px] border border-white/[0.09] bg-white/[0.04] p-4">
           <div className="flex flex-col gap-2">
             <FieldLabel>PERMISOS DE LECTURA</FieldLabel>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -283,10 +284,10 @@ export function PermissionsDefaultsModal({ onClose }: PermissionsDefaultsModalPr
       )}
 
       {/* Propagar a existentes */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-[#E8E8EC] bg-white px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-white/[0.09] bg-white/[0.04] px-4 py-3">
         <div className="min-w-0 flex-1">
-          <p className="text-[12.5px] font-semibold text-[#1C1D22]">Aplicar a existentes</p>
-          <p className="text-[11px] text-[#71757E]">
+          <p className="text-[12.5px] font-semibold text-white">Aplicar a existentes</p>
+          <p className="text-[11px] text-white/60">
             Actualiza el permiso global de todos los{" "}
             {role === "label" ? "sellos" : "colaboradores"} actuales con esta plantilla.
           </p>
@@ -295,12 +296,12 @@ export function PermissionsDefaultsModal({ onClose }: PermissionsDefaultsModalPr
           type="button"
           onClick={handleApplyToExisting}
           disabled={busy}
-          className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-[#E8E8EC] bg-[#F4F5F7] px-3.5 py-2 text-[11.5px] font-semibold text-[#1C1D22] transition-colors enabled:hover:bg-[#E8E8EC] disabled:opacity-50"
+          className="glass-control flex flex-shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[11.5px] font-semibold text-white transition-colors enabled:hover:bg-white/[0.12] disabled:opacity-50"
         >
           {applying ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-[#FF8A3D]" />
           ) : (
-            <RefreshCw className="h-3.5 w-3.5 text-[#71757E]" />
+            <RefreshCw className="h-3.5 w-3.5 text-white/70" />
           )}
           {applying ? "Aplicando…" : "Aplicar a todos"}
         </button>

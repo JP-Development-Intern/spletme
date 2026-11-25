@@ -3,6 +3,7 @@ import {
   SongSplitsPanel,
   type SplitsPanelSection,
 } from "@/components/splits/SongSplitsPanel";
+import { RequestEditSplitButton } from "@/components/music/RequestEditSplitButton";
 import PaymentConfirmationModal from "../../../../../components/modal/PaymentConfirmationModal";
 import CollaboratorPaymentHistoryModal from "../../../../../components/modal/CollaboratorPaymentHistoryModal";
 import { CollaboratorDetailModal } from "../../../../../components/collaborators/CollaboratorDetailModal";
@@ -441,7 +442,23 @@ export default function Table({
   const balanced = Math.round(assigned) === 100;
   const overflow = Math.round(assigned) > 100;
 
-  const canManageSplits = song?.requesterRole === "owner" || song?.requesterRole === "label";
+  const songPerms = song as
+    | (Song & { canEditSplits?: boolean; permissions?: { canEditSplits?: boolean } })
+    | undefined;
+  const labelCanEditSplits =
+    songPerms?.canEditSplits ??
+    songPerms?.permissions?.canEditSplits ??
+    song?.requesterRole === "label";
+  const canManageSplits =
+    song?.requesterRole === "owner" || (isLabelUser && Boolean(labelCanEditSplits));
+  const currentUserId = String(currentUser?._id ?? currentUser?.id ?? currentUser?.userId ?? "");
+  const currentUserEmail = String(currentUser?.email ?? "").toLowerCase();
+  const collaboratorRows = rows.filter((row) => !row.isOwnerRow);
+  const isOnlySelfView =
+    !isOwner &&
+    collaboratorRows.length === 1 &&
+    ((currentUserId !== "" && collaboratorRows[0].userId === currentUserId) ||
+      (currentUserEmail !== "" && collaboratorRows[0].email.toLowerCase() === currentUserEmail));
 
   return (
     <>
@@ -529,28 +546,41 @@ export default function Table({
         <header className="flex flex-wrap items-center justify-between gap-3.5 px-6 py-5">
           <div className="flex flex-col gap-0.5">
             <h3 className="font-display text-[19px] font-medium tracking-[-0.005em] text-white">
-              Quién cobra de esta canción
+              {isOnlySelfView ? "Tu split en esta canción" : "Quién cobra de esta canción"}
             </h3>
             <p
               className={`text-[12.5px] font-medium ${
-                hasPeriods ? "text-white/65" : balanced ? "text-[#45D39A]" : "text-[#FF8A3D]"
+                isOnlySelfView || hasPeriods
+                  ? "text-white/65"
+                  : balanced
+                    ? "text-[#45D39A]"
+                    : "text-[#FF8A3D]"
               }`}
             >
-              {rows.length === 0
-                ? "Todavía no hay nadie asignado"
-                : !hasCollaboratorRows
-                  ? "Solo cobras tú · aún no reparte con nadie"
-                  : hasPeriods
-                    ? "El reparto cambia según el mes · hay splits con tramos por fechas"
-                    : overflow
-                      ? `Los colaboradores suman ${Math.round(assigned)}%: se pasan del 100%`
-                      : balanced
-                        ? "El 100% está repartido · no sobra nada"
-                        : `Falta repartir ${Math.max(0, 100 - Math.round(assigned))}%`}
+              {isOnlySelfView
+                ? "Solo tienes acceso a tu propio registro"
+                : rows.length === 0
+                  ? "Todavía no hay nadie asignado"
+                  : !hasCollaboratorRows
+                    ? "Solo cobras tú · aún no reparte con nadie"
+                    : hasPeriods
+                      ? "El reparto cambia según el mes · hay splits con tramos por fechas"
+                      : overflow
+                        ? `Los colaboradores suman ${Math.round(assigned)}%: se pasan del 100%`
+                        : balanced
+                          ? "El 100% está repartido · no sobra nada"
+                          : `Falta repartir ${Math.max(0, 100 - Math.round(assigned))}%`}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            {isLabelUser && !canManageSplits && songId && (
+              <RequestEditSplitButton
+                resourceType="song"
+                resourceId={songId}
+                onToast={addToast}
+              />
+            )}
             {/* Un solo acceso: tu parte, el reparto, invitar y las personas sin
                 cuenta están en el mismo panel, cada una en su sección. */}
             {(canManageSplits || isOwner) && (
@@ -816,31 +846,37 @@ export default function Table({
             <div className="h-px bg-white/[0.09]" />
 
             <footer className="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5">
-              <span className="flex items-center gap-2.5">
-                {hasPeriods ? (
-                  <CalendarRange className="h-3.5 w-3.5 text-[#FF8A3D]" />
-                ) : balanced ? (
-                  <CircleCheck className="h-3.5 w-3.5 text-[#45D39A]" />
-                ) : (
-                  <AlertCircle className="h-3.5 w-3.5 text-[#FF8A3D]" />
-                )}
-                <span
-                  className={`text-[12px] font-semibold ${
-                    hasPeriods ? "text-white/65" : balanced ? "text-[#45D39A]" : "text-[#FF8A3D]"
-                  }`}
-                >
-                  {hasPeriods
-                    ? "El reparto varía por mes"
-                    : `${Math.round(assigned)}% repartido entre colaboradores`}
-                </span>
-                <span className="text-[12px] text-white/50">·</span>
+              {isOnlySelfView ? (
                 <span className="text-[12px] text-white/65">
-                  {rows.length} {rows.length === 1 ? "participante" : "participantes"}
-                  {isOwner && distributable > 0
-                    ? ` sobre ${formatMoney(distributable)} repartibles`
-                    : ""}
+                  Tu participación en esta canción
                 </span>
-              </span>
+              ) : (
+                <span className="flex items-center gap-2.5">
+                  {hasPeriods ? (
+                    <CalendarRange className="h-3.5 w-3.5 text-[#FF8A3D]" />
+                  ) : balanced ? (
+                    <CircleCheck className="h-3.5 w-3.5 text-[#45D39A]" />
+                  ) : (
+                    <AlertCircle className="h-3.5 w-3.5 text-[#FF8A3D]" />
+                  )}
+                  <span
+                    className={`text-[12px] font-semibold ${
+                      hasPeriods ? "text-white/65" : balanced ? "text-[#45D39A]" : "text-[#FF8A3D]"
+                    }`}
+                  >
+                    {hasPeriods
+                      ? "El reparto varía por mes"
+                      : `${Math.round(assigned)}% repartido entre colaboradores`}
+                  </span>
+                  <span className="text-[12px] text-white/50">·</span>
+                  <span className="text-[12px] text-white/65">
+                    {rows.length} {rows.length === 1 ? "participante" : "participantes"}
+                    {isOwner && distributable > 0
+                      ? ` sobre ${formatMoney(distributable)} repartibles`
+                      : ""}
+                  </span>
+                </span>
+              )}
               <span className="text-[11px] text-white/50">
                 El alcance limita en qué países o plataformas aplica cada split
               </span>

@@ -27,6 +27,7 @@ import CreateSplitsByCustomLabelModal from "@/components/modal/CreateSplitsByCus
 import CreateLabelModal from "@/components/labels/CreateLabelModal";
 import EditLabelModal from "@/components/labels/EditLabelModal";
 import InviteCollaboratorToLabelModal from "@/components/labels/InviteCollaboratorToLabelModal";
+import { PermissionsModal } from "@/components/music/PermissionsModal";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function LabelsTable() {
@@ -53,6 +54,7 @@ export default function LabelsTable() {
   const [editing, setEditing] = useState<LabelListItem | null>(null);
   const [deleting, setDeleting] = useState<LabelListItem | null>(null);
   const [inviting, setInviting] = useState<LabelListItem | null>(null);
+  const [permissionsTarget, setPermissionsTarget] = useState<LabelListItem | null>(null);
 
   const isEmpty = allItems.length === 0;
   const showToPay = viewerIsAccountOwner();
@@ -170,6 +172,7 @@ export default function LabelsTable() {
                   onEdit={setEditing}
                   onInvite={setInviting}
                   onDelete={setDeleting}
+                  onPermissions={setPermissionsTarget}
                 />
                 <div className="h-px bg-white/[0.09]" />
                 <div className="px-5 py-3.5">
@@ -261,6 +264,15 @@ export default function LabelsTable() {
           onSuccess={reload}
         />
       )}
+
+      {permissionsTarget && (
+        <PermissionsModal
+          resourceType={permissionsTarget.isCustom ? "customLabel" : "label"}
+          resourceId={permissionsTarget.isCustom ? permissionsTarget.id : permissionsTarget.name}
+          title={permissionsTarget.name}
+          onClose={() => setPermissionsTarget(null)}
+        />
+      )}
     </>
   );
 }
@@ -279,12 +291,14 @@ function LabelSections({
   onEdit,
   onInvite,
   onDelete,
+  onPermissions,
 }: {
   items: LabelListItem[];
   onCreateSplits: (item: LabelListItem) => void;
   onEdit: (item: LabelListItem) => void;
   onInvite: (item: LabelListItem) => void;
   onDelete: (item: LabelListItem) => void;
+  onPermissions: (item: LabelListItem) => void;
 }) {
   const custom = items.filter((item) => item.isCustom);
   const artistic = items.filter((item) => !item.isCustom);
@@ -331,6 +345,7 @@ function LabelSections({
                 onEdit={onEdit}
                 onInvite={onInvite}
                 onDelete={onDelete}
+                onPermissions={onPermissions}
               />
             ))}
           </div>

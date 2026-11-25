@@ -44,12 +44,19 @@ export function useHomeDashboard() {
     const res = await SongService.getSongsByParams(timeframe);
     // La carga termina junto con los datos, en el mismo render: si se apagara
     // antes, el gráfico pintaría «Sin datos» un fotograma.
-    if (res?.summary) setApiSummary(res.summary);
+    if (res?.summary) {
+      setApiSummary({
+        totalStreams: Number(res.summary.totalStreams ?? 0) || 0,
+        totalNetIncome: Number(res.summary.totalNetIncome ?? 0) || 0,
+        matchingReleases: Number(res.summary.matchingReleases ?? 0) || 0,
+        songsWithMatches: Number(res.summary.songsWithMatches ?? 0) || 0,
+      });
+    }
     if (res) {
       setDataPoints((res.data ?? []).map((row) => ({
         date:    row.date,
-        streams: row.totalStreams,
-        income:  row.totalNetIncome,
+        streams: Number(row.totalStreams ?? 0) || 0,
+        income:  Number(row.totalNetIncome ?? 0) || 0,
       })));
     }
     setLoading(false);
@@ -59,7 +66,7 @@ export function useHomeDashboard() {
     fetchData(selectedTimeframe);
   }, [selectedTimeframe, fetchData]);
 
-  const netBalance = apiSummary.totalNetIncome - totalAmount;
+  const netBalance = (Number(apiSummary.totalNetIncome) || 0) - (Number(totalAmount) || 0);
 
   return {
     user,

@@ -19,6 +19,7 @@ import { CollaboratorsSummaryStrip } from "@/components/collaborators/Collaborat
 import { CollaboratorDial, type MoneyView } from "@/components/collaborators/CollaboratorDial";
 import { CollaboratorSongsPanel } from "@/components/collaborators/CollaboratorSongsPanel";
 import { CollaboratorsList } from "@/components/collaborators/CollaboratorsList";
+import { PermissionsHubPanel } from "@/components/collaborators/PermissionsHubPanel";
 import { CollaboratorDetailModal } from "@/components/collaborators/CollaboratorDetailModal";
 import {
   CollaboratorPaymentModal,
@@ -41,13 +42,19 @@ import type { Collaborator } from "@/types";
  */
 export default function Collaborators() {
   const [params, setParams] = useSearchParams();
-  const layout = params.get("layout") === "list" ? "list" : "dial";
-  const setLayout = (next: "dial" | "list") =>
+  const rawLayout = params.get("layout");
+  const layout =
+    rawLayout === "list"
+      ? "list"
+      : rawLayout === "permissions"
+        ? "permissions"
+        : "dial";
+  const setLayout = (next: "dial" | "list" | "permissions") =>
     setParams(
       (prev) => {
         const nextParams = new URLSearchParams(prev);
-        if (next === "list") nextParams.set("layout", "list");
-        else nextParams.delete("layout");
+        if (next === "dial") nextParams.delete("layout");
+        else nextParams.set("layout", next);
         return nextParams;
       },
       { replace: true },
@@ -173,7 +180,7 @@ export default function Collaborators() {
             </button>
           </>
         )}
-        {collaborators.length > 0 && (
+        {(collaborators.length > 0 || isOwnerAccount) && (
           <div
             role="group"
             aria-label="Forma de ver a los colaboradores"
@@ -185,6 +192,15 @@ export default function Collaborators() {
             <LayoutButton active={layout === "list"} onClick={() => setLayout("list")} label="Lista">
               <Rows3 className="h-4 w-4" />
             </LayoutButton>
+            {isOwnerAccount && (
+              <LayoutButton
+                active={layout === "permissions"}
+                onClick={() => setLayout("permissions")}
+                label="Permisos"
+              >
+                <ShieldCheck className="h-4 w-4" />
+              </LayoutButton>
+            )}
           </div>
         )}
       </div>
@@ -202,7 +218,9 @@ export default function Collaborators() {
         </div>
       )}
 
-      {loading ? (
+      {isOwnerAccount && layout === "permissions" ? (
+        <PermissionsHubPanel />
+      ) : loading ? (
         <PageSkeleton />
       ) : collaborators.length === 0 ? (
         !error && <FirstCollaborator onInvite={canAddCollaborator ? () => setSidebarOpen(true) : undefined} />

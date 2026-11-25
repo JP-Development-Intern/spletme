@@ -134,34 +134,35 @@ interface CountUpProps {
  * otra entrada. Para el lector de pantalla solo existe el valor final.
  */
 export function CountUp({ value, format, at = 0, integer = false, className, style }: CountUpProps) {
+  const safeValue = Number.isFinite(value) ? value : 0;
   const { full, reduced, startedAt } = useDashboardIntro();
-  const motionValue = useMotionValue(reduced ? value : 0);
+  const motionValue = useMotionValue(reduced ? safeValue : 0);
   const display = useTransform(motionValue, (latest) => format(integer ? Math.round(latest) : latest));
   const counted = useRef(false);
 
   useEffect(() => {
     if (reduced) {
-      motionValue.set(value);
+      motionValue.set(safeValue);
       return;
     }
     // Mientras no llegan los datos el valor es 0: se espera al de verdad para
     // que la cuenta de entrada no se gaste en vacío.
-    if (!counted.current && value === 0) return;
+    if (!counted.current && safeValue === 0) return;
 
     const first = !counted.current;
     counted.current = true;
-    const controls = animate(motionValue, value, {
+    const controls = animate(motionValue, safeValue, {
       duration: first ? (full ? 1.2 : 0.5) : 0.6,
       delay: first && full ? remainingDelay(startedAt, at) : 0,
       ease: EASE_OUT,
     });
     return () => controls.stop();
-  }, [value, reduced, full, startedAt, at, motionValue]);
+  }, [safeValue, reduced, full, startedAt, at, motionValue]);
 
   return (
     <span className={className} style={style}>
       <motion.span aria-hidden="true">{display}</motion.span>
-      <span className="sr-only">{format(value)}</span>
+      <span className="sr-only">{format(safeValue)}</span>
     </span>
   );
 }

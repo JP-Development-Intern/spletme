@@ -19,6 +19,7 @@ import {
   Users,
 } from "lucide-react";
 import { PermissionsModal } from "@/components/music/PermissionsModal";
+import { RequestEditSplitButton } from "@/components/music/RequestEditSplitButton";
 import { useAlbums } from "@/hooks/useAlbums";
 import AlbumService from "@/services/albums";
 import SongService from "@/services/songs";
@@ -87,6 +88,12 @@ export default function AlbumDetail() {
   const isOwnerUser = useMemo(
     () => resolveIsOwner(album?.tracks?.[0], currentUser),
     [album, currentUser],
+  );
+  const isLabelAccount = String(currentUser?.role ?? "").toLowerCase() === "label";
+  const canLabelEditSplits = Boolean(
+    (album as { canEditSplits?: boolean; permissions?: { canEditSplits?: boolean } } | null)
+      ?.canEditSplits ??
+      (album as { permissions?: { canEditSplits?: boolean } } | null)?.permissions?.canEditSplits,
   );
   const [onlyWithoutSplit, setOnlyWithoutSplit] = useState(false);
   const [monthly, setMonthly] = useState<MonthlyMetric[]>([]);
@@ -414,11 +421,14 @@ export default function AlbumDetail() {
               {isOwnerUser && (
                 <button
                   onClick={() => setPermissionsOpen(true)}
-                  className="flex items-center gap-2 rounded-[22px] border border-[#E8E8EC] bg-white px-[18px] py-3 text-[12.5px] font-semibold text-[#1C1D22] transition-colors hover:bg-[#F4F5F7]"
+                  className="glass-control flex min-h-[44px] items-center gap-2 rounded-full px-[18px] py-[11px] text-[12.5px] font-semibold text-white transition-colors hover:bg-white/[0.12]"
                 >
-                  <ShieldCheck className="h-[15px] w-[15px] text-[#71757E]" />
+                  <ShieldCheck className="h-[15px] w-[15px] text-[#FF8A3D]" />
                   Permisos
                 </button>
+              )}
+              {isLabelAccount && !isOwnerUser && !canLabelEditSplits && upc && (
+                <RequestEditSplitButton resourceType="album" resourceId={upc} />
               )}
               {isOwnerUser && (
                 <button

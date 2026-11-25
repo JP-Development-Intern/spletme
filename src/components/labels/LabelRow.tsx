@@ -10,6 +10,7 @@ import {
   UserPlus,
   Trash2,
   Users,
+  ShieldCheck,
 } from "lucide-react";
 import { formatCurrency } from "@/utils/format.utils";
 import { viewerIsAccountOwner } from "@/utils/ownerVisibility";
@@ -24,6 +25,7 @@ interface LabelRowProps {
   onEdit: (item: LabelListItem) => void;
   onInvite: (item: LabelListItem) => void;
   onDelete: (item: LabelListItem) => void;
+  onPermissions?: (item: LabelListItem) => void;
 }
 
 /** Hasta un decimal, sin ceros sobrantes: 50 → «50», 33.333 → «33.3». */
@@ -48,7 +50,14 @@ function labelPath(item: LabelListItem): string {
  * Solo se ve una acción, la que toca ahora —repartir lo que falta—; el resto
  * viven en el menú. Antes competían cuatro botones del mismo peso en cada fila.
  */
-export function LabelRow({ item, onCreateSplits, onEdit, onInvite, onDelete }: LabelRowProps) {
+export function LabelRow({
+  item,
+  onCreateSplits,
+  onEdit,
+  onInvite,
+  onDelete,
+  onPermissions,
+}: LabelRowProps) {
   const navigate = useNavigate();
   const to = labelPath(item);
   const { coverage } = item;
@@ -189,6 +198,23 @@ export function LabelRow({ item, onCreateSplits, onEdit, onInvite, onDelete }: L
           <span className="font-mono text-[14px] text-white">
             {formatCurrency(item.totalToPay)}
           </span>
+        </div>
+      )}
+
+      {/* Permisos: solo el owner */}
+      {showToPay && (
+        <div className={visibility("permissions")} onClick={(e) => e.stopPropagation()}>
+          {onPermissions && (
+            <button
+              onClick={() => onPermissions(item)}
+              title="Elegir qué ve cada colaborador y sello"
+              aria-label={`Permisos de ${item.name}`}
+              className="flex items-center gap-1.5 rounded-[15px] bg-white/[0.06] px-3 py-1.5 text-[11.5px] font-semibold text-white/70 transition-colors hover:bg-white/[0.12] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70"
+            >
+              <ShieldCheck className="h-3.5 w-3.5 flex-shrink-0" />
+              Permisos
+            </button>
+          )}
         </div>
       )}
 

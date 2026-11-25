@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
-import { Globe, Bell, ChevronDown, User, Users, UserPlus, LogOut } from "lucide-react";
+import { Globe, ChevronDown, User, Users, UserPlus, LogOut } from "lucide-react";
 import LocalStorageService from "../../services/localstorage";
 import { AuthService } from "@/services/auth";
 import GlobalSearch from "./GlobalSearch";
+import { PermissionsNotificationsBell } from "./PermissionsNotificationsBell";
 
 interface NavbarProps {
   onSwitchUser?: () => void;
@@ -61,13 +62,7 @@ export default function Navbar({ onSwitchUser, headerSlotRef }: NavbarProps) {
           <ChevronDown className="h-[13px] w-[13px] text-white/50" />
         </button>
 
-        <button
-          aria-label="Notificaciones"
-          className="glass-control relative flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-white/[0.12]"
-        >
-          <Bell className="h-[18px] w-[18px] text-white" />
-          <span className="absolute right-[9px] top-[11px] h-[9px] w-[9px] rounded-full bg-[#FF5C00]" />
-        </button>
+        <PermissionsNotificationsBell />
 
         <div className="relative" ref={menuRef}>
           <button

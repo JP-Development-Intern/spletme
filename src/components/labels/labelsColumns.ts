@@ -22,14 +22,14 @@ export type LabelSortBy =
  * la rejilla tiene dos variantes y quien no es owner no deja una celda vacía.
  */
 const GRID_BASE =
-  "grid items-center gap-3 grid-cols-[minmax(0,1fr)_120px_104px] " +
-  "md:grid-cols-[minmax(0,1fr)_86px_120px_104px] ";
+  "grid items-center gap-3 grid-cols-[minmax(0,1fr)_110px_140px] " +
+  "md:grid-cols-[minmax(0,1fr)_80px_110px_152px] ";
 
 export const labelsGrid = (showToPay: boolean): string =>
   GRID_BASE +
   (showToPay
-    ? "lg:grid-cols-[minmax(0,1fr)_86px_172px_110px_96px_120px_120px_120px_104px_104px]"
-    : "lg:grid-cols-[minmax(0,1fr)_86px_172px_110px_96px_120px_120px_104px]");
+    ? "lg:grid-cols-[minmax(150px,1fr)_76px_148px_96px_84px_108px_108px_104px_96px_108px_172px]"
+    : "lg:grid-cols-[minmax(150px,1fr)_76px_148px_96px_84px_108px_108px_172px]");
 
 export interface LabelColumn {
   key: string;
@@ -75,6 +75,12 @@ export const LABEL_COLUMNS: LabelColumn[] = [
     label: "A PAGAR",
     visibility: "hidden lg:flex",
     sortKeys: ["topay_desc"],
+    ownerOnly: true,
+  },
+  {
+    key: "permissions",
+    label: "PERMISOS",
+    visibility: "hidden lg:flex",
     ownerOnly: true,
   },
 ];

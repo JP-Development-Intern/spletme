@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import LocalStorageService from "@/services/localstorage";
 import { PermissionsModal } from "@/components/music/PermissionsModal";
+import { RequestEditSplitButton } from "@/components/music/RequestEditSplitButton";
 import { useLabelSongs } from "@/hooks/useLabels";
 import { toCoverage, pendingToPay } from "@/hooks/useLabelsLibrary";
 import { formatCurrency, formatStreams } from "@/utils/format.utils";
@@ -100,6 +101,10 @@ export default function LabelDetail() {
   const userRole = String(currentUser?.role ?? "").toLowerCase();
   const isOwnerAccount =
     !currentUser?.parentUserId && userRole !== "label" && userRole !== "collaborator";
+  const isLabelAccount = userRole === "label";
+  const canLabelEditSplits = Boolean(
+    (artisticLabel as { canEditSplits?: boolean } | null)?.canEditSplits,
+  );
 
   const totals = useMemo(() => {
     let streams = 0;
@@ -206,8 +211,8 @@ export default function LabelDetail() {
         </nav>
 
         {/* Identidad */}
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-          <div className="flex min-w-0 items-center gap-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 items-center gap-4 lg:max-w-[360px]">
             <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-[18px] bg-[#FF5C00]/[0.16] ring-1 ring-[#FF8A3D]/30">
               <Tag className="h-6 w-6 text-[#FF8A3D]" />
             </span>
@@ -241,11 +246,17 @@ export default function LabelDetail() {
               <button
                 onClick={() => setPermissionsOpen(true)}
                 disabled={songs.length === 0}
-                className="flex items-center gap-2 rounded-[22px] border border-[#E8E8EC] bg-white px-[18px] py-3 text-[12.5px] font-semibold text-[#1C1D22] transition-colors enabled:hover:bg-[#F4F5F7] disabled:cursor-not-allowed disabled:text-[#A6AAB2]"
+                className="glass-control flex min-h-[44px] items-center gap-2 rounded-full px-[18px] py-[11px] text-[12.5px] font-semibold text-white transition-colors enabled:hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 disabled:cursor-not-allowed disabled:text-white/40"
               >
-                <ShieldCheck className="h-[15px] w-[15px] text-[#71757E]" />
+                <ShieldCheck className="h-[15px] w-[15px] text-[#FF8A3D]" />
                 Permisos
               </button>
+            )}
+            {isLabelAccount && !canLabelEditSplits && (labelName || decodedLabel) && (
+              <RequestEditSplitButton
+                resourceType="label"
+                resourceId={labelName || decodedLabel}
+              />
             )}
             <button
               onClick={() => setCollabSplitOpen(true)}
@@ -474,8 +485,8 @@ export default function LabelDetail() {
       {permissionsOpen && (
         <PermissionsModal
           resourceType="label"
-          resourceId={decodedLabel}
-          title={decodedLabel}
+          resourceId={labelName || decodedLabel}
+          title={labelName || decodedLabel}
           onClose={() => setPermissionsOpen(false)}
         />
       )}

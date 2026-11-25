@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import LocalStorageService from "@/services/localstorage";
 import { PermissionsModal } from "@/components/music/PermissionsModal";
+import { RequestEditSplitButton } from "@/components/music/RequestEditSplitButton";
 import { useCustomLabelSongs } from "@/hooks/useLabels";
 import { useLabelsLibrary, toCoverage, pendingToPay } from "@/hooks/useLabelsLibrary";
 import { viewerOwnsAllSongs } from "@/utils/ownerVisibility";
@@ -40,6 +41,10 @@ export default function CustomLabelDetail() {
   const userRole = String(currentUser?.role ?? "").toLowerCase();
   const isOwnerAccount =
     !currentUser?.parentUserId && userRole !== "label" && userRole !== "collaborator";
+  const isLabelAccount = userRole === "label";
+  const canLabelEditSplits = Boolean(
+    (customLabel as { canEditSplits?: boolean } | null)?.canEditSplits,
+  );
 
   // La lista completa da las métricas de cada sello agrupado: son las mismas que
   // ya se ven en la tabla de Sellos, aquí puestas donde se decide.
@@ -144,6 +149,12 @@ export default function CustomLabelDetail() {
             <ShieldCheck className="h-[15px] w-[15px] text-[#FF8A3D]" />
             Permisos
           </button>
+        )}
+        {isLabelAccount && !canLabelEditSplits && customLabel?._id && (
+          <RequestEditSplitButton
+            resourceType="customLabel"
+            resourceId={customLabel._id}
+          />
         )}
       </div>
 
