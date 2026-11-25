@@ -32,6 +32,7 @@ interface SongSplitsPanelProps {
   canInvite: boolean;
   canAddPlaceholders: boolean;
   onOwnerSplitCreated: () => void;
+  onSplitsSaved?: () => void | Promise<void>;
   onPlaceholderAttached: () => void;
   onCollaboratorAdded: () => void;
 }
@@ -76,6 +77,7 @@ export function SongSplitsPanel({
   canInvite,
   canAddPlaceholders,
   onOwnerSplitCreated,
+  onSplitsSaved,
   onPlaceholderAttached,
   onCollaboratorAdded,
 }: SongSplitsPanelProps) {
@@ -347,7 +349,6 @@ export function SongSplitsPanel({
                       song={song}
                       onSplitCreated={onOwnerSplitCreated}
                       onCancel={onClose}
-                      onDone={onClose}
                     />
                   )}
 
@@ -369,6 +370,7 @@ export function SongSplitsPanel({
                         releaseMonth={releaseMonth}
                         isOpen={isOpen}
                         onCancel={onClose}
+                        onSaved={onSplitsSaved}
                       />
                     ))}
 

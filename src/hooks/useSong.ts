@@ -11,12 +11,11 @@ const UseSong = ({ id }: { id: string }) => {
   const [song, setSong] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  const getSong = async (songId: string) => {
-    console.log("getSong llamado con id:", songId);
-    setLoading(true);
+  const getSong = async (songId: string, silent = false) => {
+    if (!silent) setLoading(true);
     const response = await songs.getSong(songId);
-    setSong(response.data);
-    setLoading(false);
+    if (response?.data) setSong(response.data);
+    if (!silent) setLoading(false);
   };
 
   const getOwnerId = () => song?.ownerId || null;

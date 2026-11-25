@@ -9,7 +9,6 @@ import {
   HandCoins,
   LayoutDashboard,
   Receipt,
-  GitBranch,
   FolderOpen,
   CircleAlert,
   Clock3,
@@ -53,11 +52,11 @@ import ValidationToastQueue, {
   type ValidationToastType,
 } from "@/components/alert/ValidationToastQueue";
 
-type TabKey = "resumen" | "colaboradores" | "pagos" | "splits" | "documentos";
+type TabKey = "resumen" | "colaboradores" | "pagos" | "documentos";
 
 export default function Song() {
   const { id = "" } = useParams();
-  const { song, loading, getOwnerPercentage, getOwnerTotalOwed } = useSong({ id });
+  const { song, getSong, loading, getOwnerPercentage, getOwnerTotalOwed } = useSong({ id });
   const songAlbums = useSongAlbums(id);
   const rawReleaseDate = getSongReleaseDate(song);
   const releaseDate = rawReleaseDate ? formatReleaseDate(rawReleaseDate) : null;
@@ -146,22 +145,13 @@ export default function Song() {
       ? [
           {
             key: "colaboradores" as const,
-            label: "Colaboradores",
+            label: "Colaboradores y Splits",
             icon: <Users className="h-[15px] w-[15px]" />,
             count: collaboratorCount,
           },
         ]
       : []),
     { key: "pagos", label: "Pagos", icon: <Receipt className="h-[15px] w-[15px]" /> },
-    ...(hasCollaboratorsAccess
-      ? [
-          {
-            key: "splits" as const,
-            label: "Splits",
-            icon: <GitBranch className="h-[15px] w-[15px]" />,
-          },
-        ]
-      : []),
     { key: "documentos", label: "Documentos", icon: <FolderOpen className="h-[15px] w-[15px]" /> },
   ];
 
@@ -346,12 +336,27 @@ export default function Song() {
         )}
 
         {activeTab === "colaboradores" && hasCollaboratorsAccess && (
-          <Table
-            collaborators={song?.collaborators ?? []}
-            songId={id}
-            song={song}
-            isOwner={isOwnerUser}
-          />
+          <div className="grid grid-cols-1 gap-5 2xl:grid-cols-12 2xl:items-start">
+            <div className="min-w-0 2xl:col-span-7">
+              <Table
+                collaborators={song?.collaborators ?? []}
+                songId={id}
+                song={song}
+                isOwner={isOwnerUser}
+                onRefresh={() => {
+                  getSong(id, true);
+                  setRefreshKey((k) => k + 1);
+                }}
+              />
+            </div>
+            <div className="min-w-0 2xl:col-span-5">
+              <Historyofsplits
+                songId={id}
+                isOwner={isOwnerUser}
+                collaborators={song?.collaborators ?? []}
+              />
+            </div>
+          </div>
         )}
 
         {activeTab === "pagos" && (
@@ -374,14 +379,6 @@ export default function Song() {
               />
             </div>
           </div>
-        )}
-
-        {activeTab === "splits" && hasCollaboratorsAccess && (
-          <Historyofsplits
-            songId={id}
-            isOwner={isOwnerUser}
-            collaborators={song?.collaborators ?? []}
-          />
         )}
 
         {activeTab === "documentos" && <DocumentManager songId={id} />}

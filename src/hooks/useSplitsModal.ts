@@ -24,6 +24,7 @@ interface UseSplitsModalParams {
    * anterior porque va abierto por la izquierda.
    */
   releaseMonth?: string | null;
+  onSaved?: () => void | Promise<void>;
 }
 
 /** Convierte strings crudos de la BD en opciones para react-select. */
@@ -76,6 +77,7 @@ export function useSplitsModal({
   collaborators,
   songId,
   releaseMonth = null,
+  onSaved,
 }: UseSplitsModalParams) {
   const [collaboratorForms, setCollaboratorForms] = useState<Record<string, CollaboratorFormData>>(
     {},
@@ -83,6 +85,7 @@ export function useSplitsModal({
   const [expandedCollaborators, setExpandedCollaborators] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   const { countryOptions, platformOptions, isLoadingFilters } = useReleaseFilters(songId, isOpen);
@@ -95,6 +98,7 @@ export function useSplitsModal({
   useEffect(() => {
     if (!isOpen) return;
     setErrorMessage(null);
+    setSuccessMessage(null);
 
     const initialForms: Record<string, CollaboratorFormData> = {};
 
@@ -280,6 +284,7 @@ export function useSplitsModal({
 
   const saveSplit = async () => {
     setErrorMessage(null);
+    setSuccessMessage(null);
     setIsLoading(true);
 
     try {
@@ -334,7 +339,8 @@ export function useSplitsModal({
         });
       }
 
-      setTimeout(() => window.location.reload(), 300);
+      await onSaved?.();
+      setSuccessMessage("Splits guardados correctamente.");
     } catch (error: unknown) {
       const err = error as {
         response?: {
@@ -380,6 +386,7 @@ export function useSplitsModal({
     countryOptions,
     platformOptions,
     errorMessage,
+    successMessage,
     collaboratorForms,
     expandedCollaborators,
     configuredCount,

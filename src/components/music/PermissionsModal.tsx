@@ -234,6 +234,7 @@ export function SwitchTile({
   checked,
   inherited,
   disabled,
+  onGlass = true,
   onChange,
 }: {
   label: string;
@@ -241,6 +242,7 @@ export function SwitchTile({
   /** Cuando viene definido, indica si el valor es heredado o fijado en este nivel. */
   inherited?: boolean;
   disabled?: boolean;
+  onGlass?: boolean;
   onChange: () => void;
 }) {
   return (
@@ -248,21 +250,39 @@ export function SwitchTile({
       className={`flex items-center justify-between gap-3 rounded-[14px] border px-3 py-2.5 transition-all ${
         disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"
       } ${
-        checked
-          ? "border-[#FF8A3D]/40 bg-[#FF5C00]/[0.12]"
-          : "border-white/[0.10] bg-white/[0.04] hover:border-white/[0.18]"
+        onGlass
+          ? checked
+            ? "border-[#FF8A3D]/40 bg-[#FF5C00]/[0.12]"
+            : "border-white/[0.10] bg-white/[0.04] hover:border-white/[0.18]"
+          : checked
+            ? "border-[#FF5C00]/35 bg-[#FFF8F3] shadow-[0_1px_4px_rgba(255,92,0,0.08)]"
+            : "border-[#E8E8EC] bg-white hover:border-[#D9DAE0]"
       }`}
     >
       <span className="flex min-w-0 flex-col gap-0.5">
         <span
-          className={`truncate text-[12px] font-medium ${checked ? "text-white" : "text-white/70"}`}
+          className={`truncate text-[12px] font-medium ${
+            onGlass
+              ? checked
+                ? "text-white"
+                : "text-white/70"
+              : checked
+                ? "text-[#1C1D22]"
+                : "text-[#71757E]"
+          }`}
         >
           {label}
         </span>
         {inherited !== undefined && (
           <span
             className={`font-mono text-[9.5px] ${
-              inherited ? "text-white/45" : "text-[#FF8A3D]"
+              inherited
+                ? onGlass
+                  ? "text-white/45"
+                  : "text-[#A6AAB2]"
+                : onGlass
+                  ? "text-[#FF8A3D]"
+                  : "text-[#FF5C00]"
             }`}
           >
             {inherited ? "Heredado" : "Personalizado"}
@@ -281,7 +301,7 @@ export function SwitchTile({
         <span
           aria-hidden="true"
           className={`flex h-5 w-9 items-center rounded-full p-0.5 transition-colors ${
-            checked ? "bg-[#FF5C00]" : "bg-white/[0.16]"
+            checked ? "bg-[#FF5C00]" : onGlass ? "bg-white/[0.16]" : "bg-[#D9DAE0]"
           }`}
         >
           <span

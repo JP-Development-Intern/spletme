@@ -135,6 +135,7 @@ interface SplitsEditorProps {
   /** Mientras está a la vista: el hook carga los splits y los filtros al abrirse. */
   isOpen: boolean;
   onCancel: () => void;
+  onSaved?: () => void | Promise<void>;
 }
 
 /**
@@ -149,6 +150,7 @@ export function SplitsEditor({
   releaseMonth = null,
   isOpen,
   onCancel,
+  onSaved,
 }: SplitsEditorProps) {
   const {
     isLoading,
@@ -156,6 +158,7 @@ export function SplitsEditor({
     countryOptions,
     platformOptions,
     errorMessage,
+    successMessage,
     expandedCollaborators,
     configuredCount,
     totalAssignedPercentage,
@@ -168,7 +171,7 @@ export function SplitsEditor({
     removePeriod,
     updatePeriod,
     saveSplit,
-  } = useSplitsModal({ isOpen, collaborators, songId, releaseMonth });
+  } = useSplitsModal({ isOpen, collaborators, songId, releaseMonth, onSaved });
 
   // El 100% que se reparte aquí es el del pool: lo que queda una vez descontado
   // el split del owner, que se cobra antes y no ocupa sitio en este reparto.
@@ -490,6 +493,12 @@ export function SplitsEditor({
             <div className="flex items-center gap-2.5 rounded-[14px] border border-[#E5484D]/30 bg-[#E5484D]/[0.14] px-3 py-2.5">
               <AlertCircle className="h-3.5 w-3.5 shrink-0 text-[#FF8F92]" />
               <span className="text-[11.5px] font-medium text-[#FF8F92]">{errorMessage}</span>
+            </div>
+          )}
+          {successMessage && (
+            <div className="flex items-center gap-2.5 rounded-[14px] border border-[#45D39A]/25 bg-[#45D39A]/[0.12] px-3 py-2.5">
+              <CircleCheck className="h-3.5 w-3.5 shrink-0 text-[#45D39A]" />
+              <span className="text-[11.5px] font-medium text-[#45D39A]">{successMessage}</span>
             </div>
           )}
           <div className="flex items-center gap-2.5">

@@ -12,9 +12,13 @@ import {
   Trash2,
   TriangleAlert,
   Wallet,
+  ShieldCheck,
 } from "lucide-react";
 import CollaboratorService from "@/services/collaborator";
 import { songSplitsService } from "@/services/songSplits";
+import { PermissionsService } from "@/services/permissions";
+import { SwitchTile } from "@/components/music/PermissionsModal";
+import type { PermissionGrantKey, PermissionGrantee } from "@/types/permissions.types";
 import { formatCurrency, formatStreams } from "@/utils/format.utils";
 import {
   STATE_META,
@@ -120,6 +124,19 @@ interface CollaboratorDetailModalProps {
   isOwner?: boolean;
 }
 
+const PERM_VIEW_OPTIONS: { key: PermissionGrantKey; label: string }[] = [
+  { key: "viewIncome", label: "Ver ingresos" },
+  { key: "viewStreams", label: "Ver streams" },
+  { key: "viewCollaborators", label: "Ver colaboradores" },
+  { key: "viewDocuments", label: "Ver documentos" },
+];
+
+const PERM_LABEL_OPTIONS: { key: PermissionGrantKey; label: string }[] = [
+  { key: "canEditSplits", label: "Editar splits" },
+  { key: "canInviteCollaborators", label: "Invitar colaboradores" },
+  { key: "canViewOwnerData", label: "Ver datos del owner" },
+];
+
 const PLATFORM_COLORS = ["#2FB37E", "#1C1D22", "#E5484D", "#0B7DDA", "#7C5CFF", "#A6AAB2"];
 
 const STATE_ICON: Record<CollaboratorState, React.ReactNode> = {
@@ -148,6 +165,8 @@ export function CollaboratorDetailModal({
   const [selectedSong, setSelectedSong] = useState<ApiSong | null>(null);
   const [history, setHistory] = useState<SplitHistoryEntry[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [globalGrantee, setGlobalGrantee] = useState<PermissionGrantee | null>(null);
+  const [globalPermLoading, setGlobalPermLoading] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -172,6 +191,51 @@ export function CollaboratorDetailModal({
       alive = false;
     };
   }, [collaborator.id]);
+
+  useEffect(() => {
+    if (!isOwner) return;
+    let alive = true;
+    setGlobalPermLoading(true);
+    PermissionsService.list("all", "*")
+      .then((list) => {
+        if (!alive) return;
+        const emailLower = (collaborator.email ?? "").toLowerCase();
+        const match =
+          list.find(
+            (g) =>
+              g.userId === collaborator.id ||
+              (emailLower !== "" && g.email?.toLowerCase() === emailLower),
+          ) ?? null;
+        setGlobalGrantee(match);
+      })
+      .catch(() => {
+        if (alive) setGlobalGrantee(null);
+      })
+      .finally(() => {
+        if (alive) setGlobalPermLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [collaborator.id, collaborator.email, isOwner]);
+
+  const toggleGlobalPermission = async (key: PermissionGrantKey) => {
+    if (!globalGrantee) return;
+    const next = !globalGrantee.grants[key];
+    const prev = globalGrantee;
+    setGlobalGrantee({
+      ...globalGrantee,
+      grants: { ...globalGrantee.grants, [key]: next },
+    });
+    try {
+      await PermissionsService.set("all", "*", globalGrantee.userId, {
+        ...globalGrantee.grants,
+        [key]: next,
+      });
+    } catch {
+      setGlobalGrantee(prev);
+    }
+  };
 
   useEffect(() => {
     if (!selectedSong) return;
@@ -225,7 +289,10 @@ export function CollaboratorDetailModal({
       <SongView
         song={selectedSong}
         metrics={metricsBySong.get(selectedSong.songId) ?? null}
+        collaboratorId={collaborator.id}
+        collaboratorEmail={collaborator.email}
         collaboratorName={collaborator.name}
+        isOwner={isOwner}
         history={history}
         historyLoading={historyLoading}
         onBack={() => setSelectedSong(null)}
@@ -400,6 +467,51 @@ export function CollaboratorDetailModal({
               </ul>
             )}
           </div>
+
+          {isOwner && (
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-[12.5px] font-semibold text-[#1C1D22]">
+                  <ShieldCheck className="h-4 w-4 text-[#FF5C00]" />
+                  Permisos globales del usuario
+                </span>
+                <span className="text-[11px] text-[#A6AAB2]">Todo tu catálogo</span>
+              </div>
+              {globalPermLoading ? (
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {[0, 1, 2, 3].map((i) => (
+                    <div key={i} className="h-[46px] animate-pulse rounded-[14px] bg-[#F4F5F7]" />
+                  ))}
+                </div>
+              ) : !globalGrantee ? (
+                <p className="rounded-[15px] bg-[#F4F5F7] px-4 py-4 text-[12px] text-[#71757E]">
+                  No hay permisos configurados para este usuario todavía.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {PERM_VIEW_OPTIONS.map(({ key, label }) => (
+                    <SwitchTile
+                      key={key}
+                      onGlass={false}
+                      label={label}
+                      checked={Boolean(globalGrantee.grants[key])}
+                      onChange={() => toggleGlobalPermission(key)}
+                    />
+                  ))}
+                  {globalGrantee.role === "label" &&
+                    PERM_LABEL_OPTIONS.map(({ key, label }) => (
+                      <SwitchTile
+                        key={key}
+                        onGlass={false}
+                        label={label}
+                        checked={Boolean(globalGrantee.grants[key])}
+                        onChange={() => toggleGlobalPermission(key)}
+                      />
+                    ))}
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
     </ModalShell>
@@ -411,7 +523,10 @@ export function CollaboratorDetailModal({
 function SongView({
   song,
   metrics,
+  collaboratorId,
+  collaboratorEmail,
   collaboratorName,
+  isOwner,
   history,
   historyLoading,
   onBack,
@@ -419,12 +534,63 @@ function SongView({
 }: {
   song: ApiSong;
   metrics: SongMetrics | null;
+  collaboratorId: string;
+  collaboratorEmail: string;
   collaboratorName: string;
+  isOwner: boolean;
   history: SplitHistoryEntry[];
   historyLoading: boolean;
   onBack: () => void;
   onClose: () => void;
 }) {
+  const [songGrantee, setSongGrantee] = useState<PermissionGrantee | null>(null);
+  const [songPermLoading, setSongPermLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOwner || !song.songId) return;
+    let alive = true;
+    setSongPermLoading(true);
+    PermissionsService.list("song", song.songId)
+      .then((list) => {
+        if (!alive) return;
+        const emailLower = (collaboratorEmail ?? "").toLowerCase();
+        const match =
+          list.find(
+            (g) =>
+              g.userId === collaboratorId ||
+              (emailLower !== "" && g.email?.toLowerCase() === emailLower),
+          ) ?? null;
+        setSongGrantee(match);
+      })
+      .catch(() => {
+        if (alive) setSongGrantee(null);
+      })
+      .finally(() => {
+        if (alive) setSongPermLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [isOwner, song.songId, collaboratorId, collaboratorEmail]);
+
+  const toggleSongPermission = async (key: PermissionGrantKey) => {
+    if (!songGrantee) return;
+    const next = !songGrantee.grants[key];
+    const prev = songGrantee;
+    setSongGrantee({
+      ...songGrantee,
+      grants: { ...songGrantee.grants, [key]: next },
+      explicit: { ...(songGrantee.explicit ?? {}), [key]: next },
+    });
+    try {
+      await PermissionsService.set("song", song.songId, songGrantee.userId, {
+        ...songGrantee.grants,
+        [key]: next,
+      });
+    } catch {
+      setSongGrantee(prev);
+    }
+  };
   const streams = metrics?.totalStreams ?? song.totalStreams;
   const net = metrics?.totalNetIncome ?? song.totalNetIncome;
   const split = metrics?.split ?? song.split;
@@ -484,6 +650,56 @@ function SongView({
         <Metric label="SU PARTE" value={formatCurrency(split?.totalOwed ?? 0)} />
         <Metric label="YA PAGADO" value={formatCurrency(split?.totalPaid ?? 0)} color="#71757E" />
       </div>
+
+      {isOwner && (
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-2 text-[12.5px] font-semibold text-[#1C1D22]">
+              <ShieldCheck className="h-4 w-4 text-[#FF5C00]" />
+              Permisos personalizados en esta canción
+            </span>
+          </div>
+          {songPermLoading ? (
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="h-[46px] animate-pulse rounded-[14px] bg-[#F4F5F7]" />
+              ))}
+            </div>
+          ) : !songGrantee ? (
+            <p className="rounded-[15px] bg-[#F4F5F7] px-4 py-4 text-[12px] text-[#71757E]">
+              Sin permisos configurables para este usuario en esta canción.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {PERM_VIEW_OPTIONS.map(({ key, label }) => (
+                <SwitchTile
+                  key={key}
+                  onGlass={false}
+                  label={label}
+                  checked={Boolean(songGrantee.grants[key])}
+                  inherited={
+                    songGrantee.explicit ? songGrantee.explicit[key] === undefined : true
+                  }
+                  onChange={() => toggleSongPermission(key)}
+                />
+              ))}
+              {songGrantee.role === "label" &&
+                PERM_LABEL_OPTIONS.map(({ key, label }) => (
+                  <SwitchTile
+                    key={key}
+                    onGlass={false}
+                    label={label}
+                    checked={Boolean(songGrantee.grants[key])}
+                    inherited={
+                      songGrantee.explicit ? songGrantee.explicit[key] === undefined : true
+                    }
+                    onChange={() => toggleSongPermission(key)}
+                  />
+                ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {platforms.length > 0 && (
         <div className="flex flex-col gap-2.5">

@@ -4,6 +4,9 @@ import {
   type SplitsPanelSection,
 } from "@/components/splits/SongSplitsPanel";
 import { RequestEditSplitButton } from "@/components/music/RequestEditSplitButton";
+import { SwitchTile } from "@/components/music/PermissionsModal";
+import { PermissionsService } from "@/services/permissions";
+import type { PermissionGrantKey, PermissionGrantee } from "@/types/permissions.types";
 import PaymentConfirmationModal from "../../../../../components/modal/PaymentConfirmationModal";
 import CollaboratorPaymentHistoryModal from "../../../../../components/modal/CollaboratorPaymentHistoryModal";
 import { CollaboratorDetailModal } from "../../../../../components/collaborators/CollaboratorDetailModal";
@@ -29,6 +32,7 @@ import {
   CircleCheck,
   Clock3,
   AlertCircle,
+  ShieldCheck,
 } from "lucide-react";
 import { User as UserType } from "../../../../../models/user";
 import PaymentsService from "@/services/payments";
@@ -87,6 +91,8 @@ interface TableProps {
   isOwner?: boolean;
   /** Se pinta en la cabecera de la tarjeta, junto a las acciones de split. */
   headerAction?: ReactNode;
+  /** Refresca los datos de la canción sin recargar la página ni cerrar el modal. */
+  onRefresh?: () => void | Promise<void>;
 }
 
 /** Campos que el backend añade al colaborador y que `User` todavía no declara. */
@@ -164,6 +170,25 @@ function getInitials(name: string) {
 const idOf = (ref: SplitDistributionEntry["userId"]): string =>
   typeof ref === "string" ? ref : String(ref?._id ?? ref?.id ?? "");
 
+const SONG_VIEW_OPTIONS: { key: PermissionGrantKey; label: string }[] = [
+  { key: "viewIncome", label: "Ver ingresos" },
+  { key: "viewStreams", label: "Ver streams" },
+  { key: "viewCollaborators", label: "Ver colaboradores" },
+  { key: "viewDocuments", label: "Ver documentos" },
+];
+
+const SONG_LABEL_OPTIONS: { key: PermissionGrantKey; label: string }[] = [
+  { key: "canEditSplits", label: "Editar splits" },
+  { key: "canInviteCollaborators", label: "Invitar colaboradores" },
+  { key: "canViewOwnerData", label: "Ver datos del owner" },
+];
+
+const hasCustomGrants = (grantee: PermissionGrantee, key?: PermissionGrantKey) => {
+  if (!grantee.explicit) return false;
+  if (key) return grantee.explicit[key] !== undefined;
+  return Object.keys(grantee.explicit).length > 0;
+};
+
 /** Traduce el alcance del split a una frase corta. */
 const scopeOf = (entry?: SplitDistributionEntry | null) => describeSplitScope(entry);
 
@@ -173,6 +198,7 @@ export default function Table({
   song,
   isOwner = false,
   headerAction,
+  onRefresh,
 }: TableProps) {
   // Tu parte, el reparto, invitar y las personas sin cuenta viven en un mismo
   // panel; esto dice con qué sección se abre, o null si está cerrado.
@@ -197,6 +223,10 @@ export default function Table({
   const [detailCollaborator, setDetailCollaborator] = useState<Collaborator | null>(null);
   const [removeTarget, setRemoveTarget] = useState<RemoveSplitTarget | null>(null);
   const [unlinkTarget, setUnlinkTarget] = useState<RemoveCollaboratorTarget | null>(null);
+  const [showPermissions, setShowPermissions] = useState(false);
+  const [songGrantees, setSongGrantees] = useState<PermissionGrantee[]>([]);
+  const [permissionsLoading, setPermissionsLoading] = useState(false);
+  const [permissionsError, setPermissionsError] = useState<string | null>(null);
 
   const currentUser = LocalStorageService.getItem("user");
   const rawUserType = String(
@@ -231,6 +261,80 @@ export default function Table({
       active = false;
     };
   }, [songId]);
+
+  useEffect(() => {
+    if (!isOwner || !songId) return;
+    let active = true;
+    setPermissionsLoading(true);
+    setPermissionsError(null);
+    PermissionsService.list("song", songId)
+      .then((data) => {
+        if (active) setSongGrantees(data);
+      })
+      .catch(() => {
+        if (active) setPermissionsError("No se pudieron cargar los permisos de esta canción.");
+      })
+      .finally(() => {
+        if (active) setPermissionsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [isOwner, songId]);
+
+  const handleGlobalSongToggle = async (key: PermissionGrantKey) => {
+    if (!songId) return;
+    const targets = songGrantees.filter((g) => !hasCustomGrants(g, key));
+    if (targets.length === 0) {
+      addToast("info", "Todos los participantes tienen permisos personalizados en este ajuste.");
+      return;
+    }
+    const next = !targets.every((g) => Boolean(g.grants[key]));
+    const previous = songGrantees;
+    setPermissionsError(null);
+    setSongGrantees((current) =>
+      current.map((g) =>
+        hasCustomGrants(g, key) ? g : { ...g, grants: { ...g.grants, [key]: next } },
+      ),
+    );
+    try {
+      await Promise.all(
+        targets.map((g) =>
+          PermissionsService.set("song", songId, g.userId, { ...g.grants, [key]: next }),
+        ),
+      );
+    } catch {
+      setSongGrantees(previous);
+      setPermissionsError("No se pudieron actualizar los permisos globales de la canción.");
+    }
+  };
+
+  const handleIndividualSongToggle = async (grantee: PermissionGrantee, key: PermissionGrantKey) => {
+    if (!songId) return;
+    const next = !grantee.grants[key];
+    const previous = songGrantees;
+    setPermissionsError(null);
+    setSongGrantees((current) =>
+      current.map((g) =>
+        g.userId === grantee.userId
+          ? {
+              ...g,
+              grants: { ...g.grants, [key]: next },
+              explicit: { ...(g.explicit ?? {}), [key]: next },
+            }
+          : g,
+      ),
+    );
+    try {
+      await PermissionsService.set("song", songId, grantee.userId, {
+        ...grantee.grants,
+        [key]: next,
+      });
+    } catch {
+      setSongGrantees(previous);
+      setPermissionsError("No se pudo guardar el permiso individual.");
+    }
+  };
 
   const addToast = (type: ValidationToastType, message: string) => {
     setToasts((prev) => [
@@ -295,9 +399,20 @@ export default function Table({
     });
   };
 
+  const refreshInPlace = async () => {
+    if (songId) {
+      try {
+        const data = await songSplitsService.getSongSplits(songId);
+        setDistribution(data);
+      } catch {
+        /* silencioso */
+      }
+    }
+    await onRefresh?.();
+  };
+
   const handleOwnerSplitCreated = () => {
-    setPanelSection(null);
-    window.location.reload();
+    refreshInPlace();
   };
 
   const openPaymentConfirmation = (
@@ -508,16 +623,9 @@ export default function Table({
         canInvite={Boolean(isOwner)}
         canAddPlaceholders={Boolean(isOwner && song?.requesterRole === "admin")}
         onOwnerSplitCreated={handleOwnerSplitCreated}
-        onPlaceholderAttached={() => {
-          setPanelSection(null);
-          window.location.reload();
-        }}
-        onCollaboratorAdded={() => {
-          // Como el resto del panel: la página se relee para que la persona
-          // aparezca en la tabla y en el reparto.
-          setPanelSection(null);
-          window.location.reload();
-        }}
+        onSplitsSaved={refreshInPlace}
+        onPlaceholderAttached={refreshInPlace}
+        onCollaboratorAdded={refreshInPlace}
       />
       <CollaboratorPaymentHistoryModal
         isOpen={historyModal.open}
@@ -581,6 +689,42 @@ export default function Table({
                 onToast={addToast}
               />
             )}
+            {isOwner && songId && (
+              <div
+                role="tablist"
+                aria-label="Vista de la tabla"
+                className="flex items-center gap-0.5 rounded-full bg-black/[0.22] p-1"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={!showPermissions}
+                  onClick={() => setShowPermissions(false)}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[12px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
+                    !showPermissions
+                      ? "bg-[#F7EDE6]/[0.92] font-semibold text-[#1C1D22]"
+                      : "font-medium text-white/70 hover:text-white"
+                  }`}
+                >
+                  <Users className="h-3.5 w-3.5" />
+                  Colaboradores
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={showPermissions}
+                  onClick={() => setShowPermissions(true)}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[12px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00]/70 ${
+                    showPermissions
+                      ? "bg-[#F7EDE6]/[0.92] font-semibold text-[#1C1D22]"
+                      : "font-medium text-white/70 hover:text-white"
+                  }`}
+                >
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Permisos
+                </button>
+              </div>
+            )}
             {/* Un solo acceso: tu parte, el reparto, invitar y las personas sin
                 cuenta están en el mismo panel, cada una en su sección. */}
             {(canManageSplits || isOwner) && (
@@ -599,7 +743,133 @@ export default function Table({
 
         <div className="h-px bg-white/[0.09]" />
 
-        {rows.length === 0 ? (
+        {showPermissions && isOwner ? (
+          <div className="px-6 py-5">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h4 className="text-[13.5px] font-semibold text-white">
+                  Permisos globales de la canción
+                </h4>
+                <p className="text-[11.5px] text-white/60">
+                  Se aplican a todos los colaboradores de esta canción que no tengan permisos personalizados.
+                </p>
+              </div>
+            </div>
+
+            {permissionsError && (
+              <div
+                role="alert"
+                className="mb-3 flex items-center gap-2 rounded-[14px] border border-[#E5484D]/30 bg-[#E5484D]/[0.14] px-3.5 py-2 text-[12px] text-[#FF8F92]"
+              >
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                <span>{permissionsError}</span>
+              </div>
+            )}
+
+            {permissionsLoading ? (
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="h-[52px] animate-pulse rounded-[14px] bg-white/[0.06]" />
+                ))}
+              </div>
+            ) : songGrantees.length === 0 ? (
+              <p className="rounded-[16px] border border-white/[0.08] bg-white/[0.03] px-4 py-4 text-[12px] text-white/60">
+                Aún no hay colaboradores o sellos con acceso a esta canción.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-5">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {SONG_VIEW_OPTIONS.map(({ key, label }) => {
+                    const nonCustom = songGrantees.filter((g) => !hasCustomGrants(g, key));
+                    const checked =
+                      nonCustom.length > 0 && nonCustom.every((g) => Boolean(g.grants[key]));
+                    return (
+                      <SwitchTile
+                        key={key}
+                        label={label}
+                        checked={checked}
+                        disabled={nonCustom.length === 0}
+                        onChange={() => handleGlobalSongToggle(key)}
+                      />
+                    );
+                  })}
+                </div>
+
+                <div className="flex flex-col gap-2.5">
+                  <p className="font-mono text-[9.5px] font-semibold tracking-[1.2px] text-white/55">
+                    PERMISOS INDIVIDUALES EN ESTA CANCIÓN
+                  </p>
+                  <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    {songGrantees.map((grantee) => {
+                      const isLabel = grantee.role === "label";
+                      const isCustom = hasCustomGrants(grantee);
+                      return (
+                        <div
+                          key={grantee.userId}
+                          className={`flex flex-col gap-2.5 rounded-[18px] border p-3.5 ${
+                            isCustom
+                              ? "border-[#FF8A3D]/40 bg-[#FF5C00]/[0.06]"
+                              : "border-white/[0.09] bg-white/[0.04]"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <p className="truncate text-[12.5px] font-semibold text-white">
+                                  {grantee.name}
+                                </p>
+                                {isCustom && (
+                                  <span className="flex-shrink-0 rounded-full bg-[#FF5C00]/[0.20] px-2 py-0.5 text-[9.5px] font-semibold text-[#FFB48A]">
+                                    Personalizado
+                                  </span>
+                                )}
+                              </div>
+                              <p className="truncate text-[11px] text-white/55">{grantee.email}</p>
+                            </div>
+                            <span
+                              className={`flex-shrink-0 rounded-full px-2 py-0.5 font-mono text-[9px] font-semibold tracking-[1px] ${
+                                isLabel
+                                  ? "bg-[#FF5C00]/[0.16] text-[#FF9A5C]"
+                                  : "border border-white/[0.12] bg-white/[0.06] text-white/70"
+                              }`}
+                            >
+                              {isLabel ? "SELLO" : "COLABORADOR"}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                            {SONG_VIEW_OPTIONS.map(({ key, label }) => (
+                              <SwitchTile
+                                key={key}
+                                label={label}
+                                checked={Boolean(grantee.grants[key])}
+                                inherited={
+                                  grantee.explicit ? grantee.explicit[key] === undefined : true
+                                }
+                                onChange={() => handleIndividualSongToggle(grantee, key)}
+                              />
+                            ))}
+                            {isLabel &&
+                              SONG_LABEL_OPTIONS.map(({ key, label }) => (
+                                <SwitchTile
+                                  key={key}
+                                  label={label}
+                                  checked={Boolean(grantee.grants[key])}
+                                  inherited={
+                                    grantee.explicit ? grantee.explicit[key] === undefined : true
+                                  }
+                                  onChange={() => handleIndividualSongToggle(grantee, key)}
+                                />
+                              ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : rows.length === 0 ? (
           <div className="flex flex-col items-center gap-2.5 py-16 text-center">
             <span className="grid h-[58px] w-[58px] place-items-center rounded-[20px] bg-[#FF5C00]/15">
               <Users className="h-6 w-6 text-[#FF8A3D]" />
@@ -676,6 +946,23 @@ export default function Table({
                             {row.name}
                           </span>
                           {row.isPlaceholder && <PlaceholderChip onGlass />}
+                          {!row.isOwnerRow &&
+                            isOwner &&
+                            songGrantees.some(
+                              (g) =>
+                                hasCustomGrants(g) &&
+                                (g.userId === row.userId ||
+                                  (row.email !== "" &&
+                                    g.email?.toLowerCase() === row.email.toLowerCase())),
+                            ) && (
+                              <span
+                                title="Este usuario tiene permisos personalizados distintos a los globales"
+                                className="inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-[#FF5C00]/[0.16] px-2 py-0.5 text-[10px] font-semibold text-[#FF9A5C]"
+                              >
+                                <ShieldCheck className="h-2.5 w-2.5" />
+                                Permisos propios
+                              </span>
+                            )}
                         </span>
                         <span className="truncate text-[11px] text-white/50">
                           {row.isPlaceholder ? "Todavía no se ha registrado" : row.email || "—"}
